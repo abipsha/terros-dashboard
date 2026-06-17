@@ -25,7 +25,7 @@ import terros
 
 PORT      = int(os.environ.get("PORT", 8000))  # Render sets PORT automatically
 ROOT_DIR  = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # terros-dashboard/
-HTML_FILE = os.path.join(ROOT_DIR, "vivid-terros-dashboard.html")
+HTML_FILE = os.path.join(ROOT_DIR, "index.html")
 
 # Terros uses Central Daylight Time (CDT = UTC-5) for all date boundaries.
 # Confirmed: stats URL start=1780290000000 = Jun 1, 2026 00:00 CDT exactly.

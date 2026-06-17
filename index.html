@@ -1,0 +1,1335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vivid · Terros Film Room</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --black: #0e0e0f;
+  --white: #f5f4f0;
+  --ink: #1a1a1c;
+  --muted: #6b6b70;
+  --border: #d4d2cb;
+  --border-light: #e8e6df;
+  --surface: #faf9f6;
+  --surface2: #f0ede6;
+  --green: #1a6e47;
+  --green-bg: #e8f5ee;
+  --amber: #8a5a00;
+  --amber-bg: #fdf3dc;
+  --red: #9b2020;
+  --red-bg: #fceaea;
+  --blue: #1b4f8a;
+  --blue-bg: #e5eef9;
+  --purple: #4a2c8a;
+  --purple-bg: #eee8f9;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 14px; }
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--white);
+  color: var(--ink);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* HEADER */
+.report-header {
+  background: var(--black);
+  color: var(--white);
+  padding: 22px 40px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+.header-left {}
+.report-brand {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: .18em;
+  color: #888;
+  text-transform: uppercase;
+  margin-bottom: 5px;
+}
+.report-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--white);
+  line-height: 1.1;
+}
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.week-nav {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #1a1a1c;
+  border: 1px solid #333;
+  border-radius: 6px;
+  padding: 6px 10px;
+}
+.week-nav button {
+  background: none;
+  border: none;
+  color: #aaa;
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  padding: 0 4px;
+  transition: color .15s;
+}
+.week-nav button:hover { color: var(--white); }
+.week-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  color: var(--white);
+  letter-spacing: .04em;
+  min-width: 140px;
+  text-align: center;
+}
+.btn-refresh {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  padding: 7px 14px;
+  background: none;
+  border: 1px solid #444;
+  color: #aaa;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all .15s;
+}
+.btn-refresh:hover { border-color: #888; color: var(--white); }
+.btn-refresh.loading { opacity: .5; pointer-events: none; }
+.btn-export {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  padding: 7px 14px;
+  background: #1a6e47;
+  border: 1px solid #2a9e67;
+  color: #aeffcf;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all .15s;
+  display: none;
+}
+.btn-export:hover { background: #1f8a58; color: #fff; }
+.btn-export.visible { display: inline-block; }
+.header-kpis {
+  display: flex;
+  gap: 22px;
+  align-items: center;
+}
+.hkpi { text-align: right; }
+.hkpi-val {
+  font-family: 'Syne', sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--white);
+  line-height: 1;
+}
+.hkpi-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  color: #777;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+.hkpi-divider { width: .5px; height: 32px; background: #333; }
+
+/* LOADING / ERROR */
+.status-bar {
+  background: #1e3a5f;
+  color: #93c5fd;
+  padding: 10px 40px;
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  letter-spacing: .04em;
+}
+.status-bar.error { background: #3f1515; color: #fca5a5; }
+.status-bar.success { background: #14301f; color: #86efac; }
+.status-bar.hidden { display: none; }
+.spinner {
+  width: 12px; height: 12px;
+  border: 2px solid rgba(147,197,253,.3);
+  border-top-color: #93c5fd;
+  border-radius: 50%;
+  animation: spin .7s linear infinite;
+  flex-shrink: 0;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* TABS */
+.tabs-bar {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  padding: 0 40px;
+  overflow-x: auto;
+}
+.tab {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  padding: 13px 20px;
+  border: none;
+  background: none;
+  color: var(--muted);
+  cursor: pointer;
+  white-space: nowrap;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: color .15s, border-color .15s;
+}
+.tab:hover { color: var(--ink); }
+.tab.active { color: var(--ink); border-bottom-color: var(--ink); font-weight: 500; }
+
+/* MAIN */
+.main { padding: 28px 40px 48px; }
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+/* PANEL HEADER */
+.panel-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 22px;
+}
+.panel-title { font-family: 'Syne', sans-serif; font-size: 19px; font-weight: 700; }
+.panel-desc { font-size: 13px; color: var(--muted); margin-top: 3px; }
+.panel-meta { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); letter-spacing: .06em; }
+
+/* METRIC STRIP */
+.metric-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 10px;
+  margin-bottom: 24px;
+}
+.mcard {
+  background: var(--surface);
+  border: 1px solid var(--border-light);
+  border-radius: 6px;
+  padding: 13px 15px;
+}
+.mcard-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: var(--muted);
+  margin-bottom: 5px;
+}
+.mcard-value { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 700; line-height: 1; }
+.mcard-sub { font-size: 11px; color: var(--muted); margin-top: 3px; }
+.mcard.accent-green { border-left: 3px solid var(--green); }
+.mcard.accent-red { border-left: 3px solid var(--red); }
+.mcard.accent-amber { border-left: 3px solid var(--amber); }
+.mcard.accent-blue { border-left: 3px solid var(--blue); }
+
+/* TABLES */
+.data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.data-table thead th {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  text-align: left;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+  background: var(--surface);
+}
+.data-table tbody td {
+  padding: 9px 12px;
+  border-bottom: .5px solid var(--border-light);
+  vertical-align: middle;
+}
+.data-table tbody tr:hover td { background: var(--surface); }
+.data-table tbody tr:last-child td { border-bottom: none; }
+.rank-num { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); width: 28px; }
+
+/* BADGES */
+.badge {
+  display: inline-block;
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 3px;
+}
+.badge-green { background: var(--green-bg); color: var(--green); }
+.badge-amber { background: var(--amber-bg); color: var(--amber); }
+.badge-red { background: var(--red-bg); color: var(--red); }
+.badge-blue { background: var(--blue-bg); color: var(--blue); }
+.badge-gray { background: var(--surface2); color: var(--muted); }
+.badge-purple { background: var(--purple-bg); color: var(--purple); }
+
+/* ALERT LIST */
+.alert-list { display: flex; flex-direction: column; gap: 0; }
+.alert-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 13px 0;
+  border-bottom: .5px solid var(--border-light);
+}
+.alert-row:last-child { border-bottom: none; }
+.alert-dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 4px; flex-shrink: 0; }
+.alert-dot-red { background: var(--red); }
+.alert-dot-amber { background: #d97706; }
+.alert-dot-green { background: var(--green); }
+.alert-name { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+.alert-detail { font-size: 12px; color: var(--muted); line-height: 1.5; }
+.alert-tag { margin-left: auto; flex-shrink: 0; }
+
+/* TWO COLS */
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.section-box {
+  background: var(--surface);
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  padding: 18px 22px;
+}
+.box-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 13px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.box-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+
+/* GHOST */
+.ghost-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 8px; margin-top: 14px; }
+.ghost-card {
+  background: var(--surface);
+  border: 1px solid var(--border-light);
+  border-radius: 6px;
+  padding: 11px 13px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.ghost-initials {
+  width: 30px; height: 30px; border-radius: 50%;
+  background: var(--surface2);
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  color: var(--muted);
+  flex-shrink: 0;
+}
+.ghost-name { font-size: 12px; font-weight: 500; }
+.ghost-sub { font-size: 11px; color: var(--muted); }
+
+/* STANDOUT CARDS */
+.standout-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 12px; }
+.standout-card {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px 17px;
+  background: #fff;
+  position: relative;
+  overflow: hidden;
+}
+.standout-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 3px; height: 100%;
+}
+.standout-card.s-green::before { background: var(--green); }
+.standout-card.s-red::before { background: var(--red); }
+.standout-card.s-amber::before { background: #d97706; }
+.standout-card.s-blue::before { background: var(--blue); }
+.sc-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 7px; }
+.sc-name { font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700; }
+.sc-body { font-size: 12px; color: var(--muted); line-height: 1.6; }
+.sc-stats { display: flex; gap: 14px; margin-top: 10px; padding-top: 10px; border-top: .5px solid var(--border-light); }
+.sc-stat-val { font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; }
+.sc-stat-lbl { font-family: 'DM Mono', monospace; font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+
+/* EMPTY STATE */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--muted);
+}
+.empty-state-icon { font-size: 36px; margin-bottom: 12px; }
+.empty-state-title { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 600; color: var(--ink); margin-bottom: 6px; }
+.empty-state-desc { font-size: 13px; line-height: 1.6; }
+
+/* SECTION DIVIDER */
+.section-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: var(--muted);
+  margin: 20px 0 10px;
+}
+
+/* FOOTER */
+.report-footer {
+  border-top: 1px solid var(--border);
+  padding: 12px 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.footer-note { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); letter-spacing: .04em; }
+
+/* PRINT */
+@media print {
+  .tabs-bar, .header-controls, .status-bar { display: none !important; }
+  .tab-panel { display: block !important; page-break-inside: avoid; }
+  .report-header { background: #000 !important; -webkit-print-color-adjust: exact; }
+}
+
+@media (max-width: 700px) {
+  /* Header */
+  .report-header {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 14px 16px;
+    gap: 12px;
+  }
+  .report-title { font-size: 18px; }
+  .header-controls { width: 100%; flex-wrap: wrap; gap: 8px; }
+  .week-nav { flex: 1; justify-content: space-between; }
+  .week-label { flex: 1; min-width: 0; text-align: center; }
+  .btn-refresh, .btn-export { padding: 9px 12px; min-height: 36px; }
+  .header-kpis { display: none; }
+
+  /* Status / tabs / main / footer */
+  .status-bar { padding: 10px 16px; }
+  .tabs-bar { padding: 0 0 0 8px; }
+  .main { padding: 16px 16px 40px; }
+  .report-footer { padding: 12px 16px; flex-direction: column; gap: 5px; }
+
+  /* Panels */
+  .panel-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    margin-bottom: 14px;
+  }
+  .panel-title { font-size: 16px; }
+  .two-col { grid-template-columns: 1fr; }
+
+  /* Metric cards */
+  .mcard-value { font-size: 18px; }
+  .metric-strip { grid-template-columns: repeat(2, 1fr) !important; }
+
+  /* Tables — horizontal scroll */
+  .table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin-left: -16px;
+    margin-right: -16px;
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+  .section-box { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .data-table { font-size: 12px; min-width: 480px; }
+  .data-table thead th { padding: 6px 8px; font-size: 8px; }
+  .data-table tbody td { padding: 7px 8px; }
+
+  /* Cards / grids */
+  .standout-grid { grid-template-columns: 1fr; }
+  .ghost-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+}
+</style>
+</head>
+<body>
+
+<header class="report-header">
+  <div class="header-left">
+    <div class="report-brand">Vivid · Direct to Home · Terros Live Dashboard</div>
+    <div class="report-title" id="report-title">Loading…</div>
+  </div>
+  <div class="header-controls">
+    <div class="week-nav">
+      <button onclick="shiftWeek(-1)" title="Previous week">&#8592;</button>
+      <div class="week-label" id="week-label">—</div>
+      <button onclick="shiftWeek(1)" title="Next week">&#8594;</button>
+    </div>
+    <button class="btn-refresh" id="btn-refresh" onclick="loadData()">&#8635; Refresh</button>
+    <button class="btn-export" id="btn-export" onclick="exportHTML()">&#8595; Export HTML</button>
+  </div>
+  <div class="header-kpis" id="header-kpis">
+    <div class="hkpi"><div class="hkpi-val" id="hkpi-pitches">—</div><div class="hkpi-label">Pitches</div></div>
+    <div class="hkpi-divider"></div>
+    <div class="hkpi"><div class="hkpi-val" id="hkpi-knocks">—</div><div class="hkpi-label">Knocks</div></div>
+    <div class="hkpi-divider"></div>
+    <div class="hkpi"><div class="hkpi-val" id="hkpi-acs">—</div><div class="hkpi-label">ACs</div></div>
+    <div class="hkpi-divider"></div>
+    <div class="hkpi"><div class="hkpi-val" id="hkpi-sras">—</div><div class="hkpi-label">SRAs</div></div>
+  </div>
+</header>
+
+<div class="status-bar hidden" id="status-bar">
+  <div class="spinner" id="status-spinner"></div>
+  <span id="status-text"></span>
+</div>
+
+<nav class="tabs-bar">
+  <button class="tab active" onclick="switchTab('overview', this)">Overview</button>
+  <button class="tab" onclick="switchTab('effort', this)">Effort Board</button>
+  <button class="tab" onclick="switchTab('conversion', this)">Conversion</button>
+  <button class="tab" onclick="switchTab('flags', this)">Red Flags</button>
+  <button class="tab" onclick="switchTab('ghosts', this)">Ghost Reps</button>
+  <button class="tab" onclick="switchTab('standouts', this)">Film Room</button>
+</nav>
+
+<main class="main">
+
+<!-- OVERVIEW -->
+<section class="tab-panel active" id="panel-overview">
+  <div class="panel-header">
+    <div>
+      <div class="panel-title">Week at a glance</div>
+      <div class="panel-desc" id="overview-desc">Select a week and click Refresh to load data.</div>
+    </div>
+    <div class="panel-meta" id="overview-meta"></div>
+  </div>
+  <div class="metric-strip" id="overview-metrics">
+    <div class="mcard"><div class="mcard-label">Loading</div><div class="mcard-value" style="color:var(--muted)">—</div></div>
+  </div>
+  <div class="two-col" id="overview-tables"></div>
+  <div style="margin-top:18px" id="overview-concerns"></div>
+</section>
+
+<!-- EFFORT BOARD -->
+<section class="tab-panel" id="panel-effort">
+  <div class="panel-header">
+    <div>
+      <div class="panel-title">Effort leaderboard</div>
+      <div class="panel-desc">All active reps ranked by pitches. Pitch rate = pitches ÷ knocks.</div>
+    </div>
+    <div class="panel-meta" id="effort-meta"></div>
+  </div>
+  <div class="metric-strip" id="effort-metrics" style="grid-template-columns:repeat(3,1fr)"></div>
+  <div class="table-wrap">
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>#</th><th>Rep</th><th>Pitches</th><th>Knocks</th><th>Pitch Rate</th><th>Pitches/Knock</th><th>ACs</th><th>SRAs</th><th>Rating</th>
+      </tr>
+    </thead>
+    <tbody id="effort-tbody"></tbody>
+  </table>
+  </div>
+</section>
+
+<!-- CONVERSION -->
+<section class="tab-panel" id="panel-conversion">
+  <div class="panel-header">
+    <div>
+      <div class="panel-title">Conversion funnel</div>
+      <div class="panel-desc">Pitches → Leads → ACs → SRAs. Only reps with at least one lead shown.</div>
+    </div>
+    <div class="panel-meta" id="conv-meta"></div>
+  </div>
+  <div class="metric-strip" id="conv-metrics" style="grid-template-columns:repeat(5,1fr)"></div>
+  <div class="table-wrap">
+  <table class="data-table">
+    <thead>
+      <tr><th>#</th><th>Rep</th><th>Pitches</th><th>Leads</th><th>ACs</th><th>SRAs</th><th>Lead→AC %</th><th>Pitch→AC %</th></tr>
+    </thead>
+    <tbody id="conv-tbody"></tbody>
+  </table>
+  </div>
+</section>
+
+<!-- RED FLAGS -->
+<section class="tab-panel" id="panel-flags">
+  <div class="panel-header">
+    <div>
+      <div class="panel-title">Red flags &amp; coaching targets</div>
+      <div class="panel-desc">Reps requiring attention — high effort with low conversion, zero output despite activity, or stalled pipelines.</div>
+    </div>
+    <div class="panel-meta" id="flags-meta"></div>
+  </div>
+  <div id="flags-content"></div>
+</section>
+
+<!-- GHOST REPS -->
+<section class="tab-panel" id="panel-ghosts">
+  <div class="panel-header">
+    <div>
+      <div class="panel-title">Ghost reps — zero activity</div>
+      <div class="panel-desc" id="ghosts-desc">Reps on roster who logged no activity this week.</div>
+    </div>
+    <div class="panel-meta" id="ghosts-meta"></div>
+  </div>
+  <div class="metric-strip" id="ghosts-metrics" style="grid-template-columns:repeat(3,1fr)"></div>
+  <div class="ghost-grid" id="ghosts-grid"></div>
+</section>
+
+<!-- FILM ROOM -->
+<section class="tab-panel" id="panel-standouts">
+  <div class="panel-header">
+    <div>
+      <div class="panel-title">Film room — this week's tape</div>
+      <div class="panel-desc">Individual rep standouts and coaching cues from the week's data.</div>
+    </div>
+    <div class="panel-meta" id="standouts-meta"></div>
+  </div>
+  <div class="standout-grid" id="standout-grid"></div>
+</section>
+
+</main>
+
+<footer class="report-footer">
+  <div class="footer-note">Vivid · Direct to Home · Powered by Terros API</div>
+  <div class="footer-note" id="footer-generated"></div>
+</footer>
+
+<script>
+// ─────────────────────────────────────────────────────────
+// CONFIG
+// ─────────────────────────────────────────────────────────
+// ── API URL config ────────────────────────────────────────
+// After deploying to Render, paste your Render URL below (keep the quotes, no trailing slash).
+// Example: const PROD_API = 'https://terros-dashboard.onrender.com';
+const PROD_API  = 'https://terros-dashboard.onrender.com'; // ← UPDATE AFTER RENDER DEPLOY
+const LOCAL_API = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
+  ? 'http://localhost:8000'
+  : PROD_API;
+
+// When this file is exported as a standalone snapshot, the server
+// injects STATIC_DATA here and the dashboard skips all API calls.
+const STATIC_DATA = (typeof __STATIC_DATA__ !== 'undefined') ? __STATIC_DATA__ : null;
+
+// ─────────────────────────────────────────────────────────
+// WEEK STATE
+// ─────────────────────────────────────────────────────────
+let weekOffset = 0; // 0 = current week, -1 = last week, etc.
+
+function getWeekRange(offset = 0) {
+  const now = new Date();
+  const day = now.getDay(); // 0=Sun, 1=Mon
+  const diffToMon = (day === 0 ? -6 : 1 - day);
+  const mon = new Date(now);
+  mon.setDate(now.getDate() + diffToMon + offset * 7);
+  mon.setHours(0, 0, 0, 0);
+  const sun = new Date(mon);
+  sun.setDate(mon.getDate() + 6);
+  sun.setHours(23, 59, 59, 999);
+  return { start: mon, end: sun };
+}
+
+function fmtDate(d) {
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
+function fmtDateFull(d) {
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+function shiftWeek(delta) {
+  weekOffset += delta;
+  loadData();
+}
+
+// ─────────────────────────────────────────────────────────
+// UI HELPERS
+// ─────────────────────────────────────────────────────────
+function setStatus(msg, type = 'loading') {
+  const bar = document.getElementById('status-bar');
+  const text = document.getElementById('status-text');
+  const spinner = document.getElementById('status-spinner');
+  bar.className = 'status-bar ' + (type === 'loading' ? '' : type);
+  text.textContent = msg;
+  spinner.style.display = type === 'loading' ? 'block' : 'none';
+  if (type !== 'loading') {
+    setTimeout(() => bar.classList.add('hidden'), 4000);
+  }
+}
+
+function hideStatus() {
+  document.getElementById('status-bar').classList.add('hidden');
+}
+
+function switchTab(name, el) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  if (el) el.classList.add('active');
+}
+
+// ─────────────────────────────────────────────────────────
+// API CALL  (local Python server)
+// ─────────────────────────────────────────────────────────
+function toYMD(date) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
+async function fetchWeeklyReport(startDate, endDate) {
+  const url = `${LOCAL_API}/api/weekly?start=${toYMD(startDate)}&end=${toYMD(endDate)}`;
+  const resp = await fetch(url);
+  if (!resp.ok) {
+    const err = await resp.json().catch(() => ({}));
+    throw new Error(err.error || `HTTP ${resp.status}`);
+  }
+  return resp.json();
+}
+
+// ─────────────────────────────────────────────────────────
+// DATA PROCESSING
+// ─────────────────────────────────────────────────────────
+function parseRows(apiData) {
+  // apiData.reps is already aggregated per-rep by the local Python server
+  const reps = apiData.reps || [];
+  return reps
+    .filter(r => r.name)
+    .map(r => ({
+      name:       r.name,
+      userId:     r.userId,
+      knocks:     r.knocks      || 0,
+      pitches:    r.pitches     || 0,
+      leads:      r.leads       || 0,
+      acs:        r.acs         || 0,
+      sras:       r.sras        || 0,
+      firstPitch: r.firstPitch  || null,
+      lastPitch:  r.lastPitch   || null,
+    }));
+}
+
+function effortRating(r) {
+  // Without days data, use pitches and pitch rate as proxy
+  const pr = r.knocks > 0 ? r.pitches / r.knocks : 0;
+  const absConv = r.acs > 0 || r.sras > 0;
+  if (r.pitches >= 30 && pr >= 0.20) return { label: 'Elite', cls: 'badge-green' };
+  if (r.pitches >= 20 && pr >= 0.15) return { label: 'Solid', cls: 'badge-blue' };
+  if (r.pitches >= 10 && pr >= 0.10) return { label: 'Average', cls: 'badge-gray' };
+  if (r.pitches >= 5) return { label: 'Low Output', cls: 'badge-amber' };
+  if (r.pitches === 0) return { label: 'Ghost', cls: 'badge-red' };
+  return { label: 'Minimal', cls: 'badge-amber' };
+}
+
+// ─────────────────────────────────────────────────────────
+// RENDER
+// ─────────────────────────────────────────────────────────
+function renderOverview(reps, weekRange) {
+  const active = reps.filter(r => r.pitches > 0 || r.knocks > 0);
+  const ghosts = reps.filter(r => r.pitches === 0 && r.knocks === 0);
+  const totPitches = active.reduce((a, r) => a + r.pitches, 0);
+  const totKnocks = active.reduce((a, r) => a + r.knocks, 0);
+  const totACs = active.reduce((a, r) => a + r.acs, 0);
+  const totSRAs = active.reduce((a, r) => a + r.sras, 0);
+  const totLeads = active.reduce((a, r) => a + r.leads, 0);
+  const pitchRate = totKnocks > 0 ? (totPitches / totKnocks * 100).toFixed(1) + '%' : '—';
+  const acRate = totPitches > 0 ? (totACs / totPitches * 100).toFixed(1) + '%' : '—';
+
+  document.getElementById('overview-desc').textContent =
+    `High-level summary for ${fmtDate(weekRange.start)} – ${fmtDate(weekRange.end)}.`;
+  document.getElementById('overview-meta').textContent =
+    `${active.length} active · ${ghosts.length} ghost reps`;
+
+  // Header KPIs
+  document.getElementById('hkpi-pitches').textContent = totPitches.toLocaleString();
+  document.getElementById('hkpi-knocks').textContent = totKnocks.toLocaleString();
+  document.getElementById('hkpi-acs').textContent = totACs;
+  document.getElementById('hkpi-sras').textContent = totSRAs;
+  document.getElementById('report-title').textContent =
+    `Week of ${fmtDate(weekRange.start)} – ${fmtDate(weekRange.end)}, ${weekRange.end.getFullYear()}`;
+
+  document.getElementById('overview-metrics').innerHTML = `
+    <div class="mcard accent-blue"><div class="mcard-label">Active reps</div><div class="mcard-value">${active.length}</div><div class="mcard-sub">${reps.length > 0 ? Math.round(active.length/reps.length*100) : 0}% of roster</div></div>
+    <div class="mcard accent-red"><div class="mcard-label">Ghost reps</div><div class="mcard-value" style="color:var(--red)">${ghosts.length}</div><div class="mcard-sub">0 activity logged</div></div>
+    <div class="mcard"><div class="mcard-label">Total pitches</div><div class="mcard-value">${totPitches.toLocaleString()}</div><div class="mcard-sub">avg ${active.length ? (totPitches/active.length).toFixed(1) : 0} per active rep</div></div>
+    <div class="mcard"><div class="mcard-label">Total knocks</div><div class="mcard-value">${totKnocks.toLocaleString()}</div><div class="mcard-sub">avg ${active.length ? Math.round(totKnocks/active.length) : 0} per active rep</div></div>
+    <div class="mcard accent-green"><div class="mcard-label">Total ACs</div><div class="mcard-value">${totACs}</div><div class="mcard-sub">${acRate} of pitches</div></div>
+    <div class="mcard accent-green"><div class="mcard-label">SRAs closed</div><div class="mcard-value">${totSRAs}</div><div class="mcard-sub">${active.filter(r=>r.sras>0).length} reps contributed</div></div>
+    <div class="mcard accent-amber"><div class="mcard-label">Team pitch rate</div><div class="mcard-value">${pitchRate}</div><div class="mcard-sub">pitches ÷ knocks</div></div>
+    <div class="mcard"><div class="mcard-label">Total leads</div><div class="mcard-value">${totLeads}</div><div class="mcard-sub">${totPitches > 0 ? (totLeads/totPitches*100).toFixed(1) : 0}% of pitches</div></div>
+  `;
+
+  // Top 5 tables
+  const top5Pitches = [...active].sort((a,b) => b.pitches - a.pitches).slice(0, 5);
+  const top5ACs = [...active].sort((a,b) => b.acs - a.acs).slice(0, 5);
+
+  document.getElementById('overview-tables').innerHTML = `
+    <div class="section-box">
+      <div class="box-title"><span class="box-dot" style="background:var(--green)"></span> Top 5 by pitches</div>
+      <table class="data-table">
+        <thead><tr><th>#</th><th>Rep</th><th>Pitches</th><th>Knocks</th><th>ACs</th></tr></thead>
+        <tbody>${top5Pitches.map((r,i) => `<tr>
+          <td class="rank-num">${i+1}</td>
+          <td>${r.name}</td><td>${r.pitches}</td><td>${r.knocks.toLocaleString()}</td>
+          <td>${r.acs > 0 ? `<span class="badge badge-green">${r.acs}</span>` : `<span class="badge badge-gray">—</span>`}</td>
+        </tr>`).join('')}</tbody>
+      </table>
+    </div>
+    <div class="section-box">
+      <div class="box-title"><span class="box-dot" style="background:var(--blue)"></span> Top 5 by ACs</div>
+      <table class="data-table">
+        <thead><tr><th>#</th><th>Rep</th><th>ACs</th><th>SRAs</th><th>Pitches</th></tr></thead>
+        <tbody>${top5ACs.filter(r=>r.acs>0).map((r,i) => `<tr>
+          <td class="rank-num">${i+1}</td>
+          <td>${r.name}</td><td><strong>${r.acs}</strong></td>
+          <td>${r.sras || '—'}</td><td>${r.pitches}</td>
+        </tr>`).join('') || '<tr><td colspan="5" style="color:var(--muted);padding:16px;text-align:center">No ACs this week</td></tr>'}</tbody>
+      </table>
+    </div>
+  `;
+
+  // Concerns
+  const concerns = generateConcerns(active, ghosts, totPitches, totACs);
+  document.getElementById('overview-concerns').innerHTML = concerns.length > 0 ? `
+    <div class="section-box">
+      <div class="box-title"><span class="box-dot" style="background:var(--red)"></span> Key concerns this week</div>
+      <div class="alert-list">${concerns.map(c => `
+        <div class="alert-row">
+          <div class="alert-dot alert-dot-${c.level}"></div>
+          <div>
+            <div class="alert-name">${c.title}</div>
+            <div class="alert-detail">${c.detail}</div>
+          </div>
+          <div class="alert-tag"><span class="badge badge-${c.level === 'red' ? 'red' : 'amber'}">${c.tag}</span></div>
+        </div>
+      `).join('')}</div>
+    </div>
+  ` : '';
+}
+
+function generateConcerns(active, ghosts, totPitches, totACs) {
+  const concerns = [];
+
+  // High pitches, zero ACs
+  const highEffortZeroAC = active.filter(r => r.pitches >= 15 && r.acs === 0);
+  if (highEffortZeroAC.length > 0) {
+    const names = highEffortZeroAC.slice(0, 3).map(r => r.name).join(', ');
+    const totalP = highEffortZeroAC.reduce((a,r) => a+r.pitches, 0);
+    concerns.push({
+      level: 'red',
+      title: `${highEffortZeroAC.length} high-effort rep${highEffortZeroAC.length>1?'s':''} generating zero ACs`,
+      detail: `${names} — combined ${totalP} pitches, 0 ACs. Volume is there; pitch quality or close sequence needs review.`,
+      tag: 'Urgent'
+    });
+  }
+
+  // Ghost reps
+  if (ghosts.length > 0) {
+    concerns.push({
+      level: 'red',
+      title: `${ghosts.length} reps with zero activity this week`,
+      detail: `${Math.round(ghosts.length/(active.length+ghosts.length)*100)}% of roster did not knock a single door. Attendance and accountability conversations needed.`,
+      tag: 'Urgent'
+    });
+  }
+
+  // Low overall pitch rate
+  const totK = active.reduce((a,r)=>a+r.knocks,0);
+  const totP = active.reduce((a,r)=>a+r.pitches,0);
+  const teamPR = totK > 0 ? totP/totK : 0;
+  if (teamPR < 0.12 && totK > 100) {
+    concerns.push({
+      level: 'amber',
+      title: `Team pitch rate below 12% (${(teamPR*100).toFixed(1)}%)`,
+      detail: `The team is knocking many doors but not converting them into conversations. Door opener scripts need a review.`,
+      tag: 'Coaching'
+    });
+  }
+
+  // Zero ACs week overall
+  if (totACs === 0 && totPitches > 50) {
+    concerns.push({
+      level: 'red',
+      title: 'Zero ACs across the entire team this week',
+      detail: `${totPitches} pitches with no appointments confirmed. This is a close-sequence problem requiring immediate film session.`,
+      tag: 'Urgent'
+    });
+  }
+
+  // Reps with leads but zero ACs (close problem)
+  const leadsNoAC = active.filter(r => r.leads >= 3 && r.acs === 0);
+  if (leadsNoAC.length > 0) {
+    const names = leadsNoAC.slice(0, 3).map(r => r.name).join(', ');
+    concerns.push({
+      level: 'amber',
+      title: `${leadsNoAC.length} reps generating leads but closing zero ACs`,
+      detail: `${names} — conversations are starting but not converting. Dedicated close coaching needed.`,
+      tag: 'Close issue'
+    });
+  }
+
+  return concerns.slice(0, 4);
+}
+
+function renderEffort(active) {
+  const sorted = [...active].sort((a,b) => b.pitches - a.pitches);
+  const maxP = sorted[0]?.pitches || 1;
+  const avgPitches = active.length ? (active.reduce((a,r)=>a+r.pitches,0)/active.length).toFixed(1) : 0;
+  const totK = active.reduce((a,r)=>a+r.knocks,0);
+  const totP = active.reduce((a,r)=>a+r.pitches,0);
+  const teamPR = totK > 0 ? (totP/totK*100).toFixed(1)+'%' : '—';
+
+  document.getElementById('effort-meta').textContent = `${active.length} reps with activity`;
+  document.getElementById('effort-metrics').innerHTML = `
+    <div class="mcard accent-blue"><div class="mcard-label">Avg pitches / rep</div><div class="mcard-value">${avgPitches}</div><div class="mcard-sub">active reps only</div></div>
+    <div class="mcard"><div class="mcard-label">Avg knocks / rep</div><div class="mcard-value">${active.length ? Math.round(totK/active.length).toLocaleString() : 0}</div><div class="mcard-sub">active reps only</div></div>
+    <div class="mcard accent-amber"><div class="mcard-label">Team pitch rate</div><div class="mcard-value">${teamPR}</div><div class="mcard-sub">pitches ÷ knocks</div></div>
+  `;
+
+  document.getElementById('effort-tbody').innerHTML = sorted.map((r, i) => {
+    const rate = r.knocks > 0 ? (r.pitches/r.knocks*100).toFixed(0)+'%' : '—';
+    const rateNum = r.knocks > 0 ? r.pitches/r.knocks : 0;
+    const rateCls = rateNum >= 0.30 ? 'badge-green' : rateNum >= 0.15 ? 'badge-blue' : rateNum > 0 ? 'badge-amber' : 'badge-gray';
+    const rat = effortRating(r);
+    const barW = Math.round(r.pitches / maxP * 100);
+    const pPerK = r.knocks > 0 ? (r.pitches / r.knocks).toFixed(2) : '—';
+    return `<tr>
+      <td class="rank-num">${i+1}</td>
+      <td style="font-weight:500">${r.name}</td>
+      <td><div style="display:flex;align-items:center;gap:8px"><div style="width:65px;height:4px;background:#e8e6df;border-radius:2px;overflow:hidden"><div style="width:${barW}%;height:100%;background:#1b4f8a;border-radius:2px"></div></div><span>${r.pitches}</span></div></td>
+      <td>${r.knocks.toLocaleString()}</td>
+      <td><span class="badge ${rateCls}">${rate}</span></td>
+      <td>${pPerK}</td>
+      <td>${r.acs > 0 ? `<strong>${r.acs}</strong>` : '—'}</td>
+      <td>${r.sras > 0 ? r.sras : '—'}</td>
+      <td><span class="badge ${rat.cls}">${rat.label}</span></td>
+    </tr>`;
+  }).join('');
+}
+
+function renderConversion(active) {
+  const withLeads = active.filter(r => r.leads > 0).sort((a,b) => b.acs - a.acs);
+  const totP = active.reduce((a,r)=>a+r.pitches,0);
+  const totL = active.reduce((a,r)=>a+r.leads,0);
+  const totA = active.reduce((a,r)=>a+r.acs,0);
+  const totS = active.reduce((a,r)=>a+r.sras,0);
+
+  document.getElementById('conv-meta').textContent = `${withLeads.length} reps with leads`;
+  document.getElementById('conv-metrics').innerHTML = `
+    <div class="mcard"><div class="mcard-label">Total pitches</div><div class="mcard-value">${totP.toLocaleString()}</div></div>
+    <div class="mcard"><div class="mcard-label">Total leads</div><div class="mcard-value">${totL}</div><div class="mcard-sub">${totP>0?(totL/totP*100).toFixed(1):0}% of pitches</div></div>
+    <div class="mcard accent-green"><div class="mcard-label">Total ACs</div><div class="mcard-value">${totA}</div><div class="mcard-sub">${totL>0?(totA/totL*100).toFixed(1):0}% of leads</div></div>
+    <div class="mcard accent-green"><div class="mcard-label">Total SRAs</div><div class="mcard-value">${totS}</div><div class="mcard-sub">${totA>0?(totS/totA*100).toFixed(1):0}% of ACs</div></div>
+    <div class="mcard accent-blue"><div class="mcard-label">Pitch → AC</div><div class="mcard-value">${totP>0?(totA/totP*100).toFixed(1):0}%</div><div class="mcard-sub">overall rate</div></div>
+  `;
+
+  document.getElementById('conv-tbody').innerHTML = withLeads.map((r, i) => {
+    const l2a = r.leads > 0 && r.acs > 0 ? (r.acs/r.leads*100).toFixed(0)+'%' : '—';
+    const p2a = r.pitches > 0 && r.acs > 0 ? (r.acs/r.pitches*100).toFixed(0)+'%' : '—';
+    const l2aNum = r.leads > 0 ? r.acs/r.leads : 0;
+    const l2aCls = l2aNum >= 0.6 ? 'badge-green' : l2aNum >= 0.3 ? 'badge-blue' : l2aNum > 0 ? 'badge-amber' : 'badge-gray';
+    return `<tr>
+      <td class="rank-num">${i+1}</td>
+      <td style="font-weight:500">${r.name}</td>
+      <td>${r.pitches}</td><td>${r.leads}</td>
+      <td><strong>${r.acs || '—'}</strong></td>
+      <td>${r.sras || '—'}</td>
+      <td><span class="badge ${l2aCls}">${l2a}</span></td>
+      <td>${p2a}</td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="8" style="color:var(--muted);padding:20px;text-align:center">No leads recorded this week</td></tr>';
+}
+
+function renderFlags(active) {
+  const urgent = [];
+  const coaching = [];
+
+  // High pitches, zero ACs
+  active.filter(r => r.pitches >= 15 && r.acs === 0).forEach(r => {
+    const pr = r.knocks > 0 ? (r.pitches/r.knocks*100).toFixed(0)+'%' : '?';
+    urgent.push({
+      name: r.name,
+      sub: `${r.pitches} pitches, ${r.knocks} knocks, 0 ACs`,
+      detail: `Pitch rate: ${pr}. ${r.leads > 0 ? `Generating ${r.leads} leads but not closing.` : 'No leads recorded either — pitch quality or door approach needs work.'} Film review recommended.`,
+      tag: r.leads > 0 ? 'Close issue' : 'Film review',
+    });
+  });
+
+  // Leads but very low AC conversion
+  active.filter(r => r.leads >= 5 && r.acs === 0).forEach(r => {
+    if (!urgent.find(u => u.name === r.name)) {
+      urgent.push({
+        name: r.name,
+        sub: `${r.leads} leads, 0 ACs`,
+        detail: `Getting into conversations but converting none to appointments. Something is failing at the close sequence. Needs a dedicated coaching session.`,
+        tag: 'Close issue',
+      });
+    }
+  });
+
+  // Low pitch rate (< 8%) with high knock volume
+  active.filter(r => r.knocks >= 80 && r.knocks > 0 && r.pitches/r.knocks < 0.08).forEach(r => {
+    const pr = (r.pitches/r.knocks*100).toFixed(1);
+    coaching.push({
+      name: r.name,
+      sub: `${r.knocks} knocks, ${r.pitches} pitches (${pr}% pitch rate)`,
+      detail: `Knocking many doors but very few are turning into conversations. The door opener needs work — too many quick brushoffs.`,
+      tag: 'Low pitch rate',
+    });
+  });
+
+  // Single-digit pitches with high knocks
+  active.filter(r => r.knocks >= 50 && r.pitches <= 5).forEach(r => {
+    if (!coaching.find(c => c.name === r.name)) {
+      coaching.push({
+        name: r.name,
+        sub: `${r.knocks} knocks, only ${r.pitches} pitches`,
+        detail: `Extensive door activity with almost no pitch conversion. May be skipping doors, giving up too early, or using an ineffective opener.`,
+        tag: 'Opener issue',
+      });
+    }
+  });
+
+  const flagCount = urgent.length + coaching.length;
+  document.getElementById('flags-meta').textContent = `${flagCount} rep${flagCount !== 1 ? 's' : ''} flagged`;
+
+  let html = '';
+  if (urgent.length > 0) {
+    html += `<div class="section-label">Urgent — zero conversions despite effort</div>
+    <div class="alert-list">${urgent.map(f => `
+      <div class="alert-row">
+        <div class="alert-dot alert-dot-red"></div>
+        <div style="flex:1">
+          <div class="alert-name">${f.name} <span style="font-weight:400;font-size:12px;color:var(--muted)">— ${f.sub}</span></div>
+          <div class="alert-detail">${f.detail}</div>
+        </div>
+        <span class="badge badge-red">${f.tag}</span>
+      </div>
+    `).join('')}</div>`;
+  }
+
+  if (coaching.length > 0) {
+    html += `<div class="section-label" style="margin-top:${urgent.length?'24px':'0'}">Coaching — low pitch rate or output</div>
+    <div class="alert-list">${coaching.map(f => `
+      <div class="alert-row">
+        <div class="alert-dot alert-dot-amber"></div>
+        <div style="flex:1">
+          <div class="alert-name">${f.name} <span style="font-weight:400;font-size:12px;color:var(--muted)">— ${f.sub}</span></div>
+          <div class="alert-detail">${f.detail}</div>
+        </div>
+        <span class="badge badge-amber">${f.tag}</span>
+      </div>
+    `).join('')}</div>`;
+  }
+
+  if (!html) {
+    html = `<div class="empty-state"><div class="empty-state-icon">✅</div><div class="empty-state-title">No red flags this week</div><div class="empty-state-desc">All active reps are performing within acceptable ranges.</div></div>`;
+  }
+
+  document.getElementById('flags-content').innerHTML = html;
+}
+
+function renderGhosts(reps) {
+  const ghosts = reps.filter(r => r.pitches === 0 && r.knocks === 0);
+  const rosterCount = reps.length;
+
+  document.getElementById('ghosts-meta').textContent =
+    `${ghosts.length} of ${rosterCount} reps (${rosterCount > 0 ? Math.round(ghosts.length/rosterCount*100) : 0}%)`;
+
+  document.getElementById('ghosts-metrics').innerHTML = `
+    <div class="mcard accent-red"><div class="mcard-label">Zero-activity reps</div><div class="mcard-value" style="color:var(--red)">${ghosts.length}</div><div class="mcard-sub">${rosterCount > 0 ? Math.round(ghosts.length/rosterCount*100) : 0}% of roster</div></div>
+    <div class="mcard accent-blue"><div class="mcard-label">Active reps</div><div class="mcard-value">${reps.filter(r => r.pitches > 0 || r.knocks > 0).length}</div><div class="mcard-sub">logged activity</div></div>
+    <div class="mcard"><div class="mcard-label">Roster size</div><div class="mcard-value">${rosterCount}</div><div class="mcard-sub">total on file</div></div>
+  `;
+
+  if (ghosts.length === 0) {
+    document.getElementById('ghosts-grid').innerHTML =
+      `<div class="empty-state" style="grid-column:1/-1"><div class="empty-state-icon">🎯</div><div class="empty-state-title">No ghost reps this week</div><div class="empty-state-desc">Every rep on the roster logged at least some activity.</div></div>`;
+    return;
+  }
+
+  document.getElementById('ghosts-grid').innerHTML = ghosts.map(r => {
+    const initials = r.name.split(' ').map(p => p[0]).join('').toUpperCase().slice(0, 2);
+    return `<div class="ghost-card">
+      <div class="ghost-initials">${initials}</div>
+      <div>
+        <div class="ghost-name">${r.name}</div>
+        <div class="ghost-sub">0 activity</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderFilmRoom(active, weekRange) {
+  const cards = [];
+
+  // Top performer by ACs
+  const topAC = [...active].sort((a,b) => b.acs - a.acs)[0];
+  if (topAC && topAC.acs > 0) {
+    const acRate = topAC.pitches > 0 ? (topAC.acs/topAC.pitches*100).toFixed(0)+'%' : '—';
+    cards.push({
+      type: 's-green',
+      tag: 'Top Closer',
+      tagCls: 'badge-green',
+      name: topAC.name,
+      body: `Leading the team with ${topAC.acs} ACs from ${topAC.pitches} pitches (${acRate} conversion). ${topAC.sras > 0 ? 'Also added ' + topAC.sras + ' SRA' + (topAC.sras>1?'s':'') + '. ' : ''}This is the standard for the week — study the approach and replicate.`,
+      stats: [{v: topAC.pitches, l: 'Pitches'}, {v: topAC.acs, l: 'ACs'}, {v: topAC.sras || 0, l: 'SRAs'}],
+    });
+  }
+
+  // Top by SRAs
+  const topSRA = [...active].filter(r => r.sras > 0).sort((a,b) => b.sras - a.sras)[0];
+  if (topSRA && topSRA !== topAC) {
+    cards.push({
+      type: 's-blue',
+      tag: 'Most Closes',
+      tagCls: 'badge-blue',
+      name: topSRA.name,
+      body: `${topSRA.sras} SRA${topSRA.sras>1?'s':''} this week — top closer on the team. ${topSRA.pitches} pitches converted to ${topSRA.acs} ACs then ${topSRA.sras} signed. Excellent full-funnel performance.`,
+      stats: [{v: topSRA.pitches, l: 'Pitches'}, {v: topSRA.acs, l: 'ACs'}, {v: topSRA.sras, l: 'SRAs'}],
+    });
+  }
+
+  // Highest pitch volume
+  const topPitches = [...active].sort((a,b) => b.pitches - a.pitches)[0];
+  if (topPitches && topPitches.pitches > 0) {
+    const prLabel = topPitches.knocks > 0 ? `${(topPitches.pitches/topPitches.knocks*100).toFixed(0)}% pitch rate` : '';
+    const concern = topPitches.acs === 0 ? ` However, 0 ACs from ${topPitches.pitches} pitches is a conversion problem that needs a film review.` : '';
+    cards.push({
+      type: topPitches.acs === 0 ? 's-amber' : 's-green',
+      tag: topPitches.acs === 0 ? 'Max Effort, 0 ACs' : 'Top Effort',
+      tagCls: topPitches.acs === 0 ? 'badge-amber' : 'badge-green',
+      name: topPitches.name,
+      body: `Led the team in pitches (${topPitches.pitches}) with ${prLabel}.${concern} ${topPitches.acs === 0 ? '' : `Converted to ${topPitches.acs} ACs — solid effort-to-result ratio.`}`,
+      stats: [{v: topPitches.pitches, l: 'Pitches'}, {v: topPitches.knocks, l: 'Knocks'}, {v: topPitches.acs || 0, l: 'ACs'}],
+    });
+  }
+
+  // Best conversion rate (min 8 pitches)
+  const bestConv = [...active]
+    .filter(r => r.pitches >= 8 && r.acs > 0)
+    .sort((a,b) => (b.acs/b.pitches) - (a.acs/a.pitches))[0];
+  if (bestConv && bestConv !== topAC) {
+    const rate = (bestConv.acs/bestConv.pitches*100).toFixed(0);
+    cards.push({
+      type: 's-blue',
+      tag: 'Best Conversion',
+      tagCls: 'badge-blue',
+      name: bestConv.name,
+      body: `${rate}% pitch-to-AC rate — highest efficiency on the team (min 8 pitches). ${bestConv.acs} ACs from ${bestConv.pitches} pitches. This rep is making the most of every conversation they get into.`,
+      stats: [{v: bestConv.pitches, l: 'Pitches'}, {v: bestConv.acs, l: 'ACs'}, {v: rate+'%', l: 'Conv. Rate'}],
+    });
+  }
+
+  // Red flag: high pitches, zero ACs
+  const redFlag = [...active].filter(r => r.pitches >= 15 && r.acs === 0).sort((a,b) => b.pitches - a.pitches)[0];
+  if (redFlag) {
+    cards.push({
+      type: 's-red',
+      tag: 'Red Flag — No Closes',
+      tagCls: 'badge-red',
+      name: redFlag.name,
+      body: `${redFlag.pitches} pitches, 0 ACs. ${redFlag.leads > 0 ? `Getting ${redFlag.leads} leads but failing at the close — something is breaking after the pitch lands.` : 'Not generating leads either — pitch approach or door opener needs an overhaul.'} This needs a 1:1 film session before next week.`,
+      stats: [{v: redFlag.pitches, l: 'Pitches'}, {v: redFlag.leads, l: 'Leads'}, {v: 0, l: 'ACs'}],
+    });
+  }
+
+  // Red flag: leads but zero ACs
+  const closeFlag = [...active].filter(r => r.leads >= 5 && r.acs === 0 && r !== redFlag).sort((a,b) => b.leads - a.leads)[0];
+  if (closeFlag) {
+    cards.push({
+      type: 's-red',
+      tag: 'Close Issue',
+      tagCls: 'badge-red',
+      name: closeFlag.name,
+      body: `${closeFlag.leads} leads from ${closeFlag.pitches} pitches — ${(closeFlag.leads/closeFlag.pitches*100).toFixed(0)}% lead rate shows a strong opener. But 0 ACs means the close is failing every time. Pair with a strong closer for a shadow session.`,
+      stats: [{v: closeFlag.pitches, l: 'Pitches'}, {v: closeFlag.leads, l: 'Leads'}, {v: 0, l: 'ACs'}],
+    });
+  }
+
+  // Best lead rate (with enough pitches)
+  const bestLeadRate = [...active]
+    .filter(r => r.pitches >= 8 && r.leads > 0)
+    .sort((a,b) => (b.leads/b.pitches) - (a.leads/a.pitches))[0];
+  if (bestLeadRate && bestLeadRate !== closeFlag) {
+    const rate = (bestLeadRate.leads/bestLeadRate.pitches*100).toFixed(0);
+    if (parseInt(rate) >= 50) {
+      cards.push({
+        type: 's-blue',
+        tag: 'Top Opener',
+        tagCls: 'badge-blue',
+        name: bestLeadRate.name,
+        body: `${rate}% lead rate — best opener on the team. ${bestLeadRate.leads} leads from ${bestLeadRate.pitches} pitches. ${bestLeadRate.acs > 0 ? `Converting ${bestLeadRate.acs} to ACs.` : `Not yet converting to ACs — needs work on the close to match the opener quality.`}`,
+        stats: [{v: bestLeadRate.pitches, l: 'Pitches'}, {v: bestLeadRate.leads, l: 'Leads'}, {v: rate+'%', l: 'Lead Rate'}],
+      });
+    }
+  }
+
+  document.getElementById('standouts-meta').textContent = `${cards.length} rep${cards.length !== 1 ? 's' : ''} highlighted`;
+
+  if (cards.length === 0) {
+    document.getElementById('standout-grid').innerHTML = `
+      <div class="empty-state" style="grid-column:1/-1">
+        <div class="empty-state-icon">📋</div>
+        <div class="empty-state-title">Not enough data for film room</div>
+        <div class="empty-state-desc">Film room cards generate automatically once reps have meaningful activity. Check back once pitches and ACs are being recorded.</div>
+      </div>`;
+    return;
+  }
+
+  document.getElementById('standout-grid').innerHTML = cards.map(c => `
+    <div class="standout-card ${c.type}">
+      <div class="sc-header">
+        <div class="sc-name">${c.name}</div>
+        <span class="badge ${c.tagCls}">${c.tag}</span>
+      </div>
+      <div class="sc-body">${c.body}</div>
+      <div class="sc-stats">${c.stats.map(s => `
+        <div>
+          <div class="sc-stat-val">${s.v}</div>
+          <div class="sc-stat-lbl">${s.l}</div>
+        </div>
+      `).join('')}</div>
+    </div>
+  `).join('');
+}
+
+// ─────────────────────────────────────────────────────────
+// EXPORT — bake current data into a standalone HTML file
+// ─────────────────────────────────────────────────────────
+let _lastReportData = null;
+
+async function exportHTML() {
+  if (!_lastReportData) { alert('No data loaded yet — refresh first.'); return; }
+
+  const btn = document.getElementById('btn-export');
+  btn.textContent = '⟳ Exporting…';
+  btn.style.pointerEvents = 'none';
+
+  try {
+    // Fetch the live HTML source from the server
+    const srcResp = await fetch('/');
+    let html = await srcResp.text();
+
+    // Inject the baked data right before the STATIC_DATA line
+    const injection = '\nconst __STATIC_DATA__ = ' + JSON.stringify(_lastReportData) + ';\n';
+    html = html.replace('const STATIC_DATA = (typeof __STATIC_DATA__', injection + 'const STATIC_DATA = (typeof __STATIC_DATA__');
+
+    // Also hide the Export button and disable Refresh in the static version
+    html = html.replace(
+      "if (!STATIC_DATA) document.getElementById('btn-export').classList.add('visible');",
+      "document.getElementById('btn-export').style.display='none'; document.getElementById('btn-refresh').style.display='none'; document.querySelectorAll('.week-nav button').forEach(b=>b.style.display='none'); var wn=document.querySelector('.week-nav'); wn.style.background='none'; wn.style.border='none'; wn.style.padding='0';"
+    );
+
+    // Download it
+    const weekStart = _lastReportData.weekStart || 'week';
+    const weekEnd   = _lastReportData.weekEnd   || '';
+    const filename  = 'vivid-terros-' + weekStart + (weekEnd ? '-to-' + weekEnd : '') + '.html';
+
+    const blob = new Blob([html], { type: 'text/html' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href     = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+
+  } catch (e) {
+    alert('Export failed: ' + e.message);
+  } finally {
+    btn.textContent = '↓ Export HTML';
+    btn.style.pointerEvents = '';
+  }
+}
+
+
+// ─────────────────────────────────────────────────────────
+// MAIN LOAD
+// ─────────────────────────────────────────────────────────
+let lastReps = [];
+
+async function loadData() {
+  // For static exports, freeze dates to what was baked in — never recalculate from today.
+  let weekRange;
+  if (STATIC_DATA && STATIC_DATA.weekStart && STATIC_DATA.weekEnd) {
+    const parseLocal = s => { const [y,m,d] = s.split('-').map(Number); return new Date(y, m-1, d); };
+    weekRange = { start: parseLocal(STATIC_DATA.weekStart), end: parseLocal(STATIC_DATA.weekEnd) };
+  } else {
+    weekRange = getWeekRange(weekOffset);
+  }
+
+  const btn = document.getElementById('btn-refresh');
+  btn.classList.add('loading');
+  btn.textContent = '⟳ Loading…';
+
+  const label = fmtDate(weekRange.start) + ' – ' + fmtDate(weekRange.end);
+  document.getElementById('week-label').textContent = label;
+  document.getElementById('report-title').textContent = 'Week of ' + label + ', ' + weekRange.end.getFullYear();
+
+  setStatus(STATIC_DATA ? 'Loading snapshot data…' : 'Fetching data for ' + label + '…', 'loading');
+
+  try {
+    const data = STATIC_DATA || await fetchWeeklyReport(weekRange.start, weekRange.end);
+    _lastReportData = data;
+    const reps = parseRows(data);
+    lastReps = reps;
+
+    const active = reps.filter(r => r.pitches > 0 || r.knocks > 0);
+
+    renderOverview(reps, weekRange);
+    renderEffort(active);
+    renderConversion(active);
+    renderFlags(active);
+    renderGhosts(reps);
+    renderFilmRoom(active, weekRange);
+
+    document.getElementById('footer-generated').textContent =
+      'Loaded ' + new Date().toLocaleString() + ' · ' + reps.length + ' reps · Terros API';
+
+    setStatus('Loaded ' + reps.length + ' reps · ' + active.length + ' active · ' + fmtDateFull(weekRange.start) + ' – ' + fmtDateFull(weekRange.end), 'success');
+    if (!STATIC_DATA) document.getElementById('btn-export').classList.add('visible');
+  } catch (err) {
+    let msg = err.message || String(err);
+    let hint = '';
+    if (msg.toLowerCase().includes('fetch') || msg.toLowerCase().includes('network') || msg.toLowerCase().includes('failed') || msg.toLowerCase().includes('load')) {
+      hint = ' — Make sure the API server is running (Start API Server.bat in the api/ folder).';
+    }
+    setStatus('Error: ' + msg + hint, 'error');
+    document.getElementById('report-title').textContent = 'Error loading data';
+    document.getElementById('overview-desc').textContent = 'Failed to fetch: ' + msg + hint;
+  } finally {
+    btn.classList.remove('loading');
+    btn.textContent = '⟳ Refresh';
+  }
+}
+
+// ─────────────────────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────────────────────
+(function init() {
+  const weekRange = getWeekRange(0);
+  document.getElementById('week-label').textContent =
+    fmtDate(weekRange.start) + ' – ' + fmtDate(weekRange.end);
+  document.getElementById('report-title').textContent =
+    'Week of ' + fmtDate(weekRange.start) + ' – ' + fmtDate(weekRange.end) + ', ' + weekRange.end.getFullYear();
+  loadData();
+})();
+</script>
+</body>
+</html>
