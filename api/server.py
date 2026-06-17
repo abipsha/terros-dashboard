@@ -168,7 +168,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
         else:
             self._json({"error": "Not found"}, status=404)
 
-  def do_HEAD(self):
+    def do_HEAD(self):
         self.send_response(200)
         self._cors_headers()
         self.send_header("Content-Type", "application/json")
