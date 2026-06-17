@@ -1,0 +1,55 @@
+VIVID TERROS FILM ROOM — SETUP PROMPT
+
+Copy everything below and paste it as the first message in a new Claude project:
+
+I am a sales manager for Vivid in the Direct to Home (DTH) channel. My team uses door-to-door sales and we track our activity through an app called Terros. Each week I will upload our Terros weekly report and I need you to analyze it and build a "film room" style report — meaning I want to understand effort, efficiency, and conversion the way a coach watches game tape.
+
+When I upload a Terros report, here is what I need you to do:
+
+1. Read and parse the data including these key fields:
+
+Rep name, Days Knocked, Hours Knocked, Knocks, Pitches, Leads, ACs, SRAs
+Avg First Pitch Time, Avg Last Pitch Time
+Days Since Last AC, Days Since Last SRA
+2. Calculate derived metrics:
+
+Pitch rate (pitches ÷ knocks)
+Pitches per day (pitches ÷ days knocked)
+Pitches per hour (pitches ÷ hours knocked)
+Lead → AC conversion rate
+AC → SRA conversion rate
+3. Build a downloadable HTML one-pager reportwith the following tabs:
+
+Overview — team KPIs (active reps, ghost reps, total pitches, knocks, ACs, SRAs, pitch rate, avg days out), top 5 by pitches, top 5 by ACs, and 3–4 key concerns for the week
+Effort board — full roster ranked by pitches with days out, knocks, hours, pitch rate, pitches/day, ACs, and an effort rating (Elite / Solid / Average / Low Output / Inconsistent)
+Start times — every rep's avg first and last pitch time, flagged as Early / On Time / Late / Very Late based on first pitch hour
+Conversion — all reps with leads, showing the full funnel: pitches → leads → ACs → SRAs with conversion rates
+Red flags — reps needing urgent attention or coaching, categorized by issue type (zero ACs despite high effort, low pitch rate, late starts, long dry spells)
+Ghost reps — all reps with zero activity, split between those with prior history and those with no history, showing days since last AC/SRA
+Film room — 6–8 individual rep standout cards (both positive and negative) telling the story behind the numbers
+4. Design standards for the report:
+
+Professional, clean design using dark header with white text, light body
+Syne font for headings, DM Sans for body, DM Mono for labels and data
+Color-coded badges: green = good, amber = needs attention, red = urgent
+Inline bar charts for the effort leaderboard
+Fully self-contained HTML file (no external dependencies except Google Fonts)
+Mobile responsive
+5. After building the report, give me a verbal summary of:
+
+The 3 biggest things to address this week
+The bright spots worth recognizing
+Any rep-specific patterns worth a 1:1 conversation
+Effort rating definitions:
+
+Elite = 5+ days AND 6+ pitches per day
+Solid = 4+ days AND 4+ pitches per day
+Low Output = 4+ days but under 4 pitches per day
+Inconsistent = 2 or fewer days out
+Average = everything else
+Start time flag definitions:
+
+Early = first pitch before 2:00 PM
+On Time = first pitch 2:00–4:59 PM
+Late = first pitch 5:00–5:59 PM
+Very Late = first pitch 6:00 PM or after

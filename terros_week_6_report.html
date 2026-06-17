@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Terros Field Report — Week of June 1–7, 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --black: #0e0e0f;
+  --white: #f5f4f0;
+  --ink: #1a1a1c;
+  --muted: #6b6b70;
+  --border: #d4d2cb;
+  --border-light: #e8e6df;
+  --surface: #faf9f6;
+  --surface2: #f0ede6;
+  --green: #1a6e47;
+  --green-bg: #e8f5ee;
+  --amber: #8a5a00;
+  --amber-bg: #fdf3dc;
+  --red: #9b2020;
+  --red-bg: #fceaea;
+  --blue: #1b4f8a;
+  --blue-bg: #e5eef9;
+  --purple: #4a2c8a;
+  --purple-bg: #eee8f9;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 14px; }
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--white);
+  color: var(--ink);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* HEADER */
+.report-header {
+  background: var(--black);
+  color: var(--white);
+  padding: 28px 40px 24px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+}
+.header-left {}
+.report-brand {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: .18em;
+  color: #888;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+.report-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--white);
+  line-height: 1.1;
+}
+.report-subtitle {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  color: #888;
+  margin-top: 6px;
+  letter-spacing: .04em;
+}
+.header-kpis {
+  display: flex;
+  gap: 28px;
+}
+.hkpi {
+  text-align: right;
+}
+.hkpi-val {
+  font-family: 'Syne', sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--white);
+  line-height: 1;
+}
+.hkpi-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  color: #777;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  margin-top: 3px;
+}
+.hkpi-divider { width: .5px; background: #333; }
+
+/* TABS */
+.tabs-bar {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  padding: 0 40px;
+  gap: 0;
+  overflow-x: auto;
+}
+.tab {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  padding: 14px 22px;
+  border: none;
+  background: none;
+  color: var(--muted);
+  cursor: pointer;
+  white-space: nowrap;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: color .15s, border-color .15s;
+}
+.tab:hover { color: var(--ink); }
+.tab.active {
+  color: var(--ink);
+  border-bottom-color: var(--ink);
+  font-weight: 500;
+}
+
+/* MAIN CONTENT */
+.main { padding: 32px 40px 48px; }
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+/* SECTION HEADER */
+.panel-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+.panel-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+}
+.panel-desc {
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 3px;
+}
+.panel-meta {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: .06em;
+}
+
+/* METRIC STRIP */
+.metric-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 10px;
+  margin-bottom: 28px;
+}
+.mcard {
+  background: var(--surface);
+  border: 1px solid var(--border-light);
+  border-radius: 6px;
+  padding: 14px 16px;
+}
+.mcard-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+.mcard-value {
+  font-family: 'Syne', sans-serif;
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1;
+}
+.mcard-sub {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 4px;
+}
+.mcard.accent-green { border-left: 3px solid var(--green); }
+.mcard.accent-red { border-left: 3px solid var(--red); }
+.mcard.accent-amber { border-left: 3px solid var(--amber); }
+.mcard.accent-blue { border-left: 3px solid var(--blue); }
+
+/* TABLES */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.data-table thead th {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  text-align: left;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+  background: var(--surface);
+}
+.data-table tbody td {
+  padding: 9px 12px;
+  border-bottom: .5px solid var(--border-light);
+  vertical-align: middle;
+}
+.data-table tbody tr:hover td { background: var(--surface); }
+.data-table tbody tr:last-child td { border-bottom: none; }
+.rank-num {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  color: var(--muted);
+  width: 28px;
+}
+
+/* BADGES */
+.badge {
+  display: inline-block;
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 3px;
+}
+.badge-green { background: var(--green-bg); color: var(--green); }
+.badge-amber { background: var(--amber-bg); color: var(--amber); }
+.badge-red { background: var(--red-bg); color: var(--red); }
+.badge-blue { background: var(--blue-bg); color: var(--blue); }
+.badge-gray { background: var(--surface2); color: var(--muted); }
+.badge-purple { background: var(--purple-bg); color: var(--purple); }
+
+/* INLINE BAR */
+.ibar-wrap { display: flex; align-items: center; gap: 8px; }
+.ibar-bg { width: 80px; height: 5px; background: var(--border-light); border-radius: 2px; overflow: hidden; flex-shrink: 0; }
+.ibar-fill { height: 100%; border-radius: 2px; }
+
+/* ALERT ROWS */
+.alert-list { display: flex; flex-direction: column; gap: 0; }
+.alert-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 14px 0;
+  border-bottom: .5px solid var(--border-light);
+}
+.alert-row:last-child { border-bottom: none; }
+.alert-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-top: 4px;
+  flex-shrink: 0;
+}
+.alert-dot-red { background: var(--red); }
+.alert-dot-amber { background: #d97706; }
+.alert-dot-green { background: var(--green); }
+.alert-dot-blue { background: var(--blue); }
+.alert-name {
+  font-family: 'Syne', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+.alert-detail {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+.alert-tag {
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+/* TWO COLS */
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+.section-box {
+  background: var(--surface);
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  padding: 20px 24px;
+}
+.box-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.box-dot {
+  width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
+}
+
+/* GHOST GRID */
+.ghost-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 8px;
+  margin-top: 16px;
+}
+.ghost-card {
+  background: var(--surface);
+  border: 1px solid var(--border-light);
+  border-radius: 6px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.ghost-initials {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: var(--surface2);
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  color: var(--muted);
+  flex-shrink: 0;
+}
+.ghost-name { font-size: 12px; font-weight: 500; }
+.ghost-sub { font-size: 11px; color: var(--muted); }
+
+/* STANDOUT CARDS */
+.standout-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 12px;
+}
+.standout-card {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px 18px;
+  background: #fff;
+  position: relative;
+  overflow: hidden;
+}
+.standout-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 3px; height: 100%;
+}
+.standout-card.s-green::before { background: var(--green); }
+.standout-card.s-red::before { background: var(--red); }
+.standout-card.s-amber::before { background: #d97706; }
+.standout-card.s-blue::before { background: var(--blue); }
+.sc-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 8px; }
+.sc-name { font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700; }
+.sc-body { font-size: 12px; color: var(--muted); line-height: 1.6; }
+.sc-stats { display: flex; gap: 12px; margin-top: 10px; padding-top: 10px; border-top: .5px solid var(--border-light); }
+.sc-stat-val { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; }
+.sc-stat-lbl { font-family: 'DM Mono', monospace; font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+
+/* FOOTER */
+.report-footer {
+  border-top: 1px solid var(--border);
+  padding: 14px 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.footer-note {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: .04em;
+}
+
+/* PRINT */
+@media print {
+  .tabs-bar { display: none; }
+  .tab-panel { display: block !important; page-break-inside: avoid; }
+  .report-header { background: #000 !important; -webkit-print-color-adjust: exact; }
+}
+
+@media (max-width: 700px) {
+  .report-header { flex-direction: column; align-items: flex-start; padding: 20px; }
+  .main { padding: 20px; }
+  .tabs-bar { padding: 0 20px; }
+  .two-col { grid-template-columns: 1fr; }
+  .report-footer { padding: 14px 20px; flex-direction: column; gap: 6px; }
+  .header-kpis { gap: 16px; }
+}
+</style>
+</head>
+<body>
+
+<header class="report-header">
+  <div class="header-left">
+    <div class="report-brand">Sunrun · Direct to Home · Terros Field Report</div>
+    <div class="report-title">Week of June 1–7, 2026</div>
+    <div class="report-subtitle">Generated June 7, 2026 · 82 reps on roster</div>
+  </div>
+  <div class="header-kpis">
+    <div class="hkpi">
+      <div class="hkpi-val">921</div>
+      <div class="hkpi-label">Pitches</div>
+    </div>
+    <div class="hkpi-divider"></div>
+    <div class="hkpi">
+      <div class="hkpi-val">7,118</div>
+      <div class="hkpi-label">Knocks</div>
+    </div>
+    <div class="hkpi-divider"></div>
+    <div class="hkpi">
+      <div class="hkpi-val">83</div>
+      <div class="hkpi-label">ACs</div>
+    </div>
+    <div class="hkpi-divider"></div>
+    <div class="hkpi">
+      <div class="hkpi-val">21</div>
+      <div class="hkpi-label">SRAs</div>
+    </div>
+  </div>
+</header>
+
+<nav class="tabs-bar">
+  <button class="tab active" onclick="switchTab('overview')">Overview</button>
+  <button class="tab" onclick="switchTab('effort')">Effort board</button>
+  <button class="tab" onclick="switchTab('timing')">Start times</button>
+  <button class="tab" onclick="switchTab('conversion')">Conversion</button>
+  <button class="tab" onclick="switchTab('flags')">Red flags</button>
+  <button class="tab" onclick="switchTab('ghosts')">Ghost reps</button>
+  <button class="tab" onclick="switchTab('standouts')">Film room</button>
+</nav>
+
+<main class="main">
+
+<!-- OVERVIEW -->
+<section class="tab-panel active" id="panel-overview">
+  <div class="panel-header">
+    <div>
+      <div class="panel-title">Week at a glance</div>
+      <div class="panel-desc">High-level summary of team activity and output for the week of June 1–7.</div>
+    </div>
+    <div class="panel-meta">6/1–6/7 · 7 days</div>
+  </div>
+
+  <div class="metric-strip">
+    <div class="mcard accent-blue">
+      <div class="mcard-label">Active reps</div>
+      <div class="mcard-value">61</div>
+      <div class="mcard-sub">74% of roster</div>
+    </div>
+    <div class="mcard accent-red">
+      <div class="mcard-label">Ghost reps</div>
+      <div class="mcard-value" style="color:var(--red)">21</div>
+      <div class="mcard-sub">0 activity logged</div>
+    </div>
+    <div class="mcard">
+      <div class="mcard-label">Total pitches</div>
+      <div class="mcard-value">921</div>
+      <div class="mcard-sub">avg 15.1 per active rep</div>
+    </div>
+    <div class="mcard">
+      <div class="mcard-label">Total knocks</div>
+      <div class="mcard-value">7,118</div>
+      <div class="mcard-sub">avg 116.7 per active rep</div>
+    </div>
+    <div class="mcard accent-green">
+      <div class="mcard-label">Total ACs</div>
+      <div class="mcard-value">83</div>
+      <div class="mcard-sub">1 per 11.1 pitches</div>
+    </div>
+    <div class="mcard accent-green">
+      <div class="mcard-label">SRAs closed</div>
+      <div class="mcard-value">21</div>
+      <div class="mcard-sub">14 reps contributed</div>
+    </div>
+    <div class="mcard accent-amber">
+      <div class="mcard-label">Team pitch rate</div>
+      <div class="mcard-value">12.9%</div>
+      <div class="mcard-sub">pitches ÷ knocks</div>
+    </div>
+    <div class="mcard">
+      <div class="mcard-label">Avg days out</div>
+      <div class="mcard-value">3.7</div>
+      <div class="mcard-sub">of 6 possible days</div>
+    </div>
+  </div>
+
+  <div class="two-col">
+    <div class="section-box">
+      <div class="box-title"><span class="box-dot" style="background:var(--green)"></span> Top 5 by pitches</div>
+      <table class="data-table">
+        <thead><tr><th>#</th><th>Rep</th><th>Pitches</th><th>Days</th><th>ACs</th></tr></thead>
+        <tbody>
+          <tr><td class="rank-num">1</td><td>Luke McDonald</td><td>59</td><td>6</td><td><span class="badge badge-gray">—</span></td></tr>
+          <tr><td class="rank-num">2</td><td>Ramon Ochoa</td><td>48</td><td>5</td><td><span class="badge badge-gray">—</span></td></tr>
+          <tr><td class="rank-num">3</td><td>Michael Jones</td><td>37</td><td>4</td><td><span class="badge badge-gray">—</span></td></tr>
+          <tr><td class="rank-num">4</td><td>Doug Williams</td><td>35</td><td>6</td><td><span class="badge badge-green">2</span></td></tr>
+          <tr><td class="rank-num">5</td><td>Fernando Garnica</td><td>34</td><td>5</td><td><span class="badge badge-green">3 + 1 SRA</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="section-box">
+      <div class="box-title"><span class="box-dot" style="background:var(--blue)"></span> Top 5 by ACs</div>
+      <table class="data-table">
+        <thead><tr><th>#</th><th>Rep</th><th>ACs</th><th>SRAs</th><th>Pitches</th></tr></thead>
+        <tbody>
+          <tr><td class="rank-num">1</td><td>Yaya Yehia</td><td><strong>5</strong></td><td>2</td><td>21</td></tr>
+          <tr><td class="rank-num">2</td><td>Kevin Padilla</td><td><strong>4</strong></td><td>2</td><td>16</td></tr>
+          <tr><td class="rank-num">3</td><td>Juan Magraner</td><td><strong>3</strong></td><td>—</td><td>34</td></tr>
+          <tr><td class="rank-num">3</td><td>Fernando Garnica</td><td><strong>3</strong></td><td>1</td><td>34</td></tr>
+          <tr><td class="rank-num">3</td><td>Daniel Morrissey</td><td><strong>3</strong></td><td>—</td><td>27</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div style="margin-top:20px">
+    <div class="section-box">
+      <div class="box-title"><span class="box-dot" style="background:var(--red)"></span> Key concerns to address this week</div>
+      <div class="alert-list">
+        <div class="alert-row">
+          <div class="alert-dot alert-dot-red"></div>
+          <div>
+            <div class="alert-name">Top effort reps generating zero ACs</div>
+            <div class="alert-detail">Luke McDonald (59 pitches), Ramon Ochoa (48), Michael Jones (37) — combined 144 pitches, 0 ACs. Volume is there; pitch quality or targeting needs a review.</div>
+          </div>
+          <div class="alert-tag"><span class="badge badge-red">Urgent</span></div>
+        </div>
+        <div class="alert-row">
+          <div class="alert-dot alert-dot-amber"></div>
+          <div>
+            <div class="alert-name">18 reps averaging first pitch at or after 5:00 PM</div>
+            <div class="alert-detail">Late starts dramatically compress selling windows. Several reps are only getting 30–60 minutes in the field per day.</div>
+          </div>
+          <div class="alert-tag"><span class="badge badge-amber">Coaching</span></div>
+        </div>
+        <div class="alert-row">
+          <div class="alert-dot alert-dot-red"></div>
+          <div>
+            <div class="alert-name">21 reps with zero activity</div>
+            <div class="alert-detail">26% of roster did not knock a single door. Some have not had an AC in 30–368 days. Attendance and accountability conversations needed.</div>
+          </div>
+          <div class="alert-tag"><span class="badge badge-red">Urgent</span></div>
+        </div>
+        <div class="alert-row">
+          <div class="alert-dot alert-dot-amber"></div>
+          <div>
+            <div class="alert-name">Binny Yun — 95 days since last AC</div>
+            <div class="alert-detail">6 days knocked, 9 leads, 0 ACs. High effort but something is failing at close. Needs a dedicated 1:1 film session.</div>
+          </div>
+          <div class="alert-tag"><span class="badge badge-amber">Coaching</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- EFFORT BOARD -->
+<section class="tab-panel" id="panel-effort">
+  <div class="panel-header">
+    <div>
+      <div class="panel-title">Effort leaderboard</div>
+      <div class="panel-desc">All active reps ranked by pitches. Pitch rate = pitches ÷ knocks.</div>
+    </div>
+    <div class="panel-meta">59 reps with activity</div>
+  </div>
+  <div class="metric-strip" style="grid-template-columns:repeat(4,1fr)">
+    <div class="mcard accent-blue"><div class="mcard-label">Avg pitches/rep</div><div class="mcard-value">15.1</div><div class="mcard-sub">active reps only</div></div>
+    <div class="mcard"><div class="mcard-label">Avg days/rep</div><div class="mcard-value">3.7</div><div class="mcard-sub">of 6 possible</div></div>
+    <div class="mcard"><div class="mcard-label">Avg knocks/rep</div><div class="mcard-value">116.7</div><div class="mcard-sub">active reps only</div></div>
+    <div class="mcard accent-amber"><div class="mcard-label">Team pitch rate</div><div class="mcard-value">12.9%</div><div class="mcard-sub">pitches ÷ knocks</div></div>
+  </div>
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>#</th><th>Rep</th><th>Pitches</th><th>Days out</th><th>Knocks</th><th>Hrs knocked</th><th>Pitch rate</th><th>Pitches/day</th><th>ACs</th><th>Rating</th>
+      </tr>
+    </thead>
+    <tbody id="effort-table-body"></tbody>
+  </table>
+</section>
+
+<!-- TIMING -->
+<section class="tab-panel" id="panel-timing">
+  <div class="panel-header">
+    <div>
+      <div class="panel-title">Start time analysis</div>
+      <div class="panel-desc">First pitch time reveals real selling hours. Reps starting after 5 PM are leaving significant time on the table.</div>
+    </div>
+    <div class="panel-meta">18 late starters flagged</div>
+  </div>
+  <div class="metric-strip" style="grid-template-columns:repeat(4,1fr)">
+    <div class="mcard accent-green"><div class="mcard-label">Early starters (before 2 PM)</div><div class="mcard-value">8</div><div class="mcard-sub">reps</div></div>
+    <div class="mcard"><div class="mcard-label">Standard (2–5 PM)</div><div class="mcard-value">33</div><div class="mcard-sub">reps</div></div>
+    <div class="mcard accent-amber"><div class="mcard-label">Late (5–6 PM)</div><div class="mcard-value">11</div><div class="mcard-sub">reps</div></div>
+    <div class="mcard accent-red"><div class="mcard-label">Very late (after 6 PM)</div><div class="mcard-value">7</div><div class="mcard-sub">reps</div></div>
+  </div>
+  <table class="data-table">
+    <thead>
+      <tr><th>Rep</th><th>Avg first pitch</th><th>Avg last pitch</th><th>Avg first knock</th><th>Days out</th><th>Pitches</th><th>ACs</th><th>Flag</th></tr>
+    </thead>
+    <tbody id="timing-table-body"></tbody>
+  </table>
+</section>
+
+<!-- CONVERSION -->
+<section class="tab-panel" id="panel-conversion">
+  <div class="panel-header">
+    <div>
+      <div class="panel-title">Conversion funnel</div>
+      <div class="panel-desc">How reps move from pitches → leads → ACs → SRAs. Only reps with at least one lead shown.</div>
+    </div>
+    <div class="panel-meta">45 reps with leads this week</div>
+  </div>
+  <div class="metric-strip" style="grid-template-columns:repeat(5,1fr)">
+    <div class="mcard"><div class="mcard-label">Total pitches</div><div class="mcard-value">921</div></div>
+    <div class="mcard"><div class="mcard-label">Total leads</div><div class="mcard-value">177</div><div class="mcard-sub">19.2% of pitches</div></div>
+    <div class="mcard accent-green"><div class="mcard-label">Total ACs</div><div class="mcard-value">83</div><div class="mcard-sub">46.9% of leads</div></div>
+    <div class="mcard accent-green"><div class="mcard-label">Total SRAs</div><div class="mcard-value">21</div><div class="mcard-sub">25.3% of ACs</div></div>
+    <div class="mcard accent-blue"><div class="mcard-label">Pitch → AC</div><div class="mcard-value">9.0%</div><div class="mcard-sub">overall rate</div></div>
+  </div>
+  <table class="data-table">
+    <thead>
+      <tr><th>#</th><th>Rep</th><th>Pitches</th><th>Leads</th><th>ACs</th><th>SRAs</th><th>Lead→AC %</th><th>Pitch→AC %</th></tr>
+    </thead>
+    <tbody id="conv-table-body"></tbody>
+  </table>
+</section>
+
+<!-- RED FLAGS -->
+<section class="tab-panel" id="panel-flags">
+  <div class="panel-header">
+    <div>
+      <div class="panel-title">Red flags &amp; coaching targets</div>
+      <div class="panel-desc">Reps requiring immediate attention — low output despite days worked, long dry spells, or timing problems.</div>
+    </div>
+    <div class="panel-meta">Prioritized by urgency</div>
+  </div>
+
+  <div style="margin-bottom:24px">
+    <div style="font-family:'DM Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:12px">Urgent — zero conversions despite high effort</div>
+    <div class="alert-list">
+      <div class="alert-row">
+        <div class="alert-dot alert-dot-red"></div>
+        <div style="flex:1">
+          <div class="alert-name">Luke McDonald <span style="font-weight:400;font-size:12px;color:var(--muted)">— 59 pitches, 0 ACs, 8 days since last AC</span></div>
+          <div class="alert-detail">Most pitches on the team. Zero conversion. This is a pitch quality or target area problem — not effort. Film review his actual conversations.</div>
+        </div>
+        <span class="badge badge-red">Film review</span>
+      </div>
+      <div class="alert-row">
+        <div class="alert-dot alert-dot-red"></div>
+        <div style="flex:1">
+          <div class="alert-name">Ramon Ochoa <span style="font-weight:400;font-size:12px;color:var(--muted)">— 48 pitches, 0 ACs</span></div>
+          <div class="alert-detail">Most efficient pitcher by hour (4 pitches/hr) but 0 ACs. First pitch avg 5:35 PM — window is very compressed. Combine with pitch quality review.</div>
+        </div>
+        <span class="badge badge-red">Film review</span>
+      </div>
+      <div class="alert-row">
+        <div class="alert-dot alert-dot-red"></div>
+        <div style="flex:1">
+          <div class="alert-name">Binny Yun <span style="font-weight:400;font-size:12px;color:var(--muted)">— 6 days, 9 leads, 0 ACs, last AC 95 days ago</span></div>
+          <div class="alert-detail">High effort, conversations are happening (9 leads), but something is breaking at the close. Pattern suggests a structural problem with the close sequence.</div>
+        </div>
+        <span class="badge badge-red">Close issue</span>
+      </div>
+      <div class="alert-row">
+        <div class="alert-dot alert-dot-red"></div>
+        <div style="flex:1">
+          <div class="alert-name">Adrese Alolafi <span style="font-weight:400;font-size:12px;color:var(--muted)">— 6 days, 202 knocks, 1 lead, 0 ACs, last AC 16 days ago</span></div>
+          <div class="alert-detail">Massive knock volume (202!) but only 1 lead from 33 pitches. 16% pitch rate suggests contact problems. Very few conversations are sticking past the opener.</div>
+        </div>
+        <span class="badge badge-red">Approach issue</span>
+      </div>
+      <div class="alert-row">
+        <div class="alert-dot alert-dot-red"></div>
+        <div style="flex:1">
+          <div class="alert-name">Henry Pham <span style="font-weight:400;font-size:12px;color:var(--muted)">— 4 days, 9 pitches, 0 ACs, last AC 211 days ago</span></div>
+          <div class="alert-detail">211 days since last AC. Knocked 4 days but minimal engagement. This rep may need a serious conversation about commitment or fit.</div>
+        </div>
+        <span class="badge badge-red">1:1 needed</span>
+      </div>
+    </div>
+  </div>
+
+  <div style="margin-bottom:24px">
+    <div style="font-family:'DM Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:12px">Coaching — low output despite days worked</div>
+    <div class="alert-list">
+      <div class="alert-row">
+        <div class="alert-dot alert-dot-amber"></div>
+        <div style="flex:1">
+          <div class="alert-name">Raul Salinas <span style="font-weight:400;font-size:12px;color:var(--muted)">— 4 days, 156 knocks, 8 pitches, 0 ACs</span></div>
+          <div class="alert-detail">5.1% pitch rate is among the lowest. Knocking many doors but converting very few into conversations. Opener needs work.</div>
+        </div>
+        <span class="badge badge-amber">Low pitch rate</span>
+      </div>
+      <div class="alert-row">
+        <div class="alert-dot alert-dot-amber"></div>
+        <div style="flex:1">
+          <div class="alert-name">Ilia Nikanzad <span style="font-weight:400;font-size:12px;color:var(--muted)">— 4 days, 138 knocks, 8 pitches</span></div>
+          <div class="alert-detail">5.8% pitch rate from 138 knocks. Worked 20 hours but only 8 pitches. Not converting door contacts into conversations.</div>
+        </div>
+        <span class="badge badge-amber">Low pitch rate</span>
+      </div>
+      <div class="alert-row">
+        <div class="alert-dot alert-dot-amber"></div>
+        <div style="flex:1">
+          <div class="alert-name">Maddie Smith <span style="font-weight:400;font-size:12px;color:var(--muted)">— 5 days, avg first pitch 6:06 PM</span></div>
+          <div class="alert-detail">5 days knocked but averaging a 6:06 PM first pitch. Only getting ~15 minutes of selling window. This is an accountability and scheduling issue.</div>
+        </div>
+        <span class="badge badge-amber">Late start</span>
+      </div>
+      <div class="alert-row">
+        <div class="alert-dot alert-dot-amber"></div>
+        <div style="flex:1">
+          <div class="alert-name">Jared Kelly <span style="font-weight:400;font-size:12px;color:var(--muted)">— 15 leads from 15 pitches, only 2 ACs</span></div>
+          <div class="alert-detail">100% lead rate — extraordinary opener. But only 2 ACs from 15 leads (13%). The problem is entirely in the close. Pair with a strong closer for a shadow session.</div>
+        </div>
+        <span class="badge badge-amber">Close issue</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- GHOST REPS -->
+<section class="tab-panel" id="panel-ghosts">
+  <div class="panel-header">
+    <div>
+      <div class="panel-title">Ghost reps — zero activity this week</div>
+      <div class="panel-desc">21 reps on the roster logged no knocks, pitches, or field time for the entire week of June 1–7.</div>
+    </div>
+    <div class="panel-meta">21 of 82 reps (25.6%)</div>
+  </div>
+  <div class="metric-strip" style="grid-template-columns:repeat(3,1fr)">
+    <div class="mcard accent-red"><div class="mcard-label">Zero-activity reps</div><div class="mcard-value" style="color:var(--red)">21</div><div class="mcard-sub">25.6% of roster</div></div>
+    <div class="mcard accent-amber"><div class="mcard-label">With prior ACs on record</div><div class="mcard-value">12</div><div class="mcard-sub">were previously active</div></div>
+    <div class="mcard"><div class="mcard-label">Longest dry spell</div><div class="mcard-value">1,265d</div><div class="mcard-sub">Michael Jones (duplicate)</div></div>
+  </div>
+
+  <div style="margin-bottom:16px">
+    <div style="font-family:'DM Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:12px">Reps with prior history — were previously active</div>
+    <div class="alert-list">
+      <div class="alert-row"><div class="alert-dot alert-dot-red"></div><div style="flex:1"><div class="alert-name">Seth Duncan</div><div class="alert-detail">348 days since last AC · 348 days since last SRA</div></div><span class="badge badge-red">Long inactive</span></div>
+      <div class="alert-row"><div class="alert-dot alert-dot-red"></div><div style="flex:1"><div class="alert-name">Tristan Faunce</div><div class="alert-detail">368 days since last AC · 375 days since last SRA</div></div><span class="badge badge-red">Long inactive</span></div>
+      <div class="alert-row"><div class="alert-dot alert-dot-red"></div><div style="flex:1"><div class="alert-name">Kyle Gelasio</div><div class="alert-detail">55 days since last AC · 52 days since last SRA</div></div><span class="badge badge-amber">Inactive</span></div>
+      <div class="alert-row"><div class="alert-dot alert-dot-red"></div><div style="flex:1"><div class="alert-name">Brian Wilson</div><div class="alert-detail">52 days since last AC · 52 days since last SRA</div></div><span class="badge badge-amber">Inactive</span></div>
+      <div class="alert-row"><div class="alert-dot alert-dot-amber"></div><div style="flex:1"><div class="alert-name">Phuong Nguyen</div><div class="alert-detail">50 days since last AC · 59 days since last SRA</div></div><span class="badge badge-amber">Inactive</span></div>
+      <div class="alert-row"><div class="alert-dot alert-dot-amber"></div><div style="flex:1"><div class="alert-name">Matthew Wagoner</div><div class="alert-detail">31 days since last AC · 82 days since last SRA</div></div><span class="badge badge-amber">Inactive</span></div>
+      <div class="alert-row"><div class="alert-dot alert-dot-amber"></div><div style="flex:1"><div class="alert-name">Barrat Mohammad</div><div class="alert-detail">34 days since last AC · 32 days since last SRA</div></div><span class="badge badge-amber">Inactive</span></div>
+      <div class="alert-row"><div class="alert-dot alert-dot-amber"></div><div style="flex:1"><div class="alert-name">Alejandro Villegas</div><div class="alert-detail">27 days since last AC · 78 days since last SRA</div></div><span class="badge badge-amber">Inactive</span></div>
+      <div class="alert-row"><div class="alert-dot alert-dot-amber"></div><div style="flex:1"><div class="alert-name">Steven Waguespack</div><div class="alert-detail">38 days since last AC · 38 days since last SRA</div></div><span class="badge badge-amber">Inactive</span></div>
+      <div class="alert-row"><div class="alert-dot alert-dot-amber"></div><div style="flex:1"><div class="alert-name">Roger Diaz</div><div class="alert-detail">16 days since last AC · 11 days since last SRA</div></div><span class="badge badge-amber">Inactive</span></div>
+      <div class="alert-row"><div class="alert-dot alert-dot-amber"></div><div style="flex:1"><div class="alert-name">Abraham Clouse</div><div class="alert-detail">16 days since last AC · 6 days since last SRA</div></div><span class="badge badge-amber">Inactive</span></div>
+      <div class="alert-row"><div class="alert-dot alert-dot-amber"></div><div style="flex:1"><div class="alert-name">Caleb Phillips</div><div class="alert-detail">20 days since last AC · 44 days since last SRA</div></div><span class="badge badge-amber">Inactive</span></div>
+    </div>
+  </div>
+
+  <div>
+    <div style="font-family:'DM Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:12px">No prior history on record</div>
+    <div class="ghost-grid">
+      <div class="ghost-card"><div class="ghost-initials">EW</div><div><div class="ghost-name">Elijah Wood</div><div class="ghost-sub">No history</div></div></div>
+      <div class="ghost-card"><div class="ghost-initials">HM</div><div><div class="ghost-name">Helene McKenney</div><div class="ghost-sub">No history</div></div></div>
+      <div class="ghost-card"><div class="ghost-initials">AM</div><div><div class="ghost-name">Alexander McNulty</div><div class="ghost-sub">No history</div></div></div>
+      <div class="ghost-card"><div class="ghost-initials">AD</div><div><div class="ghost-name">Alondra Dominguez</div><div class="ghost-sub">No history</div></div></div>
+      <div class="ghost-card"><div class="ghost-initials">TH</div><div><div class="ghost-name">Thanh Huynh</div><div class="ghost-sub">No history</div></div></div>
+      <div class="ghost-card"><div class="ghost-initials">GC</div><div><div class="ghost-name">Gabriel Campa</div><div class="ghost-sub">No history</div></div></div>
+      <div class="ghost-card"><div class="ghost-initials">SG</div><div><div class="ghost-name">Soraya Galiano</div><div class="ghost-sub">No history</div></div></div>
+      <div class="ghost-card"><div class="ghost-initials">BR</div><div><div class="ghost-name">Bryan Rossiter</div><div class="ghost-sub">1 SRA on record</div></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- FILM ROOM -->
+<section class="tab-panel" id="panel-standouts">
+  <div class="panel-header">
+    <div>
+      <div class="panel-title">Film room — this week's tape</div>
+      <div class="panel-desc">Individual rep standouts, breakdowns, and coaching cues from the week's data.</div>
+    </div>
+    <div class="panel-meta">8 notable reps highlighted</div>
+  </div>
+  <div class="standout-grid" id="standout-cards"></div>
+</section>
+
+</main>
+
+<footer class="report-footer">
+  <div class="footer-note">Sunrun · Direct to Home · Terros data export · Week of June 1–7, 2026</div>
+  <div class="footer-note">Generated June 7, 2026 · 82 reps on roster · Data source: Terros field tracking</div>
+</footer>
+
+<script>
+const allReps = [
+  {name:"Luke McDonald",pitches:59,days:6,knocks:582,hrs:44,leads:0,acs:0,sras:0,firstPitch:"02:18 PM",lastPitch:"08:27 PM",firstKnock:"01:36 PM",lastKnock:"09:19 PM"},
+  {name:"Ramon Ochoa",pitches:48,days:5,knocks:103,hrs:12,leads:0,acs:0,sras:0,firstPitch:"05:35 PM",lastPitch:"06:48 PM",firstKnock:"05:29 PM",lastKnock:"06:57 PM"},
+  {name:"Michael Jones",pitches:37,days:4,knocks:147,hrs:18,leads:0,acs:0,sras:0,firstPitch:"12:16 PM",lastPitch:"04:09 PM",firstKnock:"11:53 AM",lastKnock:"04:22 PM"},
+  {name:"Doug Williams",pitches:35,days:6,knocks:114,hrs:26,leads:7,acs:2,sras:0,firstPitch:"03:04 PM",lastPitch:"07:22 PM",firstKnock:"02:58 PM",lastKnock:"07:22 PM"},
+  {name:"Juan Magraner",pitches:34,days:5,knocks:419,hrs:32,leads:4,acs:3,sras:0,firstPitch:"02:13 PM",lastPitch:"06:16 PM",firstKnock:"01:29 PM",lastKnock:"07:21 PM"},
+  {name:"Josue Sanchez",pitches:34,days:5,knocks:79,hrs:15,leads:1,acs:1,sras:0,firstPitch:"03:35 PM",lastPitch:"05:07 PM",firstKnock:"03:01 PM",lastKnock:"05:10 PM"},
+  {name:"Fernando Garnica",pitches:34,days:5,knocks:198,hrs:26,leads:3,acs:3,sras:1,firstPitch:"03:37 PM",lastPitch:"07:51 PM",firstKnock:"02:25 PM",lastKnock:"06:38 PM"},
+  {name:"William Breese-Young",pitches:33,days:6,knocks:420,hrs:17,leads:3,acs:2,sras:0,firstPitch:"03:41 PM",lastPitch:"05:11 PM",firstKnock:"03:27 PM",lastKnock:"05:36 PM"},
+  {name:"Adrese Alolafi",pitches:33,days:6,knocks:202,hrs:30,leads:1,acs:0,sras:0,firstPitch:"02:56 PM",lastPitch:"06:18 PM",firstKnock:"01:36 PM",lastKnock:"05:22 PM"},
+  {name:"Cole Venturo",pitches:32,days:5,knocks:270,hrs:22,leads:0,acs:0,sras:0,firstPitch:"01:58 PM",lastPitch:"05:47 PM",firstKnock:"01:48 PM",lastKnock:"05:52 PM"},
+  {name:"David Cruz Jr",pitches:29,days:4,knocks:292,hrs:20,leads:2,acs:1,sras:1,firstPitch:"05:19 PM",lastPitch:"07:20 PM",firstKnock:"03:57 PM",lastKnock:"07:03 PM"},
+  {name:"Daniel Morrissey",pitches:27,days:6,knocks:321,hrs:35,leads:3,acs:3,sras:0,firstPitch:"03:48 PM",lastPitch:"07:23 PM",firstKnock:"01:11 PM",lastKnock:"05:28 PM"},
+  {name:"Zaid Clack",pitches:26,days:5,knocks:193,hrs:20,leads:2,acs:2,sras:1,firstPitch:"02:57 PM",lastPitch:"05:38 PM",firstKnock:"02:55 PM",lastKnock:"06:18 PM"},
+  {name:"Dan Begin",pitches:26,days:5,knocks:107,hrs:19,leads:2,acs:2,sras:0,firstPitch:"03:45 PM",lastPitch:"06:31 PM",firstKnock:"03:08 PM",lastKnock:"07:36 PM"},
+  {name:"Jeremy Warren",pitches:25,days:4,knocks:280,hrs:21,leads:2,acs:1,sras:0,firstPitch:"02:21 PM",lastPitch:"06:00 PM",firstKnock:"01:32 PM",lastKnock:"06:00 PM"},
+  {name:"Yaya Yehia",pitches:21,days:5,knocks:68,hrs:24,leads:6,acs:5,sras:2,firstPitch:"03:23 PM",lastPitch:"06:40 PM",firstKnock:"01:15 PM",lastKnock:"07:07 PM"},
+  {name:"James Matthews",pitches:20,days:4,knocks:100,hrs:18,leads:3,acs:2,sras:0,firstPitch:"03:04 PM",lastPitch:"05:44 PM",firstKnock:"02:00 PM",lastKnock:"05:46 PM"},
+  {name:"Mohamed Altiri",pitches:20,days:6,knocks:161,hrs:21,leads:1,acs:0,sras:0,firstPitch:"04:17 PM",lastPitch:"06:14 PM",firstKnock:"03:32 PM",lastKnock:"06:26 PM"},
+  {name:"Luke Mocke",pitches:19,days:5,knocks:55,hrs:15,leads:4,acs:1,sras:1,firstPitch:"03:18 PM",lastPitch:"05:54 PM",firstKnock:"03:07 PM",lastKnock:"05:54 PM"},
+  {name:"Isaac Santana",pitches:18,days:4,knocks:222,hrs:20,leads:6,acs:3,sras:0,firstPitch:"03:41 PM",lastPitch:"06:49 PM",firstKnock:"03:08 PM",lastKnock:"07:20 PM"},
+  {name:"Caleb Wood",pitches:16,days:5,knocks:123,hrs:22,leads:5,acs:1,sras:0,firstPitch:"01:47 PM",lastPitch:"03:28 PM",firstKnock:"01:45 PM",lastKnock:"05:09 PM"},
+  {name:"Kevin Padilla",pitches:16,days:6,knocks:36,hrs:12,leads:10,acs:4,sras:2,firstPitch:"05:47 PM",lastPitch:"06:30 PM",firstKnock:"05:39 PM",lastKnock:"06:47 PM"},
+  {name:"Christopher Smith",pitches:16,days:4,knocks:26,hrs:9,leads:1,acs:0,sras:1,firstPitch:"02:28 PM",lastPitch:"03:13 PM",firstKnock:"01:57 PM",lastKnock:"03:21 PM"},
+  {name:"Jesse Smith",pitches:15,days:4,knocks:67,hrs:15,leads:5,acs:2,sras:0,firstPitch:"02:50 PM",lastPitch:"05:37 PM",firstKnock:"02:27 PM",lastKnock:"05:59 PM"},
+  {name:"Jared Kelly",pitches:15,days:6,knocks:52,hrs:26,leads:15,acs:2,sras:1,firstPitch:"01:07 PM",lastPitch:"02:46 PM",firstKnock:"12:42 PM",lastKnock:"05:39 PM"},
+  {name:"Binny Yun",pitches:15,days:6,knocks:165,hrs:23,leads:9,acs:0,sras:0,firstPitch:"03:22 PM",lastPitch:"04:35 PM",firstKnock:"12:25 PM",lastKnock:"03:10 PM"},
+  {name:"Adam Zermeno",pitches:15,days:2,knocks:133,hrs:17,leads:2,acs:2,sras:0,firstPitch:"02:52 PM",lastPitch:"06:25 PM",firstKnock:"03:45 PM",lastKnock:"06:49 PM"},
+  {name:"Zak Murray",pitches:14,days:5,knocks:15,hrs:9,leads:14,acs:3,sras:2,firstPitch:"12:51 PM",lastPitch:"03:08 PM",firstKnock:"12:51 PM",lastKnock:"03:08 PM"},
+  {name:"Brian Garcia Melgoza",pitches:14,days:4,knocks:14,hrs:12,leads:1,acs:0,sras:0,firstPitch:"10:56 AM",lastPitch:"04:45 PM",firstKnock:"10:56 AM",lastKnock:"04:45 PM"},
+  {name:"Diamond Dahlstrom",pitches:14,days:4,knocks:97,hrs:11,leads:0,acs:0,sras:0,firstPitch:"06:05 PM",lastPitch:"06:58 PM",firstKnock:"05:45 PM",lastKnock:"07:33 PM"},
+  {name:"Riley Hoeft",pitches:13,days:4,knocks:44,hrs:9,leads:1,acs:1,sras:0,firstPitch:"05:25 PM",lastPitch:"06:51 PM",firstKnock:"05:09 PM",lastKnock:"06:34 PM"},
+  {name:"Lionel Marquez",pitches:13,days:3,knocks:80,hrs:12,leads:2,acs:1,sras:1,firstPitch:"05:06 PM",lastPitch:"06:28 PM",firstKnock:"04:09 PM",lastKnock:"05:38 PM"},
+  {name:"Aashini Joshi",pitches:12,days:3,knocks:66,hrs:9,leads:0,acs:0,sras:0,firstPitch:"02:57 PM",lastPitch:"06:07 PM",firstKnock:"02:40 PM",lastKnock:"06:09 PM"},
+  {name:"Josue Ojeda-Navarro",pitches:11,days:2,knocks:36,hrs:14,leads:4,acs:3,sras:1,firstPitch:"11:37 AM",lastPitch:"03:51 PM",firstKnock:"12:08 PM",lastKnock:"02:13 PM"},
+  {name:"Roy Garcia Gomez",pitches:10,days:4,knocks:136,hrs:15,leads:1,acs:1,sras:0,firstPitch:"04:29 PM",lastPitch:"05:26 PM",firstKnock:"03:46 PM",lastKnock:"05:52 PM"},
+  {name:"Sean Stack",pitches:10,days:3,knocks:71,hrs:7,leads:0,acs:1,sras:0,firstPitch:"05:18 PM",lastPitch:"06:35 PM",firstKnock:"05:18 PM",lastKnock:"06:36 PM"},
+  {name:"Kevin Kampula",pitches:9,days:4,knocks:21,hrs:12,leads:4,acs:3,sras:1,firstPitch:"05:04 PM",lastPitch:"06:29 PM",firstKnock:"04:20 PM",lastKnock:"06:30 PM"},
+  {name:"Henry Pham",pitches:9,days:4,knocks:143,hrs:13,leads:1,acs:0,sras:0,firstPitch:"06:10 PM",lastPitch:"06:52 PM",firstKnock:"05:02 PM",lastKnock:"06:58 PM"},
+  {name:"Ilia Nikanzad",pitches:8,days:4,knocks:138,hrs:20,leads:3,acs:2,sras:0,firstPitch:"04:48 PM",lastPitch:"05:47 PM",firstKnock:"03:08 PM",lastKnock:"05:42 PM"},
+  {name:"Raul Salinas",pitches:8,days:4,knocks:156,hrs:16,leads:0,acs:0,sras:0,firstPitch:"05:37 PM",lastPitch:"05:53 PM",firstKnock:"04:45 PM",lastKnock:"07:02 PM"},
+  {name:"Jo Montes",pitches:7,days:2,knocks:18,hrs:5,leads:2,acs:0,sras:1,firstPitch:"06:07 PM",lastPitch:"06:23 PM",firstKnock:"03:03 PM",lastKnock:"05:37 PM"},
+  {name:"Maddie Smith",pitches:7,days:5,knocks:79,hrs:15,leads:2,acs:1,sras:0,firstPitch:"06:06 PM",lastPitch:"06:21 PM",firstKnock:"03:49 PM",lastKnock:"06:05 PM"},
+  {name:"Nathaniel Vu",pitches:7,days:3,knocks:156,hrs:20,leads:4,acs:2,sras:0,firstPitch:"05:52 PM",lastPitch:"06:17 PM",firstKnock:"03:00 PM",lastKnock:"06:09 PM"},
+  {name:"Jose Santiago III",pitches:5,days:4,knocks:43,hrs:16,leads:2,acs:2,sras:1,firstPitch:"03:45 PM",lastPitch:"04:03 PM",firstKnock:"03:56 PM",lastKnock:"06:23 PM"},
+  {name:"Richard Newell",pitches:5,days:1,knocks:53,hrs:3,leads:0,acs:0,sras:0,firstPitch:"02:07 PM",lastPitch:"04:30 PM",firstKnock:"02:05 PM",lastKnock:"04:35 PM"},
+  {name:"Zenas Doan",pitches:4,days:3,knocks:139,hrs:18,leads:0,acs:0,sras:0,firstPitch:"04:07 PM",lastPitch:"05:22 PM",firstKnock:"03:53 PM",lastKnock:"06:46 PM"},
+  {name:"Roy Santiago",pitches:4,days:2,knocks:5,hrs:2,leads:0,acs:0,sras:0,firstPitch:"06:06 PM",lastPitch:"06:29 PM",firstKnock:"06:06 PM",lastKnock:"06:29 PM"},
+  {name:"Josh Stringer",pitches:3,days:2,knocks:12,hrs:4,leads:3,acs:1,sras:1,firstPitch:"08:57 AM",lastPitch:"01:39 PM",firstKnock:"11:00 AM",lastKnock:"02:15 PM"},
+  {name:"Cameron Ford",pitches:2,days:2,knocks:2,hrs:2,leads:2,acs:0,sras:0,firstPitch:"08:47 AM",lastPitch:"08:47 AM",firstKnock:"08:47 AM",lastKnock:"08:47 AM"},
+  {name:"Jerry Tebbs",pitches:2,days:1,knocks:7,hrs:4,leads:0,acs:0,sras:0,firstPitch:"12:33 PM",lastPitch:"02:15 PM",firstKnock:"11:43 AM",lastKnock:"02:17 PM"},
+  {name:"Sebastian Hadad",pitches:2,days:2,knocks:2,hrs:2,leads:2,acs:0,sras:1,firstPitch:"03:22 PM",lastPitch:"03:22 PM",firstKnock:"03:22 PM",lastKnock:"03:22 PM"},
+  {name:"Ryan Zaragoza",pitches:2,days:2,knocks:9,hrs:3,leads:2,acs:0,sras:0,firstPitch:"02:15 PM",lastPitch:"02:15 PM",firstKnock:"01:32 PM",lastKnock:"02:15 PM"},
+  {name:"Ryan Mckenney",pitches:2,days:1,knocks:2,hrs:2,leads:0,acs:0,sras:0,firstPitch:"04:52 PM",lastPitch:"06:29 PM",firstKnock:"04:52 PM",lastKnock:"06:29 PM"},
+  {name:"Lionel Uhlmann IV",pitches:1,days:1,knocks:5,hrs:3,leads:1,acs:1,sras:0,firstPitch:"10:16 AM",lastPitch:"10:16 AM",firstKnock:"12:07 PM",lastKnock:"12:18 PM"},
+  {name:"Jonathan Sandoval Polo",pitches:1,days:1,knocks:9,hrs:4,leads:1,acs:1,sras:0,firstPitch:"11:43 AM",lastPitch:"11:43 AM",firstKnock:"12:21 PM",lastKnock:"02:20 PM"},
+  {name:"Jordan Webb",pitches:1,days:1,knocks:1,hrs:1,leads:1,acs:1,sras:0,firstPitch:"11:45 AM",lastPitch:"11:45 AM",firstKnock:"11:45 AM",lastKnock:"11:45 AM"},
+  {name:"Ibraheem Tabib",pitches:1,days:1,knocks:39,hrs:8,leads:1,acs:0,sras:0,firstPitch:"05:20 PM",lastPitch:"05:20 PM",firstKnock:"03:36 PM",lastKnock:"05:49 PM"},
+  {name:"Brayam Rosero",pitches:1,days:1,knocks:1,hrs:1,leads:1,acs:0,sras:0,firstPitch:"01:22 PM",lastPitch:"01:22 PM",firstKnock:"01:22 PM",lastKnock:"01:22 PM"},
+  {name:"Michael Lobdell",pitches:1,days:1,knocks:1,hrs:1,leads:1,acs:1,sras:1,firstPitch:"12:31 AM",lastPitch:"12:31 AM",firstKnock:"12:31 AM",lastKnock:"12:31 AM"},
+];
+
+function pitchHour(t){
+  if(!t||t==='-') return null;
+  const [time,mer]=t.split(' ');
+  let [h]=time.split(':').map(Number);
+  if(mer==='PM'&&h!==12) h+=12;
+  if(mer==='AM'&&h===12) h=0;
+  return h;
+}
+
+function effortRating(r){
+  const ppd = r.pitches/r.days;
+  if(r.days>=5 && ppd>=6) return {label:'Elite',cls:'badge-green'};
+  if(r.days>=4 && ppd>=4) return {label:'Solid',cls:'badge-blue'};
+  if(r.days>=4 && ppd<4) return {label:'Low output',cls:'badge-amber'};
+  if(r.days<=2) return {label:'Inconsistent',cls:'badge-gray'};
+  return {label:'Average',cls:'badge-gray'};
+}
+
+function timingFlag(h){
+  if(h===null) return {label:'—',cls:'badge-gray'};
+  if(h>=18) return {label:'Very late',cls:'badge-red'};
+  if(h>=17) return {label:'Late start',cls:'badge-amber'};
+  if(h<14) return {label:'Early start',cls:'badge-green'};
+  return {label:'On time',cls:'badge-blue'};
+}
+
+const maxPitches = allReps[0].pitches;
+
+const effortBody = document.getElementById('effort-table-body');
+allReps.forEach((r, i) => {
+  const rate = r.knocks>0 ? (r.pitches/r.knocks*100).toFixed(0)+'%' : '—';
+  const ppd = (r.pitches/r.days).toFixed(1);
+  const rat = effortRating(r);
+  const barW = Math.round(r.pitches/maxPitches*100);
+  const rateNum = r.knocks>0 ? r.pitches/r.knocks : 0;
+  const rateCls = rateNum>=0.35?'badge-green':rateNum>=0.15?'badge-amber':'badge-red';
+  effortBody.innerHTML += `<tr>
+    <td class="rank-num">${i+1}</td>
+    <td style="font-weight:500">${r.name}</td>
+    <td><div style="display:flex;align-items:center;gap:8px"><div style="width:70px;height:4px;background:#e8e6df;border-radius:2px;overflow:hidden"><div style="width:${barW}%;height:100%;background:#1b4f8a;border-radius:2px"></div></div><span>${r.pitches}</span></div></td>
+    <td>${r.days}</td>
+    <td>${r.knocks.toLocaleString()}</td>
+    <td>${r.hrs}h</td>
+    <td><span class="badge ${rateCls}">${rate}</span></td>
+    <td>${ppd}</td>
+    <td>${r.acs||'—'}</td>
+    <td><span class="badge ${rat.cls}">${rat.label}</span></td>
+  </tr>`;
+});
+
+const timingBody = document.getElementById('timing-table-body');
+allReps.forEach(r => {
+  const h = pitchHour(r.firstPitch);
+  const flag = timingFlag(h);
+  timingBody.innerHTML += `<tr>
+    <td style="font-weight:500">${r.name}</td>
+    <td style="font-family:'DM Mono',monospace;font-size:12px">${r.firstPitch}</td>
+    <td style="font-family:'DM Mono',monospace;font-size:12px">${r.lastPitch}</td>
+    <td style="font-family:'DM Mono',monospace;font-size:12px">${r.firstKnock}</td>
+    <td>${r.days}</td>
+    <td>${r.pitches}</td>
+    <td>${r.acs||'—'}</td>
+    <td><span class="badge ${flag.cls}">${flag.label}</span></td>
+  </tr>`;
+});
+
+const convBody = document.getElementById('conv-table-body');
+const convReps = allReps.filter(r=>r.leads>0).sort((a,b)=>b.acs-a.acs);
+convReps.forEach((r,i) => {
+  const l2a = r.leads>0 && r.acs>0 ? (r.acs/r.leads*100).toFixed(0)+'%' : '—';
+  const p2a = r.pitches>0 && r.acs>0 ? (r.acs/r.pitches*100).toFixed(0)+'%' : '—';
+  const l2aNum = r.leads>0 ? r.acs/r.leads : 0;
+  const l2aCls = l2aNum>=0.6?'badge-green':l2aNum>=0.3?'badge-blue':l2aNum>0?'badge-amber':'badge-gray';
+  convBody.innerHTML += `<tr>
+    <td class="rank-num">${i+1}</td>
+    <td style="font-weight:500">${r.name}</td>
+    <td>${r.pitches}</td>
+    <td>${r.leads}</td>
+    <td><strong>${r.acs||'—'}</strong></td>
+    <td>${r.sras||'—'}</td>
+    <td><span class="badge ${l2aCls}">${l2a}</span></td>
+    <td>${p2a}</td>
+  </tr>`;
+});
+
+const standouts = [
+  {type:'s-amber',tag:'MVP — Results',name:'Yaya Yehia',body:'The most efficient closer on the team this week. 21 pitches turned into 5 ACs and 2 SRAs. Proof that volume is not the answer — quality of pitch is. Study this rep\'s approach.',stats:[{v:21,l:'Pitches'},{v:5,l:'ACs'},{v:2,l:'SRAs'}]},
+  {type:'s-amber',tag:'Elite — Effort',name:'Luke McDonald',body:'Led team in pitches (59) across a full 6-day week. However, 0 ACs from 59 pitches is a serious conversion problem. The effort is unimpeachable — the pitch needs a film session.',stats:[{v:59,l:'Pitches'},{v:6,l:'Days'},{v:0,l:'ACs'}]},
+  {type:'s-blue',tag:'Top Opener',name:'Jared Kelly',body:'15 leads from 15 pitches — a 100% lead generation rate. Best opener on the team by a wide margin. But only 2 ACs from those 15 leads. The close is the gap. Pair with Yaya for a shadow session.',stats:[{v:15,l:'Leads'},{v:15,l:'Pitches'},{v:2,l:'ACs'}]},
+  {type:'s-blue',tag:'Efficiency Model',name:'Ramon Ochoa',body:'4 pitches per hour — best efficiency on the team. Works a short window (avg first pitch 5:35 PM) but maximizes every minute. 0 ACs is a concern but the effort model is worth replicating.',stats:[{v:48,l:'Pitches'},{v:12,l:'Hours'},{v:'4.0',l:'Per hour'}]},
+  {type:'s-red',tag:'Red Flag — Close',name:'Binny Yun',body:'6 days knocked, 165 knocks, 9 leads — and 0 ACs. Last AC was 95 days ago. The data shows conversations are happening but something is dying at the close. Dedicated 1:1 needed.',stats:[{v:6,l:'Days out'},{v:9,l:'Leads'},{v:'95d',l:'Since AC'}]},
+  {type:'s-red',tag:'Red Flag — Pitch Rate',name:'Adrese Alolafi',body:'202 knocks, 33 pitches = 16% pitch rate. One of the lowest on the team despite full 6-day effort. Knocking a lot of doors but very few are turning into conversations. Opener needs work.',stats:[{v:202,l:'Knocks'},{v:33,l:'Pitches'},{v:'16%',l:'Rate'}]},
+  {type:'s-blue',tag:'High Conversion',name:'Kevin Padilla',body:'10 leads and 4 ACs from 16 pitches. Started after 5:47 PM every day — he\'s operating in under an hour but still closed 2 SRAs. What happens if he starts at 3 PM?',stats:[{v:16,l:'Pitches'},{v:4,l:'ACs'},{v:2,l:'SRAs'}]},
+  {type:'s-red',tag:'Red Flag — Inactive',name:'Henry Pham',body:'211 days since last AC. Knocked 4 days this week with 9 pitches and 0 results. The pattern suggests this rep may be disengaged or not a long-term fit. A direct conversation is needed.',stats:[{v:'211d',l:'Since AC'},{v:9,l:'Pitches'},{v:0,l:'ACs'}]},
+];
+
+const sgrid = document.getElementById('standout-cards');
+standouts.forEach(s=>{
+  sgrid.innerHTML+=`<div class="standout-card ${s.type}">
+    <div class="sc-header">
+      <div class="sc-name">${s.name}</div>
+      <span class="badge ${s.type==='s-green'?'badge-green':s.type==='s-red'?'badge-red':s.type==='s-amber'?'badge-purple':'badge-blue'}">${s.tag}</span>
+    </div>
+    <div class="sc-body">${s.body}</div>
+    <div class="sc-stats">${s.stats.map(st=>`<div><div class="sc-stat-val">${st.v}</div><div class="sc-stat-lbl">${st.l}</div></div>`).join('')}</div>
+  </div>`;
+});
+
+function switchTab(name){
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('panel-'+name).classList.add('active');
+  event.target.classList.add('active');
+}
+</script>
+</body>
+</html>
