@@ -13,6 +13,7 @@ A live sales dashboard that:
 - Fetches live data from a Python API server hosted on Render
 - Is kept awake 24/7 by UptimeRobot (free)
 - Also works locally via a .bat launcher
+- Is mobile-friendly (works on iPhone)
 
 **Live URLs:**
 - Dashboard: https://abipsha.github.io/terros-dashboard/
@@ -29,8 +30,8 @@ terros-dashboard/
     terros.py       — Terros API client (all API calls live here)
     Start API Server.bat   — Double-click to run locally
     Restart Server.bat     — Kills existing Python process and restarts
-  index.html        — The dashboard (single HTML file, all CSS+JS inline)
-  vivid-terros-dashboard.html  — Same as index.html (kept for local server use)
+  index.html        — The dashboard (served by GitHub Pages)
+  vivid-terros-dashboard.html  — Same as index.html (used by local server)
   requirements.txt  — Empty (stdlib only), required by Render to detect Python
   .gitignore        — Excludes __pycache__, .env, etc.
   CLAUDE.md         — Developer notes for Claude (architecture, known issues)
@@ -104,18 +105,20 @@ KPI IDs used:
 
 1. Install GitHub Desktop: https://desktop.github.com
 2. Add Local Repository → select the project folder → Initialize Repository
-3. Commit all files → Publish Repository (set to **Private**)
-4. Delete any sensitive files (key.txt, etc.) from the repo
-5. Upload `index.html` directly via GitHub web if GitHub Desktop doesn't detect it
+3. Commit all files → Publish Repository (set to **Private** if sensitive)
+4. Delete any sensitive files (key.txt, etc.) from the repo if accidentally included
+5. Upload `index.html` via GitHub web if GitHub Desktop doesn't detect it:
+   - Go to repo → Add file → Upload files → drag file → Commit changes
 6. Enable GitHub Pages: Settings → Pages → Deploy from branch → main / (root) → Save
 7. URL appears at top of Pages settings after ~1 minute
+8. Note: the file must be named `index.html` (not `vivid-terros-dashboard.html`)
 
 ### 2. Render (Python API server)
 
 1. Sign up at https://render.com (free, no credit card)
 2. New → Web Service → connect GitHub repo
 3. Settings:
-   - **Root Directory**: (leave blank)
+   - **Root Directory**: **(leave completely blank)**
    - **Build Command**: `pip install -r requirements.txt`
    - **Start Command**: `python api/server.py`
    - **Instance Type**: Free
@@ -123,15 +126,30 @@ KPI IDs used:
    - `TERROS_API_KEY` = your API key
 5. Deploy → wait for green "Live" status
 6. Copy the `.onrender.com` URL
+7. Update `index.html`: find `const PROD_API = '...'` and paste in the Render URL
+8. Re-upload `index.html` to GitHub so the dashboard uses the live API
+
+**Important:** Root Directory must be blank (not `api`) — otherwise Render can't find `requirements.txt` and the deploy fails with "No such file or directory".
+
+**Important:** `api/server.py` must include a `do_HEAD` method, otherwise uptime monitors get a 501 error:
+```python
+    def do_HEAD(self):
+        self.send_response(200)
+        self._cors_headers()
+        self.send_header("Content-Type", "application/json")
+        self.end_headers()
+```
 
 ### 3. UptimeRobot (prevent Render from sleeping)
 
 1. Sign up at https://uptimerobot.com (free)
 2. Add New Monitor:
    - Type: HTTP(s)
+   - Friendly Name: anything (e.g. "Terros API")
    - URL: `https://YOUR-APP.onrender.com/health`
-   - Interval: 5 minutes
-3. Save — server will never sleep
+   - Monitoring Interval: 5 minutes
+3. Save — server will never sleep again
+4. Wait 5 minutes for the first check — status should turn green
 
 ---
 
@@ -163,6 +181,9 @@ To force fresh data: `GET http://localhost:8000/api/weekly?force=1`
 - GitHub repo must be **public** for GitHub Pages on free plan
 - The Terros API requires a `teams` filter — without it, counts are inflated
 - Timezone must be CDT (UTC-5), not UTC — all date math uses this
+- `server.py` must handle HEAD requests (`do_HEAD`) or uptime monitors get 501
+- Render Root Directory must be blank — setting it to `api` breaks the build
 - `</script>` must never appear inside the HTML `<script>` block (breaks parsing)
 - No nested backtick template literals in JS (breaks silently)
 - Do not use bash heredoc to write Unicode content to HTML files
+- GitHub Pages only serves `index.html` at the root URL — rename the dashboard file accordingly

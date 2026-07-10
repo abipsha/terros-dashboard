@@ -10,7 +10,7 @@ from datetime import datetime, timezone, timedelta
 API_BASE = "https://api.terros.com"
 # Set TERROS_API_KEY environment variable in production (Render, etc.)
 # Falls back to the hardcoded key for local use.
-API_KEY  = os.environ.get("TERROS_API_KEY", "atQjJCg13du0c4aAeU4hc")
+API_KEY  = os.environ.get("TERROS_API_KEY", "")
 
 
 def _post(path: str, body: dict) -> dict:

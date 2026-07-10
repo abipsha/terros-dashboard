@@ -1,11 +1,38 @@
-# Vivid Terros Dashboard — Dev Notes
+# Vivid Dashboard — Dev Notes
 
 ## Architecture
 
 - `api/terros.py` — Terros API client (Python stdlib only, no pip)
-- `api/server.py` — HTTP server on port 8000; serves HTML at `/` and JSON at `/api/*`
-- `vivid-terros-dashboard.html` — single-file dashboard; fetches from `http://localhost:8000/api/weekly`
+- `api/odoo.py`   — Odoo CRM client (Python stdlib only, no pip)
+- `api/server.py` — HTTP server on port 8000; serves HTML at `/` (Terros) and `/crm` (Odoo), JSON at `/api/*`
+- `vivid-terros-dashboard.html` — Terros leaderboard; fetches from `http://localhost:8000/api/weekly`
+- `vivid-crm-dashboard.html`    — Odoo CRM revenue dashboard; fetches from `http://localhost:8000/api/odoo/report`
 - Launch: double-click `api/Start API Server.bat`
+
+## Odoo CRM Dashboard
+
+### Odoo API endpoint
+`GET /api/odoo/report?start=YYYY-MM-DD&end=YYYY-MM-DD`
+
+Defaults to current month (MTD). Pass `?force=1` to bust the 5-minute cache.
+
+### Odoo credentials (env vars on Render, fallback in odoo.py)
+- `ODOO_URL`      — default `https://myvivid.odoo.com`
+- `ODOO_DB`       — default `myvivid`
+- `ODOO_USER`     — default `abipsha.joshi@vividwindows.com`
+- `ODOO_PASSWORD` — default `Ezr1@@w2j2$`
+
+### Revenue goals (env vars or fallback in odoo.py)
+- `GOAL_NORTHERN_UTAH`, `GOAL_SOUTHERN_UTAH`, `GOAL_EASTERN_IDAHO`, `GOAL_NORTHERN_CALIFORNIA`, `GOAL_INSIDE_SALES`
+- `GOAL_DEFAULT` — used for any unlisted office (default $300,000/month)
+
+### Field mapping (crm.lead model)
+- Revenue:  `x_studio_contract_value`
+- Closer:   `x_studio_closer_text_1`
+- Setter/Canvasser: `x_studio_canvasser_text`
+- Office:   `team_id[1]` (team name)
+- Date:     `date_closed`
+- Won filter: `[['stage_id.is_won', '=', True]]`
 
 ## Critical Rules
 

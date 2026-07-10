@@ -48,7 +48,13 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                 self.wfile.write(e.read())
         else:
             self.send_error(405)
-
+            
+def do_HEAD(self):
+           self.send_response(200)
+           self._cors_headers()
+           self.send_header("Content-Type", "application/json")
+           self.end_headers()
+    
     def do_OPTIONS(self):
         self.send_response(200)
         self._cors()

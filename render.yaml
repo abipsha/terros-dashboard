@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: terros-dashboard
+    runtime: python
+    buildCommand: echo "No build step needed"
+    startCommand: python api/server.py
+    plan: free
+    envVars:
+      - key: TERROS_API_KEY
+        sync: false
+      - key: ODOO_USER
+        sync: false
+      - key: ODOO_PASSWORD
+        sync: false
+      - key: ODOO_URL
+        value: https://myvivid.odoo.com
+      - key: ODOO_DB
+        value: myvivid

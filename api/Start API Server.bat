@@ -1,11 +1,13 @@
 @echo off
-title Vivid Terros Dashboard
+title Vivid Dashboard Server
 echo.
-echo  Vivid Terros Dashboard
+echo  Vivid Dashboard Server
 echo  ======================
 echo.
-echo  Starting API server on http://localhost:8000
-echo  Dashboard will open automatically in your browser.
+echo  Terros Dashboard  →  http://localhost:8000/
+echo  CRM Dashboard     →  http://localhost:8000/crm
+echo.
+echo  Press Ctrl+C to stop.
 echo.
 python "%~dp0server.py"
 pause

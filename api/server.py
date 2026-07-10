@@ -1,13 +1,14 @@
 """
-Vivid Terros API Server
+Vivid API Server
 Run: python server.py
 Endpoints:
   GET  /                              → health check
   GET  /api/test                      → verify Terros API connection
   GET  /api/workflow                  → workflow info + action map
   GET  /api/users                     → all reps
-  GET  /api/weekly?start=YYYY-MM-DD&end=YYYY-MM-DD  → full weekly report
-  GET  /api/kpi?start=YYYY-MM-DD&end=YYYY-MM-DD     → raw KPI data (debug)
+  GET  /api/weekly?start=YYYY-MM-DD&end=YYYY-MM-DD       → Terros weekly report
+  GET  /api/kpi?start=YYYY-MM-DD&end=YYYY-MM-DD          → raw KPI data (debug)
+  GET  /api/odoo/report?start=YYYY-MM-DD&end=YYYY-MM-DD  → Odoo CRM revenue report
   POST /api/raw/<path>                → raw proxy to Terros (for browser dashboard)
 
 Python standard library only — no pip installs needed.
@@ -19,13 +20,15 @@ import sys
 import os
 from datetime import datetime, timezone, timedelta
 
-# Put the api/ folder on the path so we can import terros.py
+# Put the api/ folder on the path so we can import terros.py and odoo.py
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import terros
+import odoo
 
 PORT      = int(os.environ.get("PORT", 8000))  # Render sets PORT automatically
-ROOT_DIR  = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # terros-dashboard/
-HTML_FILE = os.path.join(ROOT_DIR, "index.html")
+ROOT_DIR      = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # terros-dashboard/
+HTML_FILE     = os.path.join(ROOT_DIR, "index.html")
+CRM_HTML_FILE = os.path.join(ROOT_DIR, "vivid-crm-dashboard.html")
 
 # Terros uses Central Daylight Time (CDT = UTC-5) for all date boundaries.
 # Confirmed: stats URL start=1780290000000 = Jun 1, 2026 00:00 CDT exactly.
@@ -120,6 +123,39 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 data = terros.get_kpi_report(start_ms, end_ms)
                 self._json(data)
 
+            elif path == "/api/odoo/deals":
+                today         = datetime.now(tz=timezone.utc)
+                default_start = today.strftime("%Y-%m-01")
+                default_end   = today.strftime("%Y-%m-%d")
+                start_s  = (qs.get("start") or [default_start])[0]
+                end_s    = (qs.get("end")   or [default_end])[0]
+                force    = (qs.get("force")  or [None])[0] == "1"
+                result   = odoo.get_deals_list(start_s, end_s, force=force)
+                self._json(result)
+
+            elif path == "/api/odoo/report":
+                today    = datetime.now(tz=timezone.utc)
+                default_start = today.strftime("%Y-%m-01")   # 1st of current month
+                default_end   = today.strftime("%Y-%m-%d")
+                start_s  = (qs.get("start") or [default_start])[0]
+                end_s    = (qs.get("end")   or [default_end])[0]
+                force    = (qs.get("force")  or [None])[0] == "1"
+                report   = odoo.build_report(start_s, end_s, force=force)
+                self._json(report)
+
+            elif path == "/crm":
+                # Serve the Vivid CRM dashboard
+                if os.path.exists(CRM_HTML_FILE):
+                    with open(CRM_HTML_FILE, "rb") as f:
+                        content = f.read()
+                    self.send_response(200)
+                    self.send_header("Content-Type", "text/html; charset=utf-8")
+                    self.send_header("Content-Length", str(len(content)))
+                    self.end_headers()
+                    self.wfile.write(content)
+                else:
+                    self._json({"error": "CRM dashboard HTML not found", "path": CRM_HTML_FILE}, status=404)
+
             elif path == "/" or path == "" or path == "/dashboard":
                 # Serve the HTML dashboard
                 if os.path.exists(HTML_FILE):
@@ -210,13 +246,13 @@ class Handler(http.server.BaseHTTPRequestHandler):
 
 if __name__ == "__main__":
     print()
-    print("  Vivid Terros API Server")
-    print(f"  Dashboard → http://localhost:{PORT}/")
+    print("  Vivid Dashboard Server")
+    print(f"  Terros Dashboard  →  http://localhost:{PORT}/")
+    print(f"  CRM Dashboard     →  http://localhost:{PORT}/crm")
     print()
     print("  API Endpoints:")
-    print(f"    GET  http://localhost:{PORT}/api/test")
     print(f"    GET  http://localhost:{PORT}/api/weekly?start=2026-06-09&end=2026-06-15")
-    print(f"    GET  http://localhost:{PORT}/api/kpi?start=2026-06-09&end=2026-06-15")
+    print(f"    GET  http://localhost:{PORT}/api/odoo/report?start=2026-07-01&end=2026-07-10")
     print()
     print("  Press Ctrl+C to stop.")
     print()
