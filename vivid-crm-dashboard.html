@@ -379,18 +379,19 @@
     background: currentColor; display: inline-block; opacity: .6;
   }
   .trow {
-    display: flex; align-items: baseline; gap: 4px;
-    padding: 4px 0; font-size: 12px; line-height: 1.4;
-    border-bottom: 1px solid rgba(255,255,255,.03);
+    display: flex; align-items: flex-start; gap: 6px;
+    padding: 5px 0; line-height: 1.3;
+    border-bottom: 1px solid rgba(255,255,255,.04);
   }
   .trow:last-child { border-bottom: none; }
   .trow-rank {
-    color: var(--muted); font-size: 10px; min-width: 14px;
-    font-weight: 700;
+    color: var(--muted); font-size: 10px; font-weight: 700;
+    min-width: 14px; padding-top: 1px; flex-shrink: 0;
   }
-  .trow-name { flex: 1; font-weight: 600; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .trow-deals { color: var(--muted); font-weight: 400; font-size: 10px; flex-shrink: 0; }
-  .trow-rev { color: var(--green); font-weight: 700; white-space: nowrap; font-size: 11px; flex-shrink: 0; }
+  .trow-info { flex: 1; min-width: 0; }
+  .trow-name { display: block; font-size: 12px; font-weight: 600; }
+  .trow-deals { color: var(--muted); font-weight: 400; font-size: 10px; }
+  .trow-rev { display: block; color: var(--green); font-weight: 700; font-size: 12px; margin-top: 1px; }
   @media (max-width: 680px) {
     .team-section-label { padding: 12px 14px 0; }
     .team-grid { padding: 10px 14px 16px; gap: 12px; grid-template-columns: 1fr; }
@@ -921,8 +922,10 @@ function renderTeamBreakdown(deals) {
       Object.values(people).sort((a,b) => b.rev - a.rev).map((p, i) =>
         '<div class="trow">' +
         '<span class="trow-rank">' + (i+1) + '</span>' +
-        '<span class="trow-name">' + esc(p.name) + ' <span class="trow-deals">(' + p.wins + ')</span></span>' +
-        '<span class="trow-rev">$' + Math.round(p.rev).toLocaleString() + '</span>' +
+        '<div class="trow-info">' +
+          '<span class="trow-name">' + esc(p.name) + ' <span class="trow-deals">(' + p.wins + ')</span></span>' +
+          '<span class="trow-rev">$' + Math.round(p.rev).toLocaleString() + '</span>' +
+        '</div>' +
         '</div>'
       ).join('') || '<div class="trow" style="color:var(--muted);font-size:11px;padding:4px 0">—</div>';
 
