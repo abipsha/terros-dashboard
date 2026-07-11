@@ -22,40 +22,46 @@
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; min-height: 100vh; }
 
-  /* Header */
+  /* ── Header ── */
   .header {
     background: var(--surface); border-bottom: 1px solid var(--border);
-    padding: 14px 22px; display: flex; align-items: center;
-    justify-content: space-between; flex-wrap: wrap; gap: 10px;
+    padding: 12px 22px; display: flex; align-items: center; gap: 14px;
   }
-  .logo-row { display: flex; align-items: center; gap: 14px; }
-  .logo {
-    width: 46px; height: 46px; border-radius: 10px;
-    object-fit: contain; flex-shrink: 0;
-    background: #fff; padding: 4px;
-  }
-  .title {
-    font-family: 'Montserrat', sans-serif;
-    display: flex; align-items: baseline; gap: 0; flex-wrap: wrap;
-  }
+  .logo { width: 44px; height: 44px; border-radius: 10px; object-fit: contain; flex-shrink: 0; background: #fff; padding: 4px; }
+  .title { font-family: 'Montserrat', sans-serif; display: flex; align-items: baseline; gap: 0; flex-wrap: wrap; }
   .title-brand {
-    font-size: 21px; font-weight: 900; letter-spacing: -0.5px;
+    font-size: 20px; font-weight: 900; letter-spacing: -0.5px;
     background: linear-gradient(90deg, #6c63ff 0%, #00c6a2 100%);
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-    background-clip: text;
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
   }
-  .title-divider {
-    font-size: 16px; font-weight: 300; padding: 0 8px;
-    color: var(--border); -webkit-text-fill-color: var(--border);
+  .title-divider { font-size: 15px; font-weight: 300; padding: 0 8px; color: var(--border); -webkit-text-fill-color: var(--border); }
+  .title-leadership { font-size: 10px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; color: var(--gold); -webkit-text-fill-color: var(--gold); align-self: center; }
+  .subtitle { font-size: 11px; color: var(--muted); margin-top: 2px; font-family: 'Montserrat', sans-serif; }
+
+  /* ── Main Nav ── */
+  .main-nav {
+    background: var(--surface); border-bottom: 2px solid var(--border);
+    display: flex; align-items: stretch; padding: 0 22px; overflow-x: auto;
   }
-  .title-leadership {
-    font-size: 11px; font-weight: 600; letter-spacing: 3px;
-    text-transform: uppercase; color: var(--gold);
-    -webkit-text-fill-color: var(--gold);
-    align-self: center; padding-top: 1px;
+  .main-tab {
+    padding: 13px 22px; font-size: 13px; font-weight: 700; letter-spacing: .3px;
+    color: var(--muted); cursor: pointer; border: none; background: none;
+    border-bottom: 3px solid transparent; margin-bottom: -2px;
+    font-family: 'Montserrat', sans-serif; white-space: nowrap;
+    transition: color .15s, border-color .15s;
   }
-  .subtitle { font-size: 11px; color: var(--muted); margin-top: 3px; font-family: 'Montserrat', sans-serif; }
-  .controls { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .main-tab:hover { color: var(--text); }
+  .main-tab.active { color: var(--text); border-bottom-color: var(--accent); }
+
+  /* ── Main panels ── */
+  .main-panel { display: none; }
+  .main-panel.active { display: block; }
+
+  /* ── Controls bar ── */
+  .controls-bar {
+    background: var(--surface); border-bottom: 1px solid var(--border);
+    padding: 10px 22px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  }
   .date-btn {
     background: var(--surface2); border: 1px solid var(--border);
     color: var(--text); padding: 6px 13px; border-radius: 7px;
@@ -73,36 +79,20 @@
   }
   .refresh-btn:hover { opacity: .85; }
   .refresh-btn:disabled { opacity: .5; cursor: not-allowed; }
+  .range-label { font-size: 12px; color: var(--muted); margin-left: 4px; }
 
-  /* Sales Team summary box */
-  .office-summary {
-    background: var(--surface); border-bottom: 1px solid var(--border);
-    padding: 14px 22px;
-  }
-  .office-summary-label {
-    font-size: 11px; font-weight: 600; letter-spacing: .7px;
-    text-transform: uppercase; color: var(--muted); margin-bottom: 10px;
-  }
-  .office-cards {
-    display: flex; gap: 10px; flex-wrap: wrap;
-  }
-  .office-card {
-    background: var(--surface2); border: 1px solid var(--border);
-    border-radius: 10px; padding: 12px 18px; min-width: 160px;
-    flex: 1; position: relative; overflow: hidden;
-  }
-  .office-card::before {
-    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
-  }
+  /* ── Summary cards ── */
+  .office-summary { background: var(--surface); border-bottom: 1px solid var(--border); padding: 14px 22px; }
+  .office-summary-label { font-size: 11px; font-weight: 600; letter-spacing: .7px; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; }
+  .office-cards { display: flex; gap: 10px; flex-wrap: wrap; }
+  .office-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 12px 18px; min-width: 160px; flex: 1; position: relative; overflow: hidden; }
+  .office-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
   .office-card:nth-child(1)::before { background: var(--accent); }
   .office-card:nth-child(2)::before { background: var(--green); }
   .office-card:nth-child(3)::before { background: var(--gold); }
   .office-card:nth-child(4)::before { background: #ff8080; }
   .office-card:nth-child(5)::before { background: #64a0ff; }
-  .office-card-rank {
-    font-size: 10px; font-weight: 700; color: var(--muted);
-    text-transform: uppercase; letter-spacing: .5px; margin-bottom: 4px;
-  }
+  .office-card-rank { font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 4px; }
   .office-card-name { font-size: 13px; font-weight: 700; margin-bottom: 6px; }
   .office-card-rev { font-size: 22px; font-weight: 800; }
   .office-card:nth-child(1) .office-card-rev { color: var(--accent); }
@@ -112,86 +102,44 @@
   .office-card:nth-child(5) .office-card-rev { color: #64a0ff; }
   .office-card-meta { font-size: 11px; color: var(--muted); margin-top: 4px; }
 
-  /* Search bar */
-  .search-bar {
-    background: var(--surface); border-bottom: 1px solid var(--border);
-    padding: 10px 22px; display: flex; align-items: center; gap: 10px;
-  }
-  .search-input {
-    flex: 1; max-width: 340px;
-    background: var(--surface2); border: 1px solid var(--border);
-    color: var(--text); padding: 7px 12px; border-radius: 7px; font-size: 13px;
-  }
+  /* ── Search bar ── */
+  .search-bar { background: var(--surface); border-bottom: 1px solid var(--border); padding: 10px 22px; display: flex; align-items: center; gap: 10px; }
+  .search-input { flex: 1; max-width: 340px; background: var(--surface2); border: 1px solid var(--border); color: var(--text); padding: 7px 12px; border-radius: 7px; font-size: 13px; }
   .search-input::placeholder { color: var(--muted); }
   .search-input:focus { outline: none; border-color: var(--accent); }
   .stats-chips { display: flex; gap: 10px; flex-wrap: wrap; margin-left: auto; }
-  .chip {
-    background: var(--surface2); border: 1px solid var(--border);
-    border-radius: 6px; padding: 4px 12px; font-size: 12px;
-  }
+  .chip { background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; padding: 4px 12px; font-size: 12px; }
   .chip b { color: var(--green); }
 
-  /* Status */
-  .status-bar {
-    padding: 6px 22px; font-size: 11px; color: var(--muted);
-    background: var(--bg); border-bottom: 1px solid var(--border);
-    display: flex; align-items: center; gap: 7px;
-  }
+  /* ── Status bar ── */
+  .status-bar { padding: 6px 22px; font-size: 11px; color: var(--muted); background: var(--bg); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 7px; }
   .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); display: inline-block; }
   .dot.loading { background: var(--gold); animation: pulse 1s infinite; }
   .dot.error   { background: var(--red); }
   @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
 
-  /* Tabs */
-  .tabs-bar {
-    display: flex; background: var(--surface);
-    border-bottom: 1px solid var(--border); padding: 0 22px;
-  }
-  .tab {
-    padding: 11px 20px; font-size: 13px; font-weight: 600;
-    color: var(--muted); cursor: pointer;
-    border-bottom: 2px solid transparent; margin-bottom: -1px;
-    transition: color .15s, border-color .15s;
-  }
+  /* ── Sub-tabs ── */
+  .tabs-bar { display: flex; background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 22px; }
+  .tab { padding: 11px 20px; font-size: 13px; font-weight: 600; color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: color .15s, border-color .15s; }
   .tab:hover { color: var(--text); }
   .tab.active { color: var(--text); border-bottom-color: var(--accent); }
-  .tab-badge {
-    display: inline-block; background: var(--surface2);
-    border-radius: 10px; padding: 1px 7px; font-size: 11px;
-    margin-left: 6px; color: var(--muted); font-weight: 500;
-  }
+  .tab-badge { display: inline-block; background: var(--surface2); border-radius: 10px; padding: 1px 7px; font-size: 11px; margin-left: 6px; color: var(--muted); font-weight: 500; }
   .tab.active .tab-badge { background: rgba(108,99,255,.25); color: var(--accent); }
 
-  /* Table */
+  /* ── Deal tables ── */
   .tab-panel { display: none; }
   .tab-panel.active { display: block; }
   .table-wrap { overflow-x: auto; }
-  table {
-    width: 100%; border-collapse: collapse; font-size: 13px;
-    min-width: 860px;
-  }
-  thead th {
-    background: var(--surface); position: sticky; top: 0; z-index: 1;
-    text-align: left; padding: 10px 14px;
-    font-size: 11px; font-weight: 600; letter-spacing: .6px;
-    text-transform: uppercase; color: var(--muted);
-    border-bottom: 1px solid var(--border);
-    cursor: pointer; user-select: none; white-space: nowrap;
-  }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 860px; }
+  thead th { background: var(--surface); position: sticky; top: 0; z-index: 1; text-align: left; padding: 10px 14px; font-size: 11px; font-weight: 600; letter-spacing: .6px; text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--border); cursor: pointer; user-select: none; white-space: nowrap; }
   thead th:hover { color: var(--text); }
-  thead th .sort-icon { margin-left: 4px; opacity: .4; }
-  thead th.sorted .sort-icon { opacity: 1; color: var(--accent); }
   tbody tr { border-bottom: 1px solid var(--border); transition: background .1s; }
   tbody tr:hover { background: rgba(255,255,255,.03); }
   tbody td { padding: 10px 14px; vertical-align: middle; }
   .no-wrap { white-space: nowrap; }
   .deal-name { font-weight: 600; max-width: 220px; }
-  .deal-name small { display: block; font-size: 11px; color: var(--muted); font-weight: 400; margin-top: 2px; }
   .rep-name { font-weight: 600; white-space: nowrap; }
-  .office-chip {
-    display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 5px;
-    white-space: nowrap;
-  }
+  .office-chip { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 5px; white-space: nowrap; }
   .office-NU { background: rgba(108,99,255,.2); color: #a89fff; }
   .office-SU { background: rgba(0,198,162,.2); color: #00c6a2; }
   .office-EI { background: rgba(245,197,66,.2); color: #f5c542; }
@@ -203,293 +151,176 @@
   .tag { display: inline-block; background: var(--surface2); border-radius: 4px; padding: 1px 6px; font-size: 11px; margin: 1px; white-space: nowrap; }
   .date-val { color: var(--muted); white-space: nowrap; font-size: 12px; }
   .addr { font-size: 12px; color: var(--muted); white-space: nowrap; }
-
-  /* Empty / loading */
   .empty-state { text-align: center; padding: 60px 20px; color: var(--muted); }
-  .spinner {
-    width: 32px; height: 32px; border: 3px solid var(--border);
-    border-top-color: var(--accent); border-radius: 50%;
-    animation: spin .7s linear infinite; margin: 0 auto 14px;
-  }
+  .spinner { width: 32px; height: 32px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin .7s linear infinite; margin: 0 auto 14px; }
   @keyframes spin { to { transform: rotate(360deg); } }
 
-  /* Stats row */
-  .stats-row {
-    background: var(--surface); border-bottom: 1px solid var(--border);
-    padding: 0; display: flex; align-items: stretch; flex-wrap: wrap;
-  }
-  .stat-item {
-    padding: 18px 28px; flex: 1; min-width: 140px;
-    border-right: 1px solid var(--border);
-  }
+  /* ── Stats row ── */
+  .stats-row { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0; display: flex; align-items: stretch; flex-wrap: wrap; }
+  .stat-item { padding: 18px 28px; flex: 1; min-width: 140px; border-right: 1px solid var(--border); }
   .stat-item:last-child { border-right: none; }
-  .stat-label {
-    font-size: 11px; font-weight: 600; letter-spacing: .7px;
-    text-transform: uppercase; color: var(--muted); margin-bottom: 6px;
-  }
+  .stat-label { font-size: 11px; font-weight: 600; letter-spacing: .7px; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
   .stat-num { font-size: 36px; font-weight: 800; line-height: 1; }
   .stat-green  { color: var(--green); }
   .stat-accent { color: var(--accent); }
   .stat-gold   { color: var(--gold); }
   .stat-sub { font-size: 12px; color: var(--muted); margin-top: 4px; }
 
-  /* ── Mobile ── */
-  @media (max-width: 680px) {
-    /* Header: stack controls under logo */
-    .header {
-      padding: 12px 14px;
-      flex-direction: column;
-      align-items: stretch;
-      gap: 10px;
-    }
-    .logo { width: 38px; height: 38px; }
-    .title-brand { font-size: 17px; }
-    .title-divider { padding: 0 5px; }
-    .title-leadership { font-size: 9px; letter-spacing: 2px; }
-    .controls { width: 100%; justify-content: flex-start; }
-    .date-btn { padding: 9px 12px; font-size: 13px; flex: 1; text-align: center; }
-    .refresh-btn { padding: 9px 16px; font-size: 13px; }
-
-    /* Stats: stack vertically */
-    .stats-row { flex-direction: column; }
-    .stat-item {
-      border-right: none;
-      border-bottom: 1px solid var(--border);
-      padding: 14px 16px;
-      display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
-    }
-    .stat-item:last-child { border-bottom: none; }
-    .stat-label { margin-bottom: 0; min-width: 100px; flex: 1; }
-    .stat-num { font-size: 26px; }
-    .stat-sub { width: 100%; margin-top: 2px; }
-
-    /* Summary card sections — list-row layout on mobile */
-    .office-summary { padding: 10px 14px; }
-    .office-cards { flex-direction: column; gap: 6px; }
-    .office-card {
-      min-width: 0; flex: none;
-      display: grid;
-      grid-template-columns: 1fr auto;
-      grid-template-rows: auto auto;
-      column-gap: 14px;
-      padding: 10px 14px 10px 16px;
-      border-radius: 8px;
-    }
-    /* Flip ::before from top-bar to left-bar */
-    .office-card::before {
-      top: 0; left: 0; bottom: 0; right: auto;
-      width: 3px; height: 100%;
-    }
-    .office-card-name {
-      grid-column: 1; grid-row: 1;
-      font-size: 14px; margin-bottom: 0;
-    }
-    .office-card-rank {
-      grid-column: 1; grid-row: 2;
-      margin-bottom: 0; margin-top: 2px;
-    }
-    .office-card-rev {
-      grid-column: 2; grid-row: 1 / 3;
-      font-size: 19px; align-self: center; text-align: right;
-    }
-    .office-card-meta { display: none; }
-
-    /* Search bar: full width */
-    .search-bar { padding: 10px 14px; flex-wrap: wrap; gap: 8px; }
-    .search-input { max-width: 100%; flex: 1 1 100%; }
-    .stats-chips { margin-left: 0; width: 100%; }
-
-    /* Status bar */
-    .status-bar { padding: 6px 14px; }
-
-    /* Tabs */
-    .tabs-bar { padding: 0 14px; }
-    .tab { padding: 10px 12px; font-size: 12px; }
-
-    /* Tables: horizontal scroll, tighter spacing */
-    .table-wrap { -webkit-overflow-scrolling: touch; }
-    table { min-width: 560px; font-size: 12px; }
-    thead th { padding: 8px 10px; font-size: 10px; }
-    tbody td { padding: 8px 10px; }
-    .deal-name { max-width: 150px; }
-    .stat-num { font-size: 26px; }
-  }
-
-  @media (max-width: 400px) {
-    .title-brand { font-size: 15px; }
-    .title-leadership { display: none; }
-    .title-divider { display: none; }
-  }
-
-  /* ── Team Breakdown section ── */
-  .team-section-label {
-    font-size: 11px; font-weight: 600; letter-spacing: .7px;
-    text-transform: uppercase; color: var(--muted);
-    padding: 14px 22px 0;
-  }
-  .team-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 16px; padding: 12px 22px 20px;
-  }
-  .team-panel {
-    background: var(--surface2); border: 1px solid var(--border);
-    border-radius: 14px; overflow: hidden;
-    display: flex; flex-direction: column;
-    transition: border-color .2s;
-  }
+  /* ── Team breakdown ── */
+  .team-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; padding: 12px 22px 20px; }
+  .team-panel { background: var(--surface2); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; display: flex; flex-direction: column; transition: border-color .2s; }
   .team-panel:hover { border-color: rgba(108,99,255,.4); }
-  .team-panel-header {
-    padding: 14px 18px 12px;
-    border-bottom: 1px solid var(--border);
-    display: flex; align-items: center; gap: 12px;
-  }
-  .team-color-bar {
-    width: 4px; height: 36px; border-radius: 4px; flex-shrink: 0;
-  }
+  .team-panel-header { padding: 14px 18px 12px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px; }
+  .team-color-bar { width: 4px; height: 36px; border-radius: 4px; flex-shrink: 0; }
   .team-header-info { flex: 1; min-width: 0; }
-  .team-panel-name {
-    font-family: 'Montserrat', sans-serif;
-    font-size: 13px; font-weight: 900; letter-spacing: .8px;
-    text-transform: uppercase; line-height: 1.2;
-  }
-  .team-panel-meta {
-    font-size: 11px; color: var(--muted); margin-top: 2px;
-  }
-  .team-panel-total {
-    font-size: 22px; font-weight: 800; line-height: 1;
-    font-family: 'Montserrat', sans-serif;
-    white-space: nowrap;
-  }
-  .team-lists {
-    display: grid; grid-template-columns: 1fr 1fr;
-    flex: 1;
-  }
+  .team-panel-name { font-family: 'Montserrat', sans-serif; font-size: 13px; font-weight: 900; letter-spacing: .8px; text-transform: uppercase; line-height: 1.2; }
+  .team-panel-meta { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .team-panel-total { font-size: 22px; font-weight: 800; line-height: 1; font-family: 'Montserrat', sans-serif; white-space: nowrap; }
+  .team-lists { display: grid; grid-template-columns: 1fr 1fr; flex: 1; }
   .team-list { padding: 12px 16px; }
   .team-list:first-child { border-right: 1px solid var(--border); }
-  .team-list-title {
-    font-size: 10px; font-weight: 700; letter-spacing: 1.5px;
-    text-transform: uppercase; color: var(--muted);
-    margin-bottom: 10px; padding-bottom: 6px;
-    border-bottom: 1px solid var(--border);
-    display: flex; align-items: center; gap: 5px;
-  }
-  .team-list-title::before {
-    content: ''; width: 6px; height: 6px; border-radius: 50%;
-    background: currentColor; display: inline-block; opacity: .6;
-  }
-  .trow {
-    display: flex; align-items: flex-start; gap: 6px;
-    padding: 5px 0; line-height: 1.3;
-    border-bottom: 1px solid rgba(255,255,255,.04);
-  }
+  .team-list-title { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 5px; }
+  .team-list-title::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: currentColor; display: inline-block; opacity: .6; }
+  .trow { display: flex; align-items: flex-start; gap: 6px; padding: 5px 0; line-height: 1.3; border-bottom: 1px solid rgba(255,255,255,.04); }
   .trow:last-child { border-bottom: none; }
-  .trow-rank {
-    color: var(--muted); font-size: 10px; font-weight: 700;
-    min-width: 14px; padding-top: 1px; flex-shrink: 0;
-  }
+  .trow-rank { color: var(--muted); font-size: 10px; font-weight: 700; min-width: 14px; padding-top: 1px; flex-shrink: 0; }
   .trow-info { flex: 1; min-width: 0; }
   .trow-name { display: block; font-size: 12px; font-weight: 600; }
   .trow-deals { color: var(--muted); font-weight: 400; font-size: 10px; }
   .trow-rev { display: block; color: var(--green); font-weight: 700; font-size: 12px; margin-top: 1px; }
+
+  /* ── Terros Board ── */
+  .terros-stats-row { background: var(--surface); border-bottom: 1px solid var(--border); display: flex; align-items: stretch; flex-wrap: wrap; }
+  .terros-stat { padding: 18px 28px; flex: 1; min-width: 130px; border-right: 1px solid var(--border); text-align: center; }
+  .terros-stat:last-child { border-right: none; }
+  .terros-stat-val { font-size: 34px; font-weight: 800; line-height: 1; }
+  .terros-stat-label { font-size: 10px; font-weight: 600; letter-spacing: .7px; text-transform: uppercase; color: var(--muted); margin-top: 5px; }
+  .terros-table-wrap { padding: 18px 22px 28px; overflow-x: auto; }
+  .terros-table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 560px; }
+  .terros-table thead th { background: var(--surface); text-align: left; padding: 10px 14px; font-size: 11px; font-weight: 600; letter-spacing: .6px; text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--border); white-space: nowrap; }
+  .terros-table tbody tr { border-bottom: 1px solid var(--border); }
+  .terros-table tbody tr:hover { background: rgba(255,255,255,.03); }
+  .terros-table tbody td { padding: 10px 14px; }
+  .t-rank { color: var(--muted); font-size: 12px; font-weight: 700; width: 36px; }
+  .t-name { font-weight: 700; }
+  .t-closes { font-weight: 700; color: var(--green); }
+  .t-sets { font-weight: 700; color: var(--accent); }
+  .t-muted { color: var(--muted); }
+
+  /* ── Incentives Tracker ── */
+  .incentives-wrapper { padding: 16px 22px 28px; }
+  .incentives-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 18px; }
+  .inc-board { border-radius: 14px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,.5); }
+  .inc-board-header { background: #185c4d; padding: 14px 18px 12px; display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+  .inc-board-left { min-width: 0; }
+  .inc-board-office { font-family: 'Montserrat', sans-serif; font-size: 13px; font-weight: 900; letter-spacing: .8px; text-transform: uppercase; color: #fff; line-height: 1.3; }
+  .inc-board-subtitle { font-size: 10px; color: rgba(255,255,255,.6); margin-top: 3px; }
+  .inc-board-right { text-align: right; flex-shrink: 0; }
+  .inc-board-weekly { font-family: 'Montserrat', sans-serif; font-size: 18px; font-weight: 800; color: #fff; font-style: italic; line-height: 1; }
+  .inc-board-period { font-size: 9px; color: rgba(255,255,255,.5); letter-spacing: .5px; text-transform: uppercase; margin-top: 2px; }
+  .inc-table-wrap { overflow-x: auto; }
+  .inc-table { width: 100%; border-collapse: collapse; font-size: 12px; background: #1e7265; min-width: 300px; }
+  .inc-table thead th { background: rgba(0,0,0,.3); color: rgba(255,255,255,.85); font-size: 10px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase; padding: 8px 10px; text-align: center; border-bottom: 1px solid rgba(0,0,0,.25); white-space: nowrap; }
+  .inc-table thead th:first-child { text-align: left; }
+  .inc-table thead th.inc-wk-cur { background: rgba(255,255,255,.14) !important; }
+  .inc-table tbody tr { border-bottom: 1px solid rgba(0,0,0,.18); }
+  .inc-table tbody tr:last-child { border-bottom: none; }
+  .inc-table tbody tr:hover { background: rgba(255,255,255,.07); }
+  .inc-table tbody td { padding: 8px 10px; color: #fff; }
+  .inc-table tbody td:not(:first-child) { text-align: center; }
+  .inc-table tbody td.inc-wk-cur-cell { background: rgba(255,255,255,.06); }
+  .inc-wk-dates { display: block; font-size: 8px; opacity: .55; margin-top: 1px; letter-spacing: 0; text-transform: none; font-weight: 400; }
+  .inc-rep { font-weight: 600; font-size: 12px; }
+  .inc-self { font-size: 10px; color: rgba(255,255,255,.5); margin-left: 4px; }
+  .inc-deal-badge { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; font-weight: 800; font-size: 12px; }
+  .inc-tier-0 { color: rgba(255,255,255,.2); }
+  .inc-tier-1 { background: rgba(255,255,255,.2); color: #fff; }
+  .inc-tier-2 { background: rgba(0,198,162,.6); color: #fff; }
+  .inc-tier-3 { background: rgba(245,197,66,.75); color: #1a1400; }
+  .inc-footer { background: rgba(0,0,0,.25); display: flex; border-top: 1px solid rgba(0,0,0,.2); }
+  .inc-footer-rule { flex: 1; text-align: center; padding: 9px 8px; border-right: 1px solid rgba(255,255,255,.07); }
+  .inc-footer-rule:last-child { border-right: none; }
+  .inc-footer-num { font-family: 'Montserrat', sans-serif; font-size: 11px; font-weight: 900; color: #fff; }
+  .inc-footer-label { font-size: 9px; color: rgba(255,255,255,.5); letter-spacing: .5px; text-transform: uppercase; margin-top: 1px; }
+
+  /* ── Mobile ── */
   @media (max-width: 680px) {
-    .team-section-label { padding: 12px 14px 0; }
+    .header { padding: 10px 14px; }
+    .logo { width: 36px; height: 36px; }
+    .title-brand { font-size: 16px; }
+    .title-divider, .title-leadership { display: none; }
+    .main-nav { padding: 0 14px; }
+    .main-tab { padding: 10px 12px; font-size: 12px; }
+    .controls-bar { padding: 8px 14px; }
+    .date-btn { padding: 8px 10px; font-size: 12px; }
+    .stats-row { flex-direction: column; }
+    .stat-item { border-right: none; border-bottom: 1px solid var(--border); padding: 12px 16px; display: flex; align-items: center; gap: 14px; }
+    .stat-item:last-child { border-bottom: none; }
+    .stat-label { margin-bottom: 0; min-width: 100px; flex: 1; }
+    .stat-num { font-size: 26px; }
+    .office-summary { padding: 10px 14px; }
+    .office-cards { flex-direction: column; gap: 6px; }
+    .office-card { min-width: 0; flex: none; display: grid; grid-template-columns: 1fr auto; grid-template-rows: auto auto; column-gap: 14px; padding: 10px 14px 10px 16px; border-radius: 8px; }
+    .office-card::before { top: 0; left: 0; bottom: 0; right: auto; width: 3px; height: 100%; }
+    .office-card-name { grid-column: 1; grid-row: 1; font-size: 14px; margin-bottom: 0; }
+    .office-card-rank { grid-column: 1; grid-row: 2; margin-bottom: 0; margin-top: 2px; }
+    .office-card-rev { grid-column: 2; grid-row: 1 / 3; font-size: 19px; align-self: center; text-align: right; }
+    .office-card-meta { display: none; }
+    .search-bar { padding: 10px 14px; flex-wrap: wrap; gap: 8px; }
+    .search-input { max-width: 100%; flex: 1 1 100%; }
+    .stats-chips { margin-left: 0; width: 100%; }
+    .status-bar { padding: 6px 14px; }
+    .tabs-bar { padding: 0 14px; }
+    .tab { padding: 10px 10px; font-size: 12px; }
+    .table-wrap { -webkit-overflow-scrolling: touch; }
+    table { min-width: 560px; font-size: 12px; }
+    thead th { padding: 8px 10px; font-size: 10px; }
+    tbody td { padding: 8px 10px; }
     .team-grid { padding: 10px 14px 16px; gap: 12px; grid-template-columns: 1fr; }
     .team-panel-total { font-size: 18px; }
+    .terros-stats-row { flex-direction: column; }
+    .terros-stat { border-right: none; border-bottom: 1px solid var(--border); padding: 12px 16px; display: flex; align-items: center; gap: 14px; text-align: left; }
+    .terros-stat:last-child { border-bottom: none; }
+    .terros-stat-val { font-size: 26px; }
+    .terros-table-wrap { padding: 12px 14px 20px; }
+    .incentives-wrapper { padding: 12px 14px 20px; }
+    .incentives-grid { grid-template-columns: 1fr; gap: 14px; }
   }
   @media (max-width: 400px) {
     .team-lists { grid-template-columns: 1fr; }
     .team-list:first-child { border-right: none; border-bottom: 1px solid var(--border); }
   }
-
-  /* ── Incentives Tracker ── */
-  .incentives-wrapper { padding: 16px 22px 28px; }
-  .incentives-week-label {
-    font-size: 11px; font-weight: 600; letter-spacing: .7px;
-    text-transform: uppercase; color: var(--muted); margin-bottom: 14px;
-  }
-  .incentives-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-    gap: 18px;
-  }
-  .inc-board { border-radius: 14px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,.5); }
-  .inc-board-header {
-    background: #185c4d;
-    padding: 14px 18px 12px;
-    display: flex; align-items: flex-start; justify-content: space-between; gap: 10px;
-  }
-  .inc-board-left { min-width: 0; }
-  .inc-board-office {
-    font-family: 'Montserrat', sans-serif;
-    font-size: 13px; font-weight: 900; letter-spacing: .8px;
-    text-transform: uppercase; color: #fff; line-height: 1.3;
-  }
-  .inc-board-subtitle { font-size: 10px; color: rgba(255,255,255,.6); margin-top: 3px; letter-spacing: .3px; }
-  .inc-board-right { text-align: right; flex-shrink: 0; }
-  .inc-board-weekly {
-    font-family: 'Montserrat', sans-serif;
-    font-size: 18px; font-weight: 800; color: #fff; font-style: italic; line-height: 1;
-  }
-  .inc-board-period { font-size: 9px; color: rgba(255,255,255,.5); letter-spacing: .5px; text-transform: uppercase; margin-top: 2px; }
-  .inc-table { width: 100%; border-collapse: collapse; font-size: 12px; background: #1e7265; }
-  .inc-table thead th {
-    background: rgba(0,0,0,.3);
-    color: rgba(255,255,255,.85);
-    font-size: 10px; font-weight: 700; letter-spacing: .8px;
-    text-transform: uppercase; padding: 8px 12px; text-align: center;
-    border-bottom: 1px solid rgba(0,0,0,.25);
-  }
-  .inc-table thead th:first-child { text-align: left; width: 46%; }
-  .inc-table tbody tr { border-bottom: 1px solid rgba(0,0,0,.18); }
-  .inc-table tbody tr:last-child { border-bottom: none; }
-  .inc-table tbody tr:hover { background: rgba(255,255,255,.07); }
-  .inc-table tbody td { padding: 9px 12px; color: #fff; }
-  .inc-table tbody td:not(:first-child) { text-align: center; }
-  .inc-rep { font-weight: 600; font-size: 12px; }
-  .inc-self { font-size: 10px; color: rgba(255,255,255,.5); margin-left: 4px; }
-  .inc-box {
-    width: 22px; height: 22px;
-    border: 2px solid rgba(255,255,255,.35); border-radius: 3px;
-    display: inline-flex; align-items: center; justify-content: center;
-    vertical-align: middle; font-size: 14px; font-weight: 900; color: transparent;
-    transition: background .15s, border-color .15s;
-  }
-  .inc-box.hit { background: rgba(0,0,0,.25); border-color: rgba(255,255,255,.85); color: #fff; }
-  .inc-footer {
-    background: rgba(0,0,0,.25); display: flex; border-top: 1px solid rgba(0,0,0,.2);
-  }
-  .inc-footer-rule {
-    flex: 1; text-align: center; padding: 10px 8px;
-    border-right: 1px solid rgba(255,255,255,.07);
-  }
-  .inc-footer-rule:last-child { border-right: none; }
-  .inc-footer-num {
-    font-family: 'Montserrat', sans-serif;
-    font-size: 13px; font-weight: 900; color: #fff;
-  }
-  .inc-footer-label { font-size: 9px; color: rgba(255,255,255,.5); letter-spacing: .5px; text-transform: uppercase; margin-top: 1px; }
-  @media (max-width: 680px) {
-    .incentives-wrapper { padding: 12px 14px 20px; }
-    .incentives-grid { grid-template-columns: 1fr; gap: 14px; }
-  }
 </style>
 </head>
 <body>
 
+<!-- ── Header ── -->
 <div class="header">
-  <div class="logo-row">
-    <img class="logo" src="https://d3p2r6ofnvoe67.cloudfront.net/fit-in/208x208/filters:strip_exif()/filters:no_upscale()/filters:format(webp)/media/05b9636d-0180-45b6-ae67-dec9300e5a04.png" alt="Vivid Windows">
-    <div>
-      <div class="title">
-        <span class="title-brand">Vivid Windows</span>
-        <span class="title-divider">|</span>
-        <span class="title-leadership">Leadership Dashboard</span>
-      </div>
-      <div class="subtitle" id="rangeLabel">Loading…</div>
+  <img class="logo" src="https://d3p2r6ofnvoe67.cloudfront.net/fit-in/208x208/filters:strip_exif()/filters:no_upscale()/filters:format(webp)/media/05b9636d-0180-45b6-ae67-dec9300e5a04.png" alt="Vivid Windows">
+  <div>
+    <div class="title">
+      <span class="title-brand">Vivid Windows</span>
+      <span class="title-divider">|</span>
+      <span class="title-leadership">Leadership Dashboard</span>
     </div>
+    <div class="subtitle">Sales Analytics</div>
   </div>
-  <div class="controls">
+</div>
+
+<!-- ── Main Navigation ── -->
+<div class="main-nav">
+  <button class="main-tab active" data-tab="revenue" onclick="switchMainTab('revenue')">Revenue Tracker</button>
+  <button class="main-tab" data-tab="terros" onclick="switchMainTab('terros')">Terros Board</button>
+  <button class="main-tab" data-tab="incentives" onclick="switchMainTab('incentives')">Incentives Tracker</button>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     PANEL 1 — Revenue Tracker
+═══════════════════════════════════════════════════════════ -->
+<div class="main-panel active" id="main-revenue">
+
+  <div class="controls-bar">
     <button class="date-btn active" data-r="mtd"    onclick="setRange('mtd')">MTD</button>
     <button class="date-btn"        data-r="week"   onclick="setRange('week')">This Week</button>
     <button class="date-btn"        data-r="custom" onclick="setRange('custom')">Custom</button>
@@ -499,128 +330,182 @@
       <input type="date" id="endDate" onchange="onCustomDateChange()">
     </span>
     <button class="refresh-btn" id="refreshBtn" onclick="loadData()">Refresh</button>
+    <span class="range-label" id="rangeLabel"></span>
   </div>
-</div>
 
-<div class="stats-row">
-  <div class="stat-item">
-    <div class="stat-label">Total Revenue — <span id="totalPeriodLabel">current month</span></div>
-    <div id="totalRevDisplay" class="stat-num stat-green">—</div>
-    <div id="totalDealsSubDisplay" class="stat-sub">— deals &nbsp;·&nbsp; avg —</div>
-  </div>
-</div>
-
-<div class="office-summary">
-  <div class="office-summary-label">Revenue by Sales Team — <span id="periodLabel">current month</span></div>
-  <div class="office-cards" id="officeCards">
-    <div class="office-card" style="opacity:.4"><div class="office-card-name">Loading…</div></div>
-  </div>
-</div>
-
-<div class="office-summary" style="border-top:none;">
-  <div class="office-summary-label">Top 3 Closers — <span id="periodLabel2">current month</span></div>
-  <div class="office-cards" id="closerCards">
-    <div class="office-card" style="opacity:.4"><div class="office-card-name">Loading…</div></div>
-  </div>
-</div>
-
-<div class="office-summary" style="border-top:none;">
-  <div class="office-summary-label">Top 3 Setters — <span id="periodLabel3">current month</span></div>
-  <div class="office-cards" id="setterCards">
-    <div class="office-card" style="opacity:.4"><div class="office-card-name">Loading…</div></div>
-  </div>
-</div>
-
-<div class="office-summary" style="border-top:none; padding-bottom:8px;">
-  <div class="office-summary-label">By Sales Team — <span id="periodLabel4">current month</span></div>
-</div>
-<div class="team-grid" id="teamBreakdown">
-  <div style="opacity:.4;color:var(--muted);font-size:13px;">Loading…</div>
-</div>
-
-<div class="search-bar">
-  <input class="search-input" type="text" id="searchInput" placeholder="Search by name, closer, setter, address…" oninput="applyFilter()">
-  <div class="stats-chips">
-    <div class="chip">Deals: <b id="statDeals">—</b></div>
-    <div class="chip">Revenue: <b id="statRev">—</b></div>
-    <div class="chip">Avg: <b id="statAvg">—</b></div>
-  </div>
-</div>
-
-<div class="status-bar">
-  <span class="dot" id="statusDot"></span>
-  <span id="statusText">Connecting…</span>
-</div>
-
-<div class="tabs-bar">
-  <div class="tab active" data-tab="closers" onclick="switchTab('closers')">
-    Closers Won Accounts <span class="tab-badge" id="badge-closers">—</span>
-  </div>
-  <div class="tab" data-tab="setters" onclick="switchTab('setters')">
-    Setters Won Accounts <span class="tab-badge" id="badge-setters">—</span>
-  </div>
-  <div class="tab" data-tab="incentives" onclick="switchTab('incentives')">
-    Incentives Tracker
-  </div>
-</div>
-
-<div class="tab-panel active" id="panel-closers">
-  <div class="table-wrap">
-    <table id="tbl-closers">
-      <thead><tr>
-        <th>Customer / Deal</th>
-        <th>Sales Team</th>
-        <th>Canvasser</th>
-        <th>Revenue</th>
-        <th>Close Date</th>
-        <th>Address</th>
-        <th>Tags</th>
-        <th></th>
-      </tr></thead>
-      <tbody id="body-closers"></tbody>
-    </table>
-  </div>
-</div>
-
-<div class="tab-panel" id="panel-setters">
-  <div class="table-wrap">
-    <table id="tbl-setters">
-      <thead><tr>
-        <th>Customer / Deal</th>
-        <th>Sales Team</th>
-        <th>Closer</th>
-        <th>Revenue</th>
-        <th>Close Date</th>
-        <th>Address</th>
-        <th>Tags</th>
-        <th></th>
-      </tr></thead>
-      <tbody id="body-setters"></tbody>
-    </table>
-  </div>
-</div>
-
-<div class="tab-panel" id="panel-incentives">
-  <div class="incentives-wrapper">
-    <div class="incentives-week-label">Summer Bonus Tracker — <span id="incWeekLabel">current week</span></div>
-    <div class="incentives-grid" id="incentivesGrid">
-      <div style="color:var(--muted);font-size:13px;padding:10px 0">Load data to see tracker…</div>
+  <div class="stats-row">
+    <div class="stat-item">
+      <div class="stat-label">Total Revenue — <span id="totalPeriodLabel">current month</span></div>
+      <div id="totalRevDisplay" class="stat-num stat-green">—</div>
+      <div id="totalDealsSubDisplay" class="stat-sub">— deals &nbsp;·&nbsp; avg —</div>
     </div>
   </div>
-</div>
+
+  <div class="office-summary">
+    <div class="office-summary-label">Revenue by Sales Team — <span id="periodLabel">current month</span></div>
+    <div class="office-cards" id="officeCards">
+      <div class="office-card" style="opacity:.4"><div class="office-card-name">Loading…</div></div>
+    </div>
+  </div>
+
+  <div class="office-summary" style="border-top:none;">
+    <div class="office-summary-label">Top 3 Closers — <span id="periodLabel2">current month</span></div>
+    <div class="office-cards" id="closerCards">
+      <div class="office-card" style="opacity:.4"><div class="office-card-name">Loading…</div></div>
+    </div>
+  </div>
+
+  <div class="office-summary" style="border-top:none;">
+    <div class="office-summary-label">Top 3 Setters — <span id="periodLabel3">current month</span></div>
+    <div class="office-cards" id="setterCards">
+      <div class="office-card" style="opacity:.4"><div class="office-card-name">Loading…</div></div>
+    </div>
+  </div>
+
+  <div class="office-summary" style="border-top:none; padding-bottom:8px;">
+    <div class="office-summary-label">By Sales Team — <span id="periodLabel4">current month</span></div>
+  </div>
+  <div class="team-grid" id="teamBreakdown">
+    <div style="opacity:.4;color:var(--muted);font-size:13px;">Loading…</div>
+  </div>
+
+  <div class="search-bar">
+    <input class="search-input" type="text" id="searchInput" placeholder="Search by name, closer, setter, address…" oninput="applyFilter()">
+    <div class="stats-chips">
+      <div class="chip">Deals: <b id="statDeals">—</b></div>
+      <div class="chip">Revenue: <b id="statRev">—</b></div>
+      <div class="chip">Avg: <b id="statAvg">—</b></div>
+    </div>
+  </div>
+
+  <div class="status-bar">
+    <span class="dot" id="statusDot"></span>
+    <span id="statusText">Connecting…</span>
+  </div>
+
+  <div class="tabs-bar">
+    <div class="tab active" data-tab="closers" onclick="switchTab('closers')">
+      Closers Won Accounts <span class="tab-badge" id="badge-closers">—</span>
+    </div>
+    <div class="tab" data-tab="setters" onclick="switchTab('setters')">
+      Setters Won Accounts <span class="tab-badge" id="badge-setters">—</span>
+    </div>
+  </div>
+
+  <div class="tab-panel active" id="panel-closers">
+    <div class="table-wrap">
+      <table id="tbl-closers">
+        <thead><tr>
+          <th>Customer / Deal</th><th>Sales Team</th><th>Canvasser</th>
+          <th>Revenue</th><th>Close Date</th><th>Address</th><th>Tags</th><th></th>
+        </tr></thead>
+        <tbody id="body-closers"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="tab-panel" id="panel-setters">
+    <div class="table-wrap">
+      <table id="tbl-setters">
+        <thead><tr>
+          <th>Customer / Deal</th><th>Sales Team</th><th>Closer</th>
+          <th>Revenue</th><th>Close Date</th><th>Address</th><th>Tags</th><th></th>
+        </tr></thead>
+        <tbody id="body-setters"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div><!-- /main-revenue -->
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     PANEL 2 — Terros Board
+═══════════════════════════════════════════════════════════ -->
+<div class="main-panel" id="main-terros">
+
+  <div class="controls-bar">
+    <button class="refresh-btn" id="terrosRefreshBtn" onclick="loadTerrosData()">Refresh</button>
+    <span class="range-label" id="terrosRangeLabel"></span>
+  </div>
+
+  <div class="terros-stats-row" id="terrosStatsRow">
+    <div class="terros-stat">
+      <div class="terros-stat-val t-muted" id="t-knocks">—</div>
+      <div class="terros-stat-label">Knocks</div>
+    </div>
+    <div class="terros-stat">
+      <div class="terros-stat-val" id="t-pitches">—</div>
+      <div class="terros-stat-label">Pitches</div>
+    </div>
+    <div class="terros-stat">
+      <div class="terros-stat-val stat-accent" id="t-sets">—</div>
+      <div class="terros-stat-label">Sets / ACs</div>
+    </div>
+    <div class="terros-stat">
+      <div class="terros-stat-val stat-green" id="t-closes">—</div>
+      <div class="terros-stat-label">Closes</div>
+    </div>
+  </div>
+
+  <div class="status-bar">
+    <span class="dot" id="terrosStatusDot"></span>
+    <span id="terrosStatusText">Click Refresh to load Terros data</span>
+  </div>
+
+  <div class="terros-table-wrap">
+    <table class="terros-table">
+      <thead><tr>
+        <th>#</th><th>Rep</th><th>Closes</th><th>Sets / ACs</th>
+        <th>Leads</th><th>Pitches</th><th>Knocks</th><th>Days</th>
+      </tr></thead>
+      <tbody id="terrosBody">
+        <tr><td colspan="8" style="text-align:center;padding:50px;color:var(--muted)">Click Refresh to load</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+</div><!-- /main-terros -->
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     PANEL 3 — Incentives Tracker
+═══════════════════════════════════════════════════════════ -->
+<div class="main-panel" id="main-incentives">
+
+  <div class="controls-bar">
+    <button class="refresh-btn" id="incRefreshBtn" onclick="loadIncentivesData()">Refresh</button>
+    <span class="range-label" id="incMonthLabel"></span>
+  </div>
+
+  <div class="status-bar">
+    <span class="dot" id="incStatusDot"></span>
+    <span id="incStatusText">Click Refresh to load</span>
+  </div>
+
+  <div class="incentives-wrapper">
+    <div class="incentives-grid" id="incentivesGrid">
+      <div style="color:var(--muted);font-size:13px;padding:10px 0">Click Refresh to load…</div>
+    </div>
+  </div>
+
+</div><!-- /main-incentives -->
+
 
 <script>
 const PROD_API  = 'https://terros-dashboard.onrender.com';
 const LOCAL_API = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
   ? 'http://localhost:8000' : PROD_API;
 
-let allDeals   = [];
-let weekDeals  = [];
-let sortState  = { closers: { col: 'date_closed', dir: -1 }, setters: { col: 'date_closed', dir: -1 } };
-let activeTab  = 'closers';
-let curRange   = 'mtd';
+let allDeals      = [];
+let monthDeals    = [];
+let sortState     = { closers: { col: 'date_closed', dir: -1 }, setters: { col: 'date_closed', dir: -1 } };
+let activeTab     = 'closers';
+let activeMainTab = 'revenue';
+let curRange      = 'mtd';
+let terrosLoaded  = false;
 
-// ── Formatters ──────────────────────────────────────────────
+// ── Formatters ───────────────────────────────────────────────
 function fmtRev(n) {
   if (!n) return '<span class="rev-zero">—</span>';
   return '<span class="rev-val">$' + n.toLocaleString('en-US', {minimumFractionDigits:0,maximumFractionDigits:0}) + '</span>';
@@ -631,49 +516,31 @@ function fmtDate(s) {
 }
 function officeClass(o) {
   if (!o) return 'office-XX';
-  if (o.includes('Northern Utah'))     return 'office-NU';
-  if (o.includes('Southern Utah'))     return 'office-SU';
-  if (o.includes('Eastern Idaho'))     return 'office-EI';
+  if (o.includes('Northern Utah'))      return 'office-NU';
+  if (o.includes('Southern Utah'))      return 'office-SU';
+  if (o.includes('Eastern Idaho'))      return 'office-EI';
   if (o.includes('Northern California')) return 'office-NC';
-  if (o.includes('Inside Sales'))      return 'office-IS';
+  if (o.includes('Inside Sales'))       return 'office-IS';
   return 'office-XX';
 }
 function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-// ── Date range ──────────────────────────────────────────────
-function getQtdRange() {
-  const now = new Date();
-  const y = now.getFullYear();
-  const q = Math.floor(now.getMonth() / 3);          // 0-3
-  const qStartM = q * 3;                              // 0, 3, 6, 9 (month index)
-  const qEndM   = qStartM + 2;                        // last month of quarter (index)
-  const qEndDay = new Date(y, qEndM + 1, 0).getDate(); // last day of that month
-  const pad = n => String(n).padStart(2, '0');
-  return {
-    start: y + '-' + pad(qStartM + 1) + '-01',
-    end:   y + '-' + pad(qEndM + 1)   + '-' + pad(qEndDay),
-    label: 'Q' + (q + 1) + ' ' + y
-  };
+// ── Main tab switching ────────────────────────────────────────
+function switchMainTab(tab) {
+  activeMainTab = tab;
+  document.querySelectorAll('.main-tab').forEach(function(t) { t.classList.toggle('active', t.dataset.tab === tab); });
+  document.querySelectorAll('.main-panel').forEach(function(p) { p.classList.toggle('active', p.id === 'main-' + tab); });
+  if (tab === 'terros' && !terrosLoaded) loadTerrosData();
+  if (tab === 'incentives') loadIncentivesData();
 }
 
-function getYtdRange() {
-  const y = new Date().getFullYear();
-  return { start: y + '-01-01', end: y + '-12-31', label: y + ' (full year)' };
-}
-
-async function fetchRevOnly(start, end) {
-  const res  = await fetch(LOCAL_API + '/api/odoo/deals?start=' + start + '&end=' + end);
-  if (!res.ok) return { total_rev: 0, total_deals: 0 };
-  const data = await res.json();
-  return { total_rev: data.total_rev || 0, total_deals: data.total_deals || 0 };
-}
-
+// ── Date range (Revenue) ─────────────────────────────────────
 function getRange(r) {
   const now = new Date(), y = now.getFullYear(),
         m = String(now.getMonth()+1).padStart(2,'0'),
         d = String(now.getDate()).padStart(2,'0'), today = y+'-'+m+'-'+d;
-  if (r === 'mtd')   return { start: y+'-'+m+'-01', end: today };
-  if (r === 'week')  {
+  if (r === 'mtd')  return { start: y+'-'+m+'-01', end: today };
+  if (r === 'week') {
     const dow = now.getDay()===0?6:now.getDay()-1;
     const mon = new Date(now); mon.setDate(now.getDate()-dow);
     const ms = mon.getFullYear()+'-'+String(mon.getMonth()+1).padStart(2,'0')+'-'+String(mon.getDate()).padStart(2,'0');
@@ -685,85 +552,54 @@ function getRange(r) {
 
 function setRange(r) {
   curRange = r;
-  document.querySelectorAll('.date-btn').forEach(b => b.classList.toggle('active', b.dataset.r === r));
+  document.querySelectorAll('.date-btn').forEach(function(b) { b.classList.toggle('active', b.dataset.r === r); });
   const customEl = document.getElementById('customDates');
   customEl.style.display = r === 'custom' ? 'flex' : 'none';
   if (r === 'custom') {
-    // Pre-fill with current month if empty
-    const now = new Date(), y = now.getFullYear(),
-          m = String(now.getMonth()+1).padStart(2,'0'),
-          d = String(now.getDate()).padStart(2,'0');
-    if (!document.getElementById('startDate').value)
-      document.getElementById('startDate').value = y+'-'+m+'-01';
-    if (!document.getElementById('endDate').value)
-      document.getElementById('endDate').value = y+'-'+m+'-'+d;
-  } else {
-    loadData();
-  }
+    const now = new Date(), y = now.getFullYear(), m = String(now.getMonth()+1).padStart(2,'0'), d = String(now.getDate()).padStart(2,'0');
+    if (!document.getElementById('startDate').value) document.getElementById('startDate').value = y+'-'+m+'-01';
+    if (!document.getElementById('endDate').value)   document.getElementById('endDate').value   = y+'-'+m+'-'+d;
+  } else { loadData(); }
 }
 
 function onCustomDateChange() {
-  const s = document.getElementById('startDate').value;
-  const e = document.getElementById('endDate').value;
+  const s = document.getElementById('startDate').value, e = document.getElementById('endDate').value;
   if (s && e && e >= s) loadData();
 }
 
-// ── Status ──────────────────────────────────────────────────
+// ── Revenue status ────────────────────────────────────────────
 function setStatus(state, text) {
-  document.getElementById('statusDot').className  = 'dot ' + (state==='ok'?'':state);
+  document.getElementById('statusDot').className   = 'dot ' + (state==='ok'?'':state);
   document.getElementById('statusText').textContent = text;
 }
 
-// ── Tabs ────────────────────────────────────────────────────
+// ── Sub-tab switching ─────────────────────────────────────────
 function switchTab(tab) {
   activeTab = tab;
-  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab===tab));
-  document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id==='panel-'+tab));
-  if (tab === 'incentives') {
-    renderIncentivesTracker(weekDeals);
-  } else {
-    renderTable(tab);
-  }
-}
-
-// ── Sorting ─────────────────────────────────────────────────
-function sortBy(tab, col) {
-  const s = sortState[tab];
-  s.dir = s.col === col ? -s.dir : -1;
-  s.col = col;
-  document.querySelectorAll('#tbl-'+tab+' th').forEach(th => th.classList.remove('sorted'));
-  // highlight sorted header
+  document.querySelectorAll('.tab').forEach(function(t) { t.classList.toggle('active', t.dataset.tab===tab); });
+  document.querySelectorAll('.tab-panel').forEach(function(p) { p.classList.toggle('active', p.id==='panel-'+tab); });
   renderTable(tab);
 }
 
-function sortedDeals(tab, deals) {
-  const { col, dir } = sortState[tab];
-  return [...deals].sort((a, b) => {
-    let va = a[col]||'', vb = b[col]||'';
-    if (col === 'rev') return dir * (va - vb);
-    return dir * String(va).localeCompare(String(vb));
-  });
-}
-
-// ── Filter ──────────────────────────────────────────────────
+// ── Filter ────────────────────────────────────────────────────
 function applyFilter() { renderTable(activeTab); }
 
 function filteredDeals(tab) {
   const q = (document.getElementById('searchInput').value || '').toLowerCase().trim();
   let deals = allDeals;
-  if (tab === 'setters') deals = deals.filter(d => d.setter && d.setter !== d.closer);
+  if (tab === 'setters') deals = deals.filter(function(d) { return d.setter && d.setter !== d.closer; });
   if (!q) return deals;
-  return deals.filter(d =>
-    (d.name||'').toLowerCase().includes(q) ||
-    (d.closer||'').toLowerCase().includes(q) ||
-    (d.setter||'').toLowerCase().includes(q) ||
-    (d.city||'').toLowerCase().includes(q) ||
-    (d.office||'').toLowerCase().includes(q) ||
-    (d.street||'').toLowerCase().includes(q)
-  );
+  return deals.filter(function(d) {
+    return (d.name||'').toLowerCase().includes(q) ||
+           (d.closer||'').toLowerCase().includes(q) ||
+           (d.setter||'').toLowerCase().includes(q) ||
+           (d.city||'').toLowerCase().includes(q) ||
+           (d.office||'').toLowerCase().includes(q) ||
+           (d.street||'').toLowerCase().includes(q);
+  });
 }
 
-// ── Render ──────────────────────────────────────────────────
+// ── Render deals table ────────────────────────────────────────
 function renderTable(tab) {
   const deals = filteredDeals(tab);
   const body  = document.getElementById('body-'+tab);
@@ -774,415 +610,197 @@ function renderTable(tab) {
     return;
   }
 
-  const total = deals.reduce((s,d) => s+(d.rev||0), 0);
+  const total = deals.reduce(function(s,d) { return s+(d.rev||0); }, 0);
   const avg   = deals.length ? total/deals.length : 0;
   document.getElementById('statDeals').textContent = deals.length;
   document.getElementById('statRev').textContent   = '$'+Math.round(total).toLocaleString();
   document.getElementById('statAvg').textContent   = '$'+Math.round(avg).toLocaleString();
 
-  if (tab === 'closers') {
-    // Group by closer, sort groups by total rev descending
-    const groups = {};
-    deals.forEach(d => {
-      const key = d.closer || '—';
-      if (!groups[key]) groups[key] = { name: key, total: 0, wins: 0, deals: [] };
-      groups[key].total += d.rev || 0;
-      groups[key].wins  += 1;
-      groups[key].deals.push(d);
-    });
-    const sorted = Object.values(groups).sort((a,b) => b.total - a.total);
-
-    const rows = [];
-    sorted.forEach((g, gi) => {
-      const gid = 'grp-' + gi;
-      // Sort deals within group by rev descending
-      g.deals.sort((a,b) => (b.rev||0) - (a.rev||0));
-      // Group header row (collapsed by default)
+  const groupKey = tab === 'closers' ? 'closer' : 'setter';
+  const groups = {};
+  deals.forEach(function(d) {
+    const key = d[groupKey] || '—';
+    if (!groups[key]) groups[key] = { name: key, total: 0, wins: 0, deals: [] };
+    groups[key].total += d.rev || 0; groups[key].wins += 1; groups[key].deals.push(d);
+  });
+  const sorted = Object.values(groups).sort(function(a,b) { return b.total - a.total; });
+  const prefix = tab === 'closers' ? 'grp-' : 'sgrp-';
+  const otherCol = tab === 'closers' ? 'setter' : 'closer';
+  const rows = [];
+  sorted.forEach(function(g, gi) {
+    const gid = prefix + gi;
+    g.deals.sort(function(a,b) { return (b.rev||0)-(a.rev||0); });
+    rows.push(
+      '<tr style="background:var(--surface2);cursor:pointer;" onclick="toggleGroup(\'' + gid + '\')">' +
+      '<td colspan="8" style="padding:11px 14px;">' +
+        '<span id="chev-'+gid+'" style="display:inline-block;margin-right:8px;color:var(--muted);font-size:12px;transition:transform .2s;">&#9658;</span>' +
+        '<span style="font-weight:800;font-size:14px;">'+esc(g.name)+'</span>' +
+        '<span style="margin-left:14px;color:var(--green);font-weight:700;font-size:15px;">$'+Math.round(g.total).toLocaleString()+'</span>' +
+        '<span style="margin-left:12px;color:var(--muted);font-size:12px;">'+g.wins+' deal'+(g.wins!==1?'s':'')+'</span>' +
+      '</td></tr>'
+    );
+    g.deals.forEach(function(d) {
+      const addr = [d.street, d.city, d.state].filter(Boolean).join(', ');
+      const tags = (d.tags||[]).map(function(t) { return '<span class="tag">'+esc(t)+'</span>'; }).join('');
+      const oc   = officeClass(d.office);
       rows.push(
-        '<tr style="background:var(--surface2);cursor:pointer;" onclick="toggleGroup(\''+gid+'\')">' +
-        '<td colspan="8" style="padding:11px 14px;">' +
-          '<span id="chev-'+gid+'" style="display:inline-block;margin-right:8px;color:var(--muted);font-size:12px;transition:transform .2s;">&#9658;</span>' +
-          '<span style="font-weight:800;font-size:14px;">'+esc(g.name)+'</span>' +
-          '<span style="margin-left:14px;color:var(--green);font-weight:700;font-size:15px;">$'+Math.round(g.total).toLocaleString()+'</span>' +
-          '<span style="margin-left:12px;color:var(--muted);font-size:12px;">'+g.wins+' deal'+(g.wins!==1?'s':'')+'</span>' +
-        '</td></tr>'
+        '<tr class="grp-row '+gid+'" style="display:none;">' +
+        '<td style="padding-left:32px;" class="deal-name">'+esc(d.name)+'</td>' +
+        '<td><span class="office-chip '+oc+'">'+esc(d.office)+'</span></td>' +
+        '<td class="no-wrap">'+esc(d[otherCol]||'—')+'</td>' +
+        '<td>'+fmtRev(d.rev)+'</td>' +
+        '<td>'+fmtDate(d.date_closed)+'</td>' +
+        '<td class="addr">'+esc(addr)+'</td>' +
+        '<td>'+tags+'</td>' +
+        '<td></td>' +
+        '</tr>'
       );
-      // Deal rows — hidden by default
-      g.deals.forEach(d => {
-        const addr = [d.street, d.city, d.state].filter(Boolean).join(', ');
-        const tags = (d.tags||[]).map(t => '<span class="tag">'+esc(t)+'</span>').join('');
-        const oc   = officeClass(d.office);
-        rows.push(
-          '<tr class="grp-row '+gid+'" style="display:none;">' +
-          '<td style="padding-left:32px;" class="deal-name">'+esc(d.name)+'</td>' +
-          '<td><span class="office-chip '+oc+'">'+esc(d.office)+'</span></td>' +
-          '<td class="no-wrap">'+esc(d.setter||'—')+'</td>' +
-          '<td>'+fmtRev(d.rev)+'</td>' +
-          '<td>'+fmtDate(d.date_closed)+'</td>' +
-          '<td class="addr">'+esc(addr)+'</td>' +
-          '<td>'+tags+'</td>' +
-          '<td></td>' +
-          '</tr>'
-        );
-      });
     });
-    body.innerHTML = rows.join('');
-  } else {
-    // Group by setter/canvasser, sorted by total rev descending
-    const groups = {};
-    deals.forEach(d => {
-      const key = d.setter || '—';
-      if (!groups[key]) groups[key] = { name: key, total: 0, wins: 0, deals: [] };
-      groups[key].total += d.rev || 0;
-      groups[key].wins  += 1;
-      groups[key].deals.push(d);
-    });
-    const sorted = Object.values(groups).sort((a,b) => b.total - a.total);
-
-    const rows = [];
-    sorted.forEach((g, gi) => {
-      const gid = 'sgrp-' + gi;
-      g.deals.sort((a,b) => (b.rev||0) - (a.rev||0));
-      rows.push(
-        '<tr style="background:var(--surface2);cursor:pointer;" onclick="toggleGroup(\''+gid+'\')">' +
-        '<td colspan="8" style="padding:11px 14px;">' +
-          '<span id="chev-'+gid+'" style="display:inline-block;margin-right:8px;color:var(--muted);font-size:12px;transition:transform .2s;">&#9658;</span>' +
-          '<span style="font-weight:800;font-size:14px;">'+esc(g.name)+'</span>' +
-          '<span style="margin-left:14px;color:var(--green);font-weight:700;font-size:15px;">$'+Math.round(g.total).toLocaleString()+'</span>' +
-          '<span style="margin-left:12px;color:var(--muted);font-size:12px;">'+g.wins+' deal'+(g.wins!==1?'s':'')+'</span>' +
-        '</td></tr>'
-      );
-      g.deals.forEach(d => {
-        const addr = [d.street, d.city, d.state].filter(Boolean).join(', ');
-        const tags = (d.tags||[]).map(t => '<span class="tag">'+esc(t)+'</span>').join('');
-        const oc   = officeClass(d.office);
-        rows.push(
-          '<tr class="grp-row '+gid+'" style="display:none;">' +
-          '<td style="padding-left:32px;" class="deal-name">'+esc(d.name)+'</td>' +
-          '<td><span class="office-chip '+oc+'">'+esc(d.office)+'</span></td>' +
-          '<td class="no-wrap">'+esc(d.closer||'—')+'</td>' +
-          '<td>'+fmtRev(d.rev)+'</td>' +
-          '<td>'+fmtDate(d.date_closed)+'</td>' +
-          '<td class="addr">'+esc(addr)+'</td>' +
-          '<td>'+tags+'</td>' +
-          '<td></td>' +
-          '</tr>'
-        );
-      });
-    });
-    body.innerHTML = rows.join('');
-  }
+  });
+  body.innerHTML = rows.join('');
 }
 
-// ── Group toggle ─────────────────────────────────────────────
 function toggleGroup(gid) {
-  const rows  = document.querySelectorAll('tr.' + gid);
-  const chev  = document.getElementById('chev-' + gid);
-  const open  = rows.length && rows[0].style.display !== 'none';
-  rows.forEach(r => r.style.display = open ? 'none' : '');
+  const rows = document.querySelectorAll('tr.' + gid);
+  const chev = document.getElementById('chev-' + gid);
+  const open = rows.length && rows[0].style.display !== 'none';
+  rows.forEach(function(r) { r.style.display = open ? 'none' : ''; });
   if (chev) chev.style.transform = open ? '' : 'rotate(90deg)';
 }
 
-// ── Sales Team summary ────────────────────────────────────────────
+// ── Summary cards ─────────────────────────────────────────────
 function renderSalesTeamSummary(deals) {
-  const bySalesTeam = {};
-  deals.forEach(d => {
+  const by = {};
+  deals.forEach(function(d) {
     const o = d.office || 'Unknown';
-    if (!bySalesTeam[o]) bySalesTeam[o] = { name: o, rev: 0, wins: 0 };
-    bySalesTeam[o].rev  += d.rev || 0;
-    bySalesTeam[o].wins += 1;
+    if (!by[o]) by[o] = { name: o, rev: 0, wins: 0 };
+    by[o].rev += d.rev||0; by[o].wins++;
   });
-
-  const sorted = Object.values(bySalesTeam).sort((a, b) => b.rev - a.rev);
-  const totalRev = sorted.reduce((s, o) => s + o.rev, 0);
-
-  const cards = sorted.map((o, i) => {
-    const pct = totalRev ? (o.rev / totalRev * 100).toFixed(1) : '0.0';
-    return '<div class="office-card">' +
-      '<div class="office-card-rank">#' + (i+1) + ' &nbsp; ' + pct + '% of total</div>' +
-      '<div class="office-card-name">' + esc(o.name) + '</div>' +
-      '<div class="office-card-rev">$' + Math.round(o.rev).toLocaleString() + '</div>' +
-      '<div class="office-card-meta">' + o.wins + ' deals</div>' +
-      '</div>';
-  }).join('');
-
-  document.getElementById('officeCards').innerHTML = cards || '<div style="color:var(--muted);font-size:13px">No data</div>';
+  const sorted = Object.values(by).sort(function(a,b) { return b.rev-a.rev; });
+  const total  = sorted.reduce(function(s,o) { return s+o.rev; }, 0);
+  document.getElementById('officeCards').innerHTML = sorted.map(function(o, i) {
+    const pct = total ? (o.rev/total*100).toFixed(1) : '0.0';
+    return '<div class="office-card"><div class="office-card-rank">#'+(i+1)+' &nbsp; '+pct+'% of total</div>' +
+      '<div class="office-card-name">'+esc(o.name)+'</div>' +
+      '<div class="office-card-rev">$'+Math.round(o.rev).toLocaleString()+'</div>' +
+      '<div class="office-card-meta">'+o.wins+' deals</div></div>';
+  }).join('') || '<div style="color:var(--muted);font-size:13px">No data</div>';
 }
 
-// ── Closer summary ────────────────────────────────────────────
 function renderCloserSummary(deals) {
-  const byCloser = {};
-  deals.forEach(d => {
-    const c = d.closer || 'Unknown';
-    if (!byCloser[c]) byCloser[c] = { name: c, rev: 0, wins: 0 };
-    byCloser[c].rev  += d.rev || 0;
-    byCloser[c].wins += 1;
+  const by = {};
+  deals.forEach(function(d) {
+    const c = d.closer||'Unknown';
+    if (!by[c]) by[c] = { name: c, rev: 0, wins: 0 };
+    by[c].rev += d.rev||0; by[c].wins++;
   });
-
-  const allClosers = Object.values(byCloser);
-  const sorted = allClosers.sort((a, b) => b.rev - a.rev).slice(0, 3);
-  const totalRev = allClosers.reduce((s, c) => s + c.rev, 0);
-
-  const cards = sorted.map((c, i) => {
-    const pct = totalRev ? (c.rev / totalRev * 100).toFixed(1) : '0.0';
-    const rankLabel = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '#' + (i+1);
-    return '<div class="office-card">' +
-      '<div class="office-card-rank">' + rankLabel + ' &nbsp; ' + pct + '% of total</div>' +
-      '<div class="office-card-name">' + esc(c.name) + '</div>' +
-      '<div class="office-card-rev">$' + Math.round(c.rev).toLocaleString() + '</div>' +
-      '<div class="office-card-meta">' + c.wins + ' deal' + (c.wins !== 1 ? 's' : '') + '</div>' +
-      '</div>';
-  }).join('');
-
-  document.getElementById('closerCards').innerHTML = cards || '<div style="color:var(--muted);font-size:13px">No data</div>';
+  const all    = Object.values(by);
+  const top3   = all.sort(function(a,b) { return b.rev-a.rev; }).slice(0,3);
+  const total  = all.reduce(function(s,c) { return s+c.rev; }, 0);
+  const medals = ['🥇','🥈','🥉'];
+  document.getElementById('closerCards').innerHTML = top3.map(function(c, i) {
+    const pct = total ? (c.rev/total*100).toFixed(1) : '0.0';
+    return '<div class="office-card"><div class="office-card-rank">'+medals[i]+' &nbsp; '+pct+'% of total</div>' +
+      '<div class="office-card-name">'+esc(c.name)+'</div>' +
+      '<div class="office-card-rev">$'+Math.round(c.rev).toLocaleString()+'</div>' +
+      '<div class="office-card-meta">'+c.wins+' deal'+(c.wins!==1?'s':'')+'</div></div>';
+  }).join('') || '<div style="color:var(--muted);font-size:13px">No data</div>';
 }
 
-// ── Setter summary ────────────────────────────────────────────
 function renderSetterSummary(deals) {
-  const bySetter = {};
-  deals.filter(d => d.setter).forEach(d => {
+  const by = {};
+  deals.filter(function(d) { return d.setter; }).forEach(function(d) {
     const s = d.setter;
-    if (!bySetter[s]) bySetter[s] = { name: s, rev: 0, wins: 0 };
-    bySetter[s].rev  += d.rev || 0;
-    bySetter[s].wins += 1;
+    if (!by[s]) by[s] = { name: s, rev: 0, wins: 0 };
+    by[s].rev += d.rev||0; by[s].wins++;
   });
-
-  const sorted = Object.values(bySetter).sort((a, b) => b.rev - a.rev).slice(0, 3);
-  const totalRev = Object.values(bySetter).reduce((s, c) => s + c.rev, 0);
-
-  const cards = sorted.map((s, i) => {
-    const pct = totalRev ? (s.rev / totalRev * 100).toFixed(1) : '0.0';
-    const rankLabel = i === 0 ? '🥇' : i === 1 ? '🥈' : '🥉';
-    return '<div class="office-card">' +
-      '<div class="office-card-rank">' + rankLabel + ' &nbsp; ' + pct + '% of total</div>' +
-      '<div class="office-card-name">' + esc(s.name) + '</div>' +
-      '<div class="office-card-rev">$' + Math.round(s.rev).toLocaleString() + '</div>' +
-      '<div class="office-card-meta">' + s.wins + ' deal' + (s.wins !== 1 ? 's' : '') + '</div>' +
-      '</div>';
-  }).join('');
-
-  document.getElementById('setterCards').innerHTML = cards || '<div style="color:var(--muted);font-size:13px">No data</div>';
+  const all   = Object.values(by);
+  const top3  = all.sort(function(a,b) { return b.rev-a.rev; }).slice(0,3);
+  const total = all.reduce(function(s,c) { return s+c.rev; }, 0);
+  const medals = ['🥇','🥈','🥉'];
+  document.getElementById('setterCards').innerHTML = top3.map(function(s, i) {
+    const pct = total ? (s.rev/total*100).toFixed(1) : '0.0';
+    return '<div class="office-card"><div class="office-card-rank">'+medals[i]+' &nbsp; '+pct+'% of total</div>' +
+      '<div class="office-card-name">'+esc(s.name)+'</div>' +
+      '<div class="office-card-rev">$'+Math.round(s.rev).toLocaleString()+'</div>' +
+      '<div class="office-card-meta">'+s.wins+' deal'+(s.wins!==1?'s':'')+'</div></div>';
+  }).join('') || '<div style="color:var(--muted);font-size:13px">No data</div>';
 }
 
-// ── Team Breakdown ───────────────────────────────────────────
-function teamAbbr(name) {
-  const map = {
-    'Northern Utah': 'NU', 'Southern Utah': 'SU',
-    'Eastern Idaho': 'EI', 'Northern California': 'NC',
-    'Inside Sales': 'IS',
-  };
-  return map[name] || name.split(' ').map(w=>w[0]).join('').toUpperCase();
-}
-
+// ── Team Breakdown ────────────────────────────────────────────
 function renderTeamBreakdown(deals) {
-  const overallTotal = deals.reduce((s, d) => s + (d.rev || 0), 0);
+  const overallTotal = deals.reduce(function(s,d) { return s+(d.rev||0); }, 0);
   const teamColors   = ['var(--accent)','var(--green)','var(--gold)','#ff8080','#64a0ff'];
-
-  // Group by office
   const byTeam = {};
-  deals.forEach(d => {
+  deals.forEach(function(d) {
     const team = d.office || 'Unknown';
     if (!byTeam[team]) byTeam[team] = { name: team, rev: 0, closers: {}, setters: {} };
-    byTeam[team].rev += d.rev || 0;
-
-    // Closers — all deals
-    const cl = d.closer || '—';
+    byTeam[team].rev += d.rev||0;
+    const cl = d.closer||'—';
     if (!byTeam[team].closers[cl]) byTeam[team].closers[cl] = { name: cl, rev: 0, wins: 0 };
-    byTeam[team].closers[cl].rev  += d.rev || 0;
-    byTeam[team].closers[cl].wins += 1;
-
-    // Setters — only where setter ≠ closer (exclude self-gen)
+    byTeam[team].closers[cl].rev += d.rev||0; byTeam[team].closers[cl].wins++;
     if (d.setter && d.setter !== d.closer) {
       const st = d.setter;
       if (!byTeam[team].setters[st]) byTeam[team].setters[st] = { name: st, rev: 0, wins: 0 };
-      byTeam[team].setters[st].rev  += d.rev || 0;
-      byTeam[team].setters[st].wins += 1;
+      byTeam[team].setters[st].rev += d.rev||0; byTeam[team].setters[st].wins++;
     }
   });
-
-  const teams = Object.values(byTeam).sort((a, b) => b.rev - a.rev);
-
-  const html = teams.map((team, idx) => {
+  const teams = Object.values(byTeam).sort(function(a,b) { return b.rev-a.rev; });
+  const mkRows = function(people) {
+    return Object.values(people).sort(function(a,b) { return b.rev-a.rev; }).map(function(p, i) {
+      return '<div class="trow"><span class="trow-rank">'+(i+1)+'</span>' +
+        '<div class="trow-info"><span class="trow-name">'+esc(p.name)+' <span class="trow-deals">('+p.wins+')</span></span>' +
+        '<span class="trow-rev">$'+Math.round(p.rev).toLocaleString()+'</span></div></div>';
+    }).join('') || '<div class="trow" style="color:var(--muted);font-size:11px;padding:4px 0">—</div>';
+  };
+  document.getElementById('teamBreakdown').innerHTML = teams.map(function(team, idx) {
     const color = teamColors[idx % teamColors.length];
-    const pct   = overallTotal ? (team.rev / overallTotal * 100).toFixed(1) : '0.0';
-    const wins  = Object.values(team.closers).reduce((s, c) => s + c.wins, 0);
-
-    const mkRows = (people) =>
-      Object.values(people).sort((a,b) => b.rev - a.rev).map((p, i) =>
-        '<div class="trow">' +
-        '<span class="trow-rank">' + (i+1) + '</span>' +
-        '<div class="trow-info">' +
-          '<span class="trow-name">' + esc(p.name) + ' <span class="trow-deals">(' + p.wins + ')</span></span>' +
-          '<span class="trow-rev">$' + Math.round(p.rev).toLocaleString() + '</span>' +
-        '</div>' +
-        '</div>'
-      ).join('') || '<div class="trow" style="color:var(--muted);font-size:11px;padding:4px 0">—</div>';
-
+    const pct   = overallTotal ? (team.rev/overallTotal*100).toFixed(1) : '0.0';
+    const wins  = Object.values(team.closers).reduce(function(s,c) { return s+c.wins; }, 0);
     return '<div class="team-panel">' +
       '<div class="team-panel-header">' +
-        '<div class="team-color-bar" style="background:' + color + '"></div>' +
+        '<div class="team-color-bar" style="background:'+color+'"></div>' +
         '<div class="team-header-info">' +
-          '<div class="team-panel-name" style="color:' + color + '">' + esc(team.name) + '</div>' +
-          '<div class="team-panel-meta">' + wins + ' deals &nbsp;·&nbsp; ' + pct + '% of total</div>' +
+          '<div class="team-panel-name" style="color:'+color+'">'+esc(team.name)+'</div>' +
+          '<div class="team-panel-meta">'+wins+' deals &nbsp;·&nbsp; '+pct+'% of total</div>' +
         '</div>' +
-        '<div class="team-panel-total" style="color:' + color + '">$' + Math.round(team.rev).toLocaleString() + '</div>' +
+        '<div class="team-panel-total" style="color:'+color+'">$'+Math.round(team.rev).toLocaleString()+'</div>' +
       '</div>' +
       '<div class="team-lists">' +
-        '<div class="team-list"><div class="team-list-title">Setters</div>' + mkRows(team.setters) + '</div>' +
-        '<div class="team-list"><div class="team-list-title">Closers</div>' + mkRows(team.closers) + '</div>' +
-      '</div>' +
-    '</div>';
-  }).join('');
-
-  document.getElementById('teamBreakdown').innerHTML = html || '<div style="color:var(--muted)">No data</div>';
+        '<div class="team-list"><div class="team-list-title">Setters</div>'+mkRows(team.setters)+'</div>' +
+        '<div class="team-list"><div class="team-list-title">Closers</div>'+mkRows(team.closers)+'</div>' +
+      '</div></div>';
+  }).join('') || '<div style="color:var(--muted)">No data</div>';
 }
 
-// ── Current-week helpers ──────────────────────────────────────
-function getCurWeekRange() {
-  const now = new Date();
-  const dow = now.getDay() === 0 ? 6 : now.getDay() - 1; // Mon=0
-  const mon = new Date(now); mon.setDate(now.getDate() - dow);
-  const pad = n => String(n).padStart(2,'0');
-  const fmt = d => d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate());
-  return { start: fmt(mon), end: fmt(now) };
-}
-
-function getCurWeekLabel() {
-  const now = new Date();
-  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-  const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
-  const weekNum  = Math.ceil((now.getDate() + firstDay.getDay()) / 7);
-  return months[now.getMonth()] + ' Week ' + weekNum;
-}
-
-// ── Incentives Tracker ────────────────────────────────────────
-function renderIncentivesTracker(deals) {
-  const label = getCurWeekLabel();
-  document.getElementById('incWeekLabel').textContent = label;
-
-  if (!deals || !deals.length) {
-    document.getElementById('incentivesGrid').innerHTML =
-      '<div style="color:var(--muted);font-size:13px;padding:10px 0">No setter deals found for this week yet.</div>';
-    return;
-  }
-
-  // Group by office → by setter (include self-gens: setter may equal closer)
-  const byOffice = {};
-  deals.forEach(function(d) {
-    var setter = d.setter || '';
-    if (!setter) return; // skip if no setter recorded
-    var office = d.office || 'Unknown';
-    if (!byOffice[office]) byOffice[office] = { name: office, reps: {} };
-    if (!byOffice[office].reps[setter]) byOffice[office].reps[setter] = { name: setter, deals: 0, selfGen: 0 };
-    byOffice[office].reps[setter].deals++;
-    if (d.closer && d.setter === d.closer) byOffice[office].reps[setter].selfGen++;
-  });
-
-  // Sort offices in preferred order
-  var officeOrder = ['Northern Utah','Southern Utah','Eastern Idaho','Northern California','Inside Sales'];
-  var offices = Object.values(byOffice).sort(function(a, b) {
-    var ia = officeOrder.indexOf(a.name), ib = officeOrder.indexOf(b.name);
-    if (ia >= 0 && ib >= 0) return ia - ib;
-    if (ia >= 0) return -1;
-    if (ib >= 0) return 1;
-    return a.name.localeCompare(b.name);
-  });
-
-  var html = offices.map(function(office) {
-    var reps = Object.values(office.reps).sort(function(a,b){ return b.deals - a.deals; });
-    var totalDeals = reps.reduce(function(s,r){ return s + r.deals; }, 0);
-
-    var rows = reps.map(function(rep) {
-      var d1 = rep.deals >= 1, d2 = rep.deals >= 2, d3 = rep.deals >= 3;
-      var selfLabel = rep.selfGen > 0 ? '<span class="inc-self">(' + rep.selfGen + ' self-gen)</span>' : '';
-      return '<tr>' +
-        '<td><span class="inc-rep">' + esc(rep.name) + '</span>' + selfLabel + '</td>' +
-        '<td><span class="inc-box' + (d1 ? ' hit' : '') + '">' + (d1 ? 'X' : '') + '</span></td>' +
-        '<td><span class="inc-box' + (d2 ? ' hit' : '') + '">' + (d2 ? 'X' : '') + '</span></td>' +
-        '<td><span class="inc-box' + (d3 ? ' hit' : '') + '">' + (d3 ? 'X' : '') + '</span></td>' +
-      '</tr>';
-    }).join('');
-
-    return '<div class="inc-board">' +
-      '<div class="inc-board-header">' +
-        '<div class="inc-board-left">' +
-          '<div class="inc-board-office">' + esc(office.name) + '</div>' +
-          '<div class="inc-board-subtitle">Have to hit the target on the week to earn</div>' +
-        '</div>' +
-        '<div class="inc-board-right">' +
-          '<div class="inc-board-weekly">Weekly</div>' +
-          '<div class="inc-board-period">' + esc(label) + '</div>' +
-        '</div>' +
-      '</div>' +
-      '<table class="inc-table">' +
-        '<thead><tr>' +
-          '<th>Rep Name</th>' +
-          '<th>Deal One</th>' +
-          '<th>Deal Two +2%</th>' +
-          '<th>Deal Three +4%</th>' +
-        '</tr></thead>' +
-        '<tbody>' + rows + '</tbody>' +
-      '</table>' +
-      '<div class="inc-footer">' +
-        '<div class="inc-footer-rule">' +
-          '<div class="inc-footer-num">2 DEALS/WEEK</div>' +
-          '<div class="inc-footer-label">+2% bonus</div>' +
-        '</div>' +
-        '<div class="inc-footer-rule">' +
-          '<div class="inc-footer-num">3 DEALS/WEEK</div>' +
-          '<div class="inc-footer-label">+4% bonus</div>' +
-        '</div>' +
-      '</div>' +
-    '</div>';
-  }).join('');
-
-  document.getElementById('incentivesGrid').innerHTML = html;
-}
-
-// ── Load ─────────────────────────────────────────────────────
+// ── Revenue data load ─────────────────────────────────────────
 async function loadData() {
   const btn = document.getElementById('refreshBtn');
   btn.disabled = true; btn.textContent = 'Loading…';
   setStatus('loading', 'Fetching from Odoo CRM…');
-
-  document.getElementById('body-closers').innerHTML =
-    '<tr><td colspan="8" class="empty-state"><div class="spinner"></div></td></tr>';
-  document.getElementById('body-setters').innerHTML =
-    '<tr><td colspan="9" class="empty-state"><div class="spinner"></div></td></tr>';
+  document.getElementById('body-closers').innerHTML = '<tr><td colspan="8" class="empty-state"><div class="spinner"></div></td></tr>';
+  document.getElementById('body-setters').innerHTML = '<tr><td colspan="8" class="empty-state"><div class="spinner"></div></td></tr>';
 
   const { start, end } = getRange(curRange);
-  document.getElementById('rangeLabel').textContent = start + '  →  ' + end;
+  document.getElementById('rangeLabel').textContent = start + ' → ' + end;
   const periodText = curRange === 'mtd' ? 'current month' : curRange === 'week' ? 'this week' : start + ' → ' + end;
-  ['periodLabel','periodLabel2','periodLabel3','periodLabel4','totalPeriodLabel'].forEach(id => document.getElementById(id).textContent = periodText);
+  ['periodLabel','periodLabel2','periodLabel3','periodLabel4','totalPeriodLabel'].forEach(function(id) {
+    document.getElementById(id).textContent = periodText;
+  });
 
   try {
-    const weekRange = getCurWeekRange();
-    const isCurWeek = (curRange === 'week');
-
-    const [res, weekRes] = await Promise.all([
-      fetch(LOCAL_API + '/api/odoo/deals?start='+start+'&end='+end),
-      isCurWeek ? Promise.resolve(null) : fetch(LOCAL_API + '/api/odoo/deals?start='+weekRange.start+'&end='+weekRange.end)
-    ]);
-
+    const res = await fetch(LOCAL_API + '/api/odoo/deals?start='+start+'&end='+end);
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const data = await res.json();
-    allDeals   = data.deals || [];
-
-    if (isCurWeek) {
-      weekDeals = allDeals;
-    } else if (weekRes && weekRes.ok) {
-      const weekData = await weekRes.json();
-      weekDeals = weekData.deals || [];
-    }
+    allDeals = data.deals || [];
 
     document.getElementById('badge-closers').textContent = allDeals.length;
-    document.getElementById('badge-setters').textContent = allDeals.filter(d=>d.setter).length;
+    document.getElementById('badge-setters').textContent = allDeals.filter(function(d){return d.setter;}).length;
 
-    // MTD stats
-    const totalRev = allDeals.reduce((s,d) => s+(d.rev||0), 0);
-    const avgRev   = allDeals.length ? totalRev / allDeals.length : 0;
-    document.getElementById('totalRevDisplay').textContent    = '$' + Math.round(totalRev).toLocaleString();
-    document.getElementById('totalDealsSubDisplay').textContent = allDeals.length + ' deals · avg $' + Math.round(avgRev).toLocaleString();
+    const totalRev = allDeals.reduce(function(s,d){return s+(d.rev||0);},0);
+    const avgRev   = allDeals.length ? totalRev/allDeals.length : 0;
+    document.getElementById('totalRevDisplay').textContent      = '$'+Math.round(totalRev).toLocaleString();
+    document.getElementById('totalDealsSubDisplay').textContent = allDeals.length+' deals · avg $'+Math.round(avgRev).toLocaleString();
 
     renderSalesTeamSummary(allDeals);
     renderCloserSummary(allDeals);
@@ -1190,27 +808,229 @@ async function loadData() {
     renderTeamBreakdown(allDeals);
     renderTable('closers');
     renderTable('setters');
-    renderIncentivesTracker(weekDeals);
 
     const gen = data.generated_at ? new Date(data.generated_at).toLocaleTimeString() : '';
-    setStatus('ok', data.total_deals + ' deals · $' + Math.round(data.total_rev).toLocaleString() + ' revenue · refreshed ' + gen);
+    setStatus('ok', data.total_deals+' deals · $'+Math.round(data.total_rev).toLocaleString()+' revenue · refreshed '+gen);
   } catch(err) {
-    setStatus('error', 'Error: ' + err.message);
-    document.getElementById('body-closers').innerHTML =
-      '<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--red)">'+err.message+'<br><small>Is the API server running on port 8000?</small></td></tr>';
-    document.getElementById('body-setters').innerHTML =
-      '<tr><td colspan="9" style="text-align:center;padding:40px;color:var(--red)">'+err.message+'</td></tr>';
+    setStatus('error', 'Error: '+err.message);
+    document.getElementById('body-closers').innerHTML = '<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--red)">'+esc(err.message)+'<br><small>Is the API server running?</small></td></tr>';
+    document.getElementById('body-setters').innerHTML = '<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--red)">'+esc(err.message)+'</td></tr>';
   }
-
   btn.disabled = false; btn.textContent = 'Refresh';
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+// ── Terros Board ──────────────────────────────────────────────
+function getTerrosWeekRange() {
+  const now = new Date();
+  const dow = now.getDay()===0?6:now.getDay()-1;
+  const mon = new Date(now); mon.setDate(now.getDate()-dow);
+  const pad = function(n){return String(n).padStart(2,'0');};
+  const fmt = function(d){return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());};
+  return { start: fmt(mon), end: fmt(now) };
+}
+
+async function loadTerrosData() {
+  const btn = document.getElementById('terrosRefreshBtn');
+  btn.disabled = true; btn.textContent = 'Loading…';
+  document.getElementById('terrosStatusDot').className  = 'dot loading';
+  document.getElementById('terrosStatusText').textContent = 'Fetching from Terros…';
+
+  const range = getTerrosWeekRange();
+  document.getElementById('terrosRangeLabel').textContent = range.start + ' → ' + range.end;
+
+  try {
+    const res = await fetch(LOCAL_API + '/api/weekly?start='+range.start+'&end='+range.end);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    terrosLoaded = true;
+    renderTerrosBoard(data);
+    const reps = (data.reps||[]).filter(function(r){return r.name && r.name!=='Total';});
+    document.getElementById('terrosStatusDot').className   = 'dot';
+    document.getElementById('terrosStatusText').textContent = reps.length+' reps · '+range.start+' → '+range.end;
+  } catch(err) {
+    document.getElementById('terrosStatusDot').className   = 'dot error';
+    document.getElementById('terrosStatusText').textContent = 'Error: '+err.message;
+    document.getElementById('terrosBody').innerHTML = '<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--red)">'+esc(err.message)+'</td></tr>';
+  }
+  btn.disabled = false; btn.textContent = 'Refresh';
+}
+
+function renderTerrosBoard(data) {
+  const reps = (data.reps||[]).filter(function(r){return r.name && r.name!=='Total';});
+  const totKnocks  = reps.reduce(function(s,r){return s+(r.knocks||0);},0);
+  const totPitches = reps.reduce(function(s,r){return s+(r.pitches||0);},0);
+  const totSets    = reps.reduce(function(s,r){return s+(r.sets||r.acs||0);},0);
+  const totCloses  = reps.reduce(function(s,r){return s+(r.closes||r.sras||0);},0);
+  document.getElementById('t-knocks').textContent  = totKnocks.toLocaleString();
+  document.getElementById('t-pitches').textContent = totPitches.toLocaleString();
+  document.getElementById('t-sets').textContent    = totSets.toLocaleString();
+  document.getElementById('t-closes').textContent  = totCloses.toLocaleString();
+
+  if (!reps.length) {
+    document.getElementById('terrosBody').innerHTML = '<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--muted)">No rep data for this period</td></tr>';
+    return;
+  }
+  const sorted = reps.slice().sort(function(a,b){return (b.closes||b.sras||0)-(a.closes||a.sras||0);});
+  document.getElementById('terrosBody').innerHTML = sorted.map(function(r, i) {
+    return '<tr>' +
+      '<td class="t-rank">'+(i+1)+'</td>' +
+      '<td class="t-name">'+esc(r.name||'')+'</td>' +
+      '<td class="t-closes">'+((r.closes||r.sras||0))+'</td>' +
+      '<td class="t-sets">'+((r.sets||r.acs||0))+'</td>' +
+      '<td>'+((r.leads||0))+'</td>' +
+      '<td>'+((r.pitches||0))+'</td>' +
+      '<td class="t-muted">'+((r.knocks||0)).toLocaleString()+'</td>' +
+      '<td class="t-muted">'+((r.daysWorked||0))+'</td>' +
+    '</tr>';
+  }).join('');
+}
+
+// ── Incentives Tracker ────────────────────────────────────────
+function getMonthWeeks() {
+  const now = new Date();
+  const year = now.getFullYear(), month = now.getMonth();
+  const firstDay = new Date(year, month, 1);
+  const lastDay  = new Date(year, month + 1, 0);
+  const pad = function(n){return String(n).padStart(2,'0');};
+  const fmt = function(d){return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());};
+  const todayStr = fmt(now);
+  var weeks = [], num = 1;
+  var cur = new Date(firstDay);
+  var dow = cur.getDay();
+  cur.setDate(cur.getDate() - (dow===0?6:dow-1));
+  while (cur <= lastDay) {
+    var wEnd = new Date(cur); wEnd.setDate(cur.getDate()+6);
+    var cStart = new Date(Math.max(cur.getTime(), firstDay.getTime()));
+    var cEnd   = new Date(Math.min(wEnd.getTime(), lastDay.getTime()));
+    var s = fmt(cStart), e = fmt(cEnd);
+    weeks.push({ num: num, label: 'Wk '+num, start: s, end: e,
+      isCurrent: todayStr >= s && todayStr <= e,
+      isFuture:  todayStr < s });
+    cur.setDate(cur.getDate()+7); num++;
+  }
+  return weeks;
+}
+
+async function loadIncentivesData() {
+  const btn = document.getElementById('incRefreshBtn');
+  btn.disabled = true; btn.textContent = 'Loading…';
+  document.getElementById('incStatusDot').className   = 'dot loading';
+  document.getElementById('incStatusText').textContent = 'Fetching from Odoo…';
+
+  const now = new Date();
+  const pad = function(n){return String(n).padStart(2,'0');};
+  const monthStart = now.getFullYear()+'-'+pad(now.getMonth()+1)+'-01';
+  const monthEnd   = now.getFullYear()+'-'+pad(now.getMonth()+1)+'-'+pad(now.getDate());
+  const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  document.getElementById('incMonthLabel').textContent = MONTHS[now.getMonth()]+' '+now.getFullYear();
+
+  try {
+    const res = await fetch(LOCAL_API + '/api/odoo/deals?start='+monthStart+'&end='+monthEnd);
+    if (!res.ok) throw new Error('HTTP '+res.status);
+    const data = await res.json();
+    monthDeals = data.deals || [];
+    renderIncentivesTracker(monthDeals);
+    document.getElementById('incStatusDot').className   = 'dot';
+    document.getElementById('incStatusText').textContent = monthDeals.length+' deals loaded for '+MONTHS[now.getMonth()];
+  } catch(err) {
+    document.getElementById('incStatusDot').className   = 'dot error';
+    document.getElementById('incStatusText').textContent = 'Error: '+err.message;
+    document.getElementById('incentivesGrid').innerHTML = '<div style="color:var(--red);padding:20px">'+esc(err.message)+'</div>';
+  }
+  btn.disabled = false; btn.textContent = 'Refresh';
+}
+
+function renderIncentivesTracker(deals) {
+  if (!deals || !deals.length) {
+    document.getElementById('incentivesGrid').innerHTML = '<div style="color:var(--muted);font-size:13px;padding:10px 0">No setter deals found this month.</div>';
+    return;
+  }
+  const weeks = getMonthWeeks();
+
+  var byOffice = {};
+  deals.forEach(function(d) {
+    var setter = d.setter || '';
+    if (!setter) return;
+    var office = d.office || 'Unknown';
+    if (!byOffice[office]) byOffice[office] = { name: office, reps: {} };
+    if (!byOffice[office].reps[setter]) {
+      var wc = {};
+      weeks.forEach(function(w){ wc[w.num] = 0; });
+      byOffice[office].reps[setter] = { name: setter, weekCounts: wc, selfGenTotal: 0 };
+    }
+    var dealDate = d.date_deadline || d.date_closed || '';
+    for (var i = 0; i < weeks.length; i++) {
+      if (dealDate >= weeks[i].start && dealDate <= weeks[i].end) {
+        byOffice[office].reps[setter].weekCounts[weeks[i].num]++;
+        break;
+      }
+    }
+    if (d.closer && d.setter === d.closer) byOffice[office].reps[setter].selfGenTotal++;
+  });
+
+  var officeOrder = ['Northern Utah','Southern Utah','Eastern Idaho','Northern California','Inside Sales'];
+  var offices = Object.values(byOffice).sort(function(a,b){
+    var ia=officeOrder.indexOf(a.name), ib=officeOrder.indexOf(b.name);
+    if(ia>=0&&ib>=0) return ia-ib; if(ia>=0) return -1; if(ib>=0) return 1;
+    return a.name.localeCompare(b.name);
+  });
+
+  var html = offices.map(function(office) {
+    var reps = Object.values(office.reps).sort(function(a,b){
+      var at=Object.values(a.weekCounts).reduce(function(s,v){return s+v;},0);
+      var bt=Object.values(b.weekCounts).reduce(function(s,v){return s+v;},0);
+      return bt-at;
+    });
+
+    var thCells = '<th>Rep Name</th>' + weeks.map(function(w){
+      var cls = w.isCurrent ? ' inc-wk-cur' : '';
+      var dates = w.start.slice(5)+(w.start!==w.end?'–'+w.end.slice(5):'');
+      return '<th class="'+cls+'">'+esc(w.label)+'<span class="inc-wk-dates">'+esc(dates)+'</span></th>';
+    }).join('');
+
+    var rows = reps.map(function(rep){
+      var selfLabel = rep.selfGenTotal > 0 ? '<span class="inc-self">('+rep.selfGenTotal+' SG)</span>' : '';
+      var tds = weeks.map(function(w){
+        var cnt = rep.weekCounts[w.num]||0;
+        var tierCls = cnt>=3?'inc-tier-3':cnt>=2?'inc-tier-2':cnt>=1?'inc-tier-1':'inc-tier-0';
+        var cellCls = w.isCurrent?' inc-wk-cur-cell':'';
+        return '<td class="'+cellCls+'"><span class="inc-deal-badge '+tierCls+'">'+(cnt===0?'—':String(cnt))+'</span></td>';
+      }).join('');
+      return '<tr><td><span class="inc-rep">'+esc(rep.name)+'</span>'+selfLabel+'</td>'+tds+'</tr>';
+    }).join('');
+
+    return '<div class="inc-board">' +
+      '<div class="inc-board-header">' +
+        '<div class="inc-board-left">' +
+          '<div class="inc-board-office">'+esc(office.name)+'</div>' +
+          '<div class="inc-board-subtitle">Weekly setter deals — hit target each week to earn bonus</div>' +
+        '</div>' +
+        '<div class="inc-board-right">' +
+          '<div class="inc-board-weekly">Weekly</div>' +
+          '<div class="inc-board-period">Summer Bonus</div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="inc-table-wrap"><table class="inc-table">' +
+        '<thead><tr>'+thCells+'</tr></thead>' +
+        '<tbody>'+rows+'</tbody>' +
+      '</table></div>' +
+      '<div class="inc-footer">' +
+        '<div class="inc-footer-rule"><div class="inc-footer-num" style="color:rgba(255,255,255,.75)">1 DEAL</div><div class="inc-footer-label">Deal One</div></div>' +
+        '<div class="inc-footer-rule"><div class="inc-footer-num" style="color:#00c6a2">2 DEALS</div><div class="inc-footer-label">+2% bonus</div></div>' +
+        '<div class="inc-footer-rule"><div class="inc-footer-num" style="color:#f5c542">3 DEALS</div><div class="inc-footer-label">+4% bonus</div></div>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+
+  document.getElementById('incentivesGrid').innerHTML = html;
+}
+
+// ── Init ──────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', function() {
   setRange('mtd');
-  // Auto-refresh every 2 minutes (only when not already loading)
-  setInterval(() => {
-    const btn = document.getElementById('refreshBtn');
-    if (!btn.disabled) loadData();
+  setInterval(function() {
+    var btn = document.getElementById('refreshBtn');
+    if (!btn.disabled && activeMainTab === 'revenue') loadData();
   }, 2 * 60 * 1000);
 });
 </script>
