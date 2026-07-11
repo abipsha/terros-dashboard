@@ -63,6 +63,43 @@ class Handler(http.server.BaseHTTPRequestHandler):
             if path == "/health" or path == "/api" or path == "/api/":
                 self._json({"status": "ok", "message": "Vivid Terros API is running"})
 
+            elif path == "/api/debug-odoo":
+                # Diagnose Odoo auth from this server's IP
+                import urllib.request as _ur
+                # Get our outbound IP
+                try:
+                    with _ur.urlopen("https://api.ipify.org?format=json", timeout=5) as r:
+                        ip_data = json.loads(r.read())
+                    outbound_ip = ip_data.get("ip", "unknown")
+                except Exception as ip_err:
+                    outbound_ip = f"error: {ip_err}"
+
+                # Try XML-RPC auth and capture full error
+                import xmlrpc.client as _xrc
+                xmlrpc_result = None
+                xmlrpc_error  = None
+                try:
+                    common = _xrc.ServerProxy(f"{odoo.ODOO_URL}/xmlrpc/2/common")
+                    uid = common.authenticate(odoo.ODOO_DB, odoo.ODOO_USER, odoo.ODOO_PASS, {})
+                    xmlrpc_result = {"uid": uid, "success": bool(uid)}
+                except Exception as e:
+                    xmlrpc_error = str(e)
+
+                # Also check env vars are set (mask password)
+                pw = odoo.ODOO_PASS
+                pw_masked = pw[:4] + ("*" * (len(pw) - 4)) if len(pw) > 4 else "****"
+
+                self._json({
+                    "outbound_ip":  outbound_ip,
+                    "odoo_url":     odoo.ODOO_URL,
+                    "odoo_db":      odoo.ODOO_DB,
+                    "odoo_user":    odoo.ODOO_USER,
+                    "password_len": len(pw),
+                    "password_preview": pw_masked,
+                    "xmlrpc_result": xmlrpc_result,
+                    "xmlrpc_error":  xmlrpc_error,
+                })
+
             elif path == "/api/debug-activity":
                 # Fetch ONE page of raw activities and return the first record
                 # so we can inspect the actual field names the API uses
