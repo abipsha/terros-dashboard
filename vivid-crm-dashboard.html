@@ -301,12 +301,6 @@
   <div class="controls-bar">
     <button class="date-btn active" data-r="mtd"    onclick="setRange('mtd')">MTD</button>
     <button class="date-btn"        data-r="week"   onclick="setRange('week')">This Week</button>
-    <button class="date-btn"        data-r="custom" onclick="setRange('custom')">Custom</button>
-    <span id="customDates" style="display:none;align-items:center;gap:5px;">
-      <input type="date" id="startDate" onchange="onCustomDateChange()">
-      <span style="color:var(--muted)">→</span>
-      <input type="date" id="endDate" onchange="onCustomDateChange()">
-    </span>
     <button class="refresh-btn" id="refreshBtn" onclick="loadData()">Refresh</button>
     <span class="range-label" id="rangeLabel"></span>
   </div>
