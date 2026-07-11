@@ -42,7 +42,15 @@ def _post(endpoint: str, payload: dict) -> dict:
     data = json.dumps(payload).encode()
     req  = urllib.request.Request(
         url, data=data, method="POST",
-        headers={"Content-Type": "application/json"}
+        headers={
+            "Content-Type": "application/json",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "Accept": "application/json, text/javascript, */*; q=0.01",
+            "Accept-Language": "en-US,en;q=0.9",
+            "X-Requested-With": "XMLHttpRequest",
+            "Referer": ODOO_URL + "/web",
+            "Origin": ODOO_URL,
+        }
     )
     with _opener.open(req, timeout=30) as r:
         return json.loads(r.read())

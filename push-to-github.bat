@@ -8,10 +8,10 @@ echo  Staging all files...
 git add -A
 echo.
 echo  Committing...
-git commit -m "Add CRM dashboard, mobile layout, Render config"
+git commit -m "Fix Odoo auth: add browser-like headers to bypass IP restrictions"
 echo.
 echo  Pushing to GitHub...
-git push --force origin main
+git push origin main
 echo.
 echo  Done! Check above for any errors.
 echo.
