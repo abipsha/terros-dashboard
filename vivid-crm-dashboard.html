@@ -189,23 +189,6 @@
   .trow-deals { color: var(--muted); font-weight: 400; font-size: 10px; }
   .trow-rev { display: block; color: var(--green); font-weight: 700; font-size: 12px; margin-top: 1px; }
 
-  /* ── Terros Board ── */
-  .terros-stats-row { background: var(--surface); border-bottom: 1px solid var(--border); display: flex; align-items: stretch; flex-wrap: wrap; }
-  .terros-stat { padding: 18px 28px; flex: 1; min-width: 130px; border-right: 1px solid var(--border); text-align: center; }
-  .terros-stat:last-child { border-right: none; }
-  .terros-stat-val { font-size: 34px; font-weight: 800; line-height: 1; }
-  .terros-stat-label { font-size: 10px; font-weight: 600; letter-spacing: .7px; text-transform: uppercase; color: var(--muted); margin-top: 5px; }
-  .terros-table-wrap { padding: 18px 22px 28px; overflow-x: auto; }
-  .terros-table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 560px; }
-  .terros-table thead th { background: var(--surface); text-align: left; padding: 10px 14px; font-size: 11px; font-weight: 600; letter-spacing: .6px; text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--border); white-space: nowrap; }
-  .terros-table tbody tr { border-bottom: 1px solid var(--border); }
-  .terros-table tbody tr:hover { background: rgba(255,255,255,.03); }
-  .terros-table tbody td { padding: 10px 14px; }
-  .t-rank { color: var(--muted); font-size: 12px; font-weight: 700; width: 36px; }
-  .t-name { font-weight: 700; }
-  .t-closes { font-weight: 700; color: var(--green); }
-  .t-sets { font-weight: 700; color: var(--accent); }
-  .t-muted { color: var(--muted); }
 
   /* ── Incentives Tracker ── */
   .incentives-wrapper { padding: 16px 22px 28px; }
@@ -278,11 +261,6 @@
     tbody td { padding: 8px 10px; }
     .team-grid { padding: 10px 14px 16px; gap: 12px; grid-template-columns: 1fr; }
     .team-panel-total { font-size: 18px; }
-    .terros-stats-row { flex-direction: column; }
-    .terros-stat { border-right: none; border-bottom: 1px solid var(--border); padding: 12px 16px; display: flex; align-items: center; gap: 14px; text-align: left; }
-    .terros-stat:last-child { border-bottom: none; }
-    .terros-stat-val { font-size: 26px; }
-    .terros-table-wrap { padding: 12px 14px 20px; }
     .incentives-wrapper { padding: 12px 14px 20px; }
     .incentives-grid { grid-template-columns: 1fr; gap: 14px; }
   }
@@ -420,51 +398,10 @@
 
 
 <!-- ═══════════════════════════════════════════════════════════
-     PANEL 2 — Terros Board
+     PANEL 2 — Terros Board (iframe)
 ═══════════════════════════════════════════════════════════ -->
-<div class="main-panel" id="main-terros">
-
-  <div class="controls-bar">
-    <button class="refresh-btn" id="terrosRefreshBtn" onclick="loadTerrosData()">Refresh</button>
-    <span class="range-label" id="terrosRangeLabel"></span>
-  </div>
-
-  <div class="terros-stats-row" id="terrosStatsRow">
-    <div class="terros-stat">
-      <div class="terros-stat-val t-muted" id="t-knocks">—</div>
-      <div class="terros-stat-label">Knocks</div>
-    </div>
-    <div class="terros-stat">
-      <div class="terros-stat-val" id="t-pitches">—</div>
-      <div class="terros-stat-label">Pitches</div>
-    </div>
-    <div class="terros-stat">
-      <div class="terros-stat-val stat-accent" id="t-sets">—</div>
-      <div class="terros-stat-label">Sets / ACs</div>
-    </div>
-    <div class="terros-stat">
-      <div class="terros-stat-val stat-green" id="t-closes">—</div>
-      <div class="terros-stat-label">Closes</div>
-    </div>
-  </div>
-
-  <div class="status-bar">
-    <span class="dot" id="terrosStatusDot"></span>
-    <span id="terrosStatusText">Click Refresh to load Terros data</span>
-  </div>
-
-  <div class="terros-table-wrap">
-    <table class="terros-table">
-      <thead><tr>
-        <th>#</th><th>Rep</th><th>Closes</th><th>Sets / ACs</th>
-        <th>Leads</th><th>Pitches</th><th>Knocks</th><th>Days</th>
-      </tr></thead>
-      <tbody id="terrosBody">
-        <tr><td colspan="8" style="text-align:center;padding:50px;color:var(--muted)">Click Refresh to load</td></tr>
-      </tbody>
-    </table>
-  </div>
-
+<div class="main-panel" id="main-terros" style="height:calc(100vh - 104px);">
+  <iframe id="terrosFrame" src="/" style="width:100%;height:100%;border:none;display:block;"></iframe>
 </div><!-- /main-terros -->
 
 
@@ -503,7 +440,6 @@ let sortState     = { closers: { col: 'date_closed', dir: -1 }, setters: { col: 
 let activeTab     = 'closers';
 let activeMainTab = 'revenue';
 let curRange      = 'mtd';
-let terrosLoaded  = false;
 
 // ── Formatters ───────────────────────────────────────────────
 function fmtRev(n) {
@@ -530,7 +466,6 @@ function switchMainTab(tab) {
   activeMainTab = tab;
   document.querySelectorAll('.main-tab').forEach(function(t) { t.classList.toggle('active', t.dataset.tab === tab); });
   document.querySelectorAll('.main-panel').forEach(function(p) { p.classList.toggle('active', p.id === 'main-' + tab); });
-  if (tab === 'terros' && !terrosLoaded) loadTerrosData();
   if (tab === 'incentives') loadIncentivesData();
 }
 
@@ -819,71 +754,6 @@ async function loadData() {
   btn.disabled = false; btn.textContent = 'Refresh';
 }
 
-// ── Terros Board ──────────────────────────────────────────────
-function getTerrosWeekRange() {
-  const now = new Date();
-  const dow = now.getDay()===0?6:now.getDay()-1;
-  const mon = new Date(now); mon.setDate(now.getDate()-dow);
-  const pad = function(n){return String(n).padStart(2,'0');};
-  const fmt = function(d){return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());};
-  return { start: fmt(mon), end: fmt(now) };
-}
-
-async function loadTerrosData() {
-  const btn = document.getElementById('terrosRefreshBtn');
-  btn.disabled = true; btn.textContent = 'Loading…';
-  document.getElementById('terrosStatusDot').className  = 'dot loading';
-  document.getElementById('terrosStatusText').textContent = 'Fetching from Terros…';
-
-  const range = getTerrosWeekRange();
-  document.getElementById('terrosRangeLabel').textContent = range.start + ' → ' + range.end;
-
-  try {
-    const res = await fetch(LOCAL_API + '/api/weekly?start='+range.start+'&end='+range.end);
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const data = await res.json();
-    terrosLoaded = true;
-    renderTerrosBoard(data);
-    const reps = (data.reps||[]).filter(function(r){return r.name && r.name!=='Total';});
-    document.getElementById('terrosStatusDot').className   = 'dot';
-    document.getElementById('terrosStatusText').textContent = reps.length+' reps · '+range.start+' → '+range.end;
-  } catch(err) {
-    document.getElementById('terrosStatusDot').className   = 'dot error';
-    document.getElementById('terrosStatusText').textContent = 'Error: '+err.message;
-    document.getElementById('terrosBody').innerHTML = '<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--red)">'+esc(err.message)+'</td></tr>';
-  }
-  btn.disabled = false; btn.textContent = 'Refresh';
-}
-
-function renderTerrosBoard(data) {
-  const reps = (data.reps||[]).filter(function(r){return r.name && r.name!=='Total';});
-  const totKnocks  = reps.reduce(function(s,r){return s+(r.knocks||0);},0);
-  const totPitches = reps.reduce(function(s,r){return s+(r.pitches||0);},0);
-  const totSets    = reps.reduce(function(s,r){return s+(r.sets||r.acs||0);},0);
-  const totCloses  = reps.reduce(function(s,r){return s+(r.closes||r.sras||0);},0);
-  document.getElementById('t-knocks').textContent  = totKnocks.toLocaleString();
-  document.getElementById('t-pitches').textContent = totPitches.toLocaleString();
-  document.getElementById('t-sets').textContent    = totSets.toLocaleString();
-  document.getElementById('t-closes').textContent  = totCloses.toLocaleString();
-
-  if (!reps.length) {
-    document.getElementById('terrosBody').innerHTML = '<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--muted)">No rep data for this period</td></tr>';
-    return;
-  }
-  const sorted = reps.slice().sort(function(a,b){return (b.closes||b.sras||0)-(a.closes||a.sras||0);});
-  document.getElementById('terrosBody').innerHTML = sorted.map(function(r, i) {
-    return '<tr>' +
-      '<td class="t-rank">'+(i+1)+'</td>' +
-      '<td class="t-name">'+esc(r.name||'')+'</td>' +
-      '<td class="t-closes">'+((r.closes||r.sras||0))+'</td>' +
-      '<td class="t-sets">'+((r.sets||r.acs||0))+'</td>' +
-      '<td>'+((r.leads||0))+'</td>' +
-      '<td>'+((r.pitches||0))+'</td>' +
-      '<td class="t-muted">'+((r.knocks||0)).toLocaleString()+'</td>' +
-      '<td class="t-muted">'+((r.daysWorked||0))+'</td>' +
-    '</tr>';
-  }).join('');
-}
 
 // ── Incentives Tracker ────────────────────────────────────────
 function getMonthWeeks() {
