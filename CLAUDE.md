@@ -20,7 +20,11 @@ Defaults to current month (MTD). Pass `?force=1` to bust the 5-minute cache.
 - `ODOO_URL`      — default `https://myvivid.odoo.com`
 - `ODOO_DB`       — default `myvivid`
 - `ODOO_USER`     — default `abipsha.joshi@vividwindows.com`
-- `ODOO_PASSWORD` — default `Ezr1@@w2j2$`
+- `ODOO_PASSWORD` — **use an Odoo API key, not the login password**
+  - Odoo SaaS blocks XML-RPC auth from cloud provider IPs (Render = 74.220.48.235)
+  - API keys bypass this restriction
+  - Generate in Odoo: avatar → My Profile → Account Security → New API Key
+  - The API key is used as the `password` arg in `xmlrpc.client` authenticate/execute_kw calls
 
 ### Revenue goals (env vars or fallback in odoo.py)
 - `GOAL_NORTHERN_UTAH`, `GOAL_SOUTHERN_UTAH`, `GOAL_EASTERN_IDAHO`, `GOAL_NORTHERN_CALIFORNIA`, `GOAL_INSIDE_SALES`
