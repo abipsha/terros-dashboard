@@ -477,26 +477,15 @@ function getRange(r) {
     const ms = mon.getFullYear()+'-'+String(mon.getMonth()+1).padStart(2,'0')+'-'+String(mon.getDate()).padStart(2,'0');
     return { start: ms, end: today };
   }
-  const s = document.getElementById('startDate').value, e = document.getElementById('endDate').value;
-  return { start: s||(y+'-'+m+'-01'), end: e||today };
+  return { start: y+'-'+m+'-01', end: today };
 }
 
 function setRange(r) {
   curRange = r;
   document.querySelectorAll('.date-btn').forEach(function(b) { b.classList.toggle('active', b.dataset.r === r); });
-  const customEl = document.getElementById('customDates');
-  customEl.style.display = r === 'custom' ? 'flex' : 'none';
-  if (r === 'custom') {
-    const now = new Date(), y = now.getFullYear(), m = String(now.getMonth()+1).padStart(2,'0'), d = String(now.getDate()).padStart(2,'0');
-    if (!document.getElementById('startDate').value) document.getElementById('startDate').value = y+'-'+m+'-01';
-    if (!document.getElementById('endDate').value)   document.getElementById('endDate').value   = y+'-'+m+'-'+d;
-  } else { loadData(); }
+  loadData();
 }
 
-function onCustomDateChange() {
-  const s = document.getElementById('startDate').value, e = document.getElementById('endDate').value;
-  if (s && e && e >= s) loadData();
-}
 
 // ── Revenue status ────────────────────────────────────────────
 function setStatus(state, text) {
