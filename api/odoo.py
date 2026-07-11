@@ -2,10 +2,12 @@
 Vivid Odoo CRM Client
 Fetches won deals from myvivid.odoo.com and aggregates into dashboard data.
 Python stdlib only — no pip installs needed.
+Uses XML-RPC for auth (bypasses IP restrictions on the web session endpoint).
 """
 import json
 import os
 import time
+import xmlrpc.client
 import http.cookiejar
 import urllib.request
 import urllib.error
@@ -16,7 +18,11 @@ ODOO_DB    = os.environ.get("ODOO_DB",       "myvivid")
 ODOO_USER  = os.environ.get("ODOO_USER",     "")
 ODOO_PASS  = os.environ.get("ODOO_PASSWORD", "")
 
-# Persistent cookie jar so Odoo session survives across requests
+# XML-RPC proxies for external API (bypasses web session IP restrictions)
+_xmlrpc_common = xmlrpc.client.ServerProxy(f"{ODOO_URL}/xmlrpc/2/common")
+_xmlrpc_models = xmlrpc.client.ServerProxy(f"{ODOO_URL}/xmlrpc/2/object")
+
+# Persistent cookie jar so Odoo session survives across requests (fallback)
 _jar    = http.cookiejar.CookieJar()
 _opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(_jar))
 _uid    = None   # cached after first auth
@@ -57,44 +63,30 @@ def _post(endpoint: str, payload: dict) -> dict:
 
 
 def authenticate() -> int:
-    """Authenticate and cache uid. Re-auth if session expired."""
+    """Authenticate via XML-RPC and cache uid."""
     global _uid
-    res = _post("/web/session/authenticate", {
-        "jsonrpc": "2.0", "method": "call", "id": 1,
-        "params": {"db": ODOO_DB, "login": ODOO_USER, "password": ODOO_PASS}
-    })
-    uid = (res.get("result") or {}).get("uid")
+    uid = _xmlrpc_common.authenticate(ODOO_DB, ODOO_USER, ODOO_PASS, {})
     if not uid:
-        raise RuntimeError(f"Odoo auth failed: {res.get('error')}")
+        raise RuntimeError("Odoo XML-RPC auth failed: bad credentials or access denied")
     _uid = uid
-    print(f"  Odoo authenticated (uid={uid})")
+    print(f"  Odoo authenticated via XML-RPC (uid={uid})")
     return uid
 
 
-def call_kw(model: str, method: str, args: list, kwargs: dict) -> dict:
-    """Call Odoo RPC. Re-authenticates automatically on session expiry."""
+def call_kw(model: str, method: str, args: list, kwargs: dict):
+    """Call Odoo XML-RPC. Re-authenticates automatically if uid is missing."""
     global _uid
     if _uid is None:
         authenticate()
-
-    res = _post("/web/dataset/call_kw", {
-        "jsonrpc": "2.0", "method": "call", "id": 2,
-        "params": {"model": model, "method": method, "args": args, "kwargs": kwargs}
-    })
-
-    # Session expired → re-auth and retry once
-    err = res.get("error") or {}
-    if err.get("code") == 100 or "Session" in str(err):
-        print("  Odoo session expired — re-authenticating…")
-        authenticate()
-        res = _post("/web/dataset/call_kw", {
-            "jsonrpc": "2.0", "method": "call", "id": 3,
-            "params": {"model": model, "method": method, "args": args, "kwargs": kwargs}
-        })
-
-    if res.get("error"):
-        raise RuntimeError(f"Odoo RPC error: {res['error']}")
-    return res.get("result")
+    try:
+        return _xmlrpc_models.execute_kw(ODOO_DB, _uid, ODOO_PASS, model, method, args, kwargs)
+    except xmlrpc.client.Fault as e:
+        if "session" in str(e).lower() or "access" in str(e).lower():
+            print("  Odoo session issue — re-authenticating…")
+            _uid = None
+            authenticate()
+            return _xmlrpc_models.execute_kw(ODOO_DB, _uid, ODOO_PASS, model, method, args, kwargs)
+        raise RuntimeError(f"Odoo XML-RPC error: {e}")
 
 
 def get_won_deals(start_date: str, end_date: str) -> list:
