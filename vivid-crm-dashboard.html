@@ -171,6 +171,24 @@
   .stat-gold   { color: var(--amber); }
   .stat-sub { font-size: 12px; color: var(--muted); margin-top: 5px; }
 
+  /* ── Team spread header ── */
+  .team-spread-header {
+    background: var(--surface2); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+    padding: 18px 28px; display: flex; align-items: baseline; gap: 14px;
+    position: relative;
+  }
+  .team-spread-header::before {
+    content: '';
+    position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+    background: linear-gradient(180deg, var(--blue) 0%, var(--green) 100%);
+  }
+  .team-spread-label {
+    font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; color: var(--ink);
+  }
+  .team-spread-period {
+    font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); letter-spacing: .06em;
+  }
+
   /* ── Team breakdown ── */
   .team-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; padding: 14px 28px 22px; background: var(--black); }
   .team-panel { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; display: flex; flex-direction: column; transition: border-color .2s; }
@@ -336,8 +354,9 @@
     </div>
   </div>
 
-  <div class="office-summary" style="border-top:none; padding-bottom:8px;">
-    <div class="office-summary-label">By Sales Team — <span id="periodLabel4">current month</span></div>
+  <div class="team-spread-header">
+    <div class="team-spread-label">Revenue Spread by Sales Team</div>
+    <div class="team-spread-period"><span id="periodLabel4">current month</span></div>
   </div>
   <div class="team-grid" id="teamBreakdown">
     <div style="opacity:.4;color:var(--muted);font-size:13px;">Loading…</div>
