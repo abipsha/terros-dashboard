@@ -1000,7 +1000,14 @@ async function loadData() {
   btn.disabled = false; btn.textContent = 'Refresh';
 }
 
-document.addEventListener('DOMContentLoaded', () => { setRange('mtd'); });
+document.addEventListener('DOMContentLoaded', () => {
+  setRange('mtd');
+  // Auto-refresh every 2 minutes (only when not already loading)
+  setInterval(() => {
+    const btn = document.getElementById('refreshBtn');
+    if (!btn.disabled) loadData();
+  }, 2 * 60 * 1000);
+});
 </script>
 </body>
 </html>

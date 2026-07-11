@@ -297,7 +297,7 @@ def _warm_cache():
             except Exception as e:
                 print(f"  [cache] warm failed: {e}")
             import time
-            time.sleep(25 * 60)  # refresh every 25 min (before 30-min TTL expires)
+            time.sleep(2 * 60)  # refresh every 2 min
     t = threading.Thread(target=_run, daemon=True)
     t.start()
 
