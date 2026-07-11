@@ -281,6 +281,27 @@ class Handler(http.server.BaseHTTPRequestHandler):
         print(f"  {fmt % args}")
 
 
+def _warm_cache():
+    """Pre-warm the Odoo cache on startup, then refresh every 25 minutes."""
+    import threading
+    def _run():
+        from datetime import datetime, timezone
+        while True:
+            try:
+                today = datetime.now(tz=timezone.utc)
+                start = today.strftime("%Y-%m-01")
+                end   = today.strftime("%Y-%m-%d")
+                print(f"  [cache] warming Odoo deals cache ({start} → {end})…")
+                odoo.get_deals_list(start, end, force=True)
+                print(f"  [cache] warm complete")
+            except Exception as e:
+                print(f"  [cache] warm failed: {e}")
+            import time
+            time.sleep(25 * 60)  # refresh every 25 min (before 30-min TTL expires)
+    t = threading.Thread(target=_run, daemon=True)
+    t.start()
+
+
 if __name__ == "__main__":
     print()
     print("  Vivid Dashboard Server")
@@ -293,6 +314,8 @@ if __name__ == "__main__":
     print()
     print("  Press Ctrl+C to stop.")
     print()
+
+    _warm_cache()  # start background cache warmer
 
     try:
         import webbrowser

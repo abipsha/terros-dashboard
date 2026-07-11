@@ -39,7 +39,7 @@ DEFAULT_GOAL = float(os.environ.get("GOAL_DEFAULT", "300000"))
 
 # Cache
 _cache: dict = {}
-CACHE_TTL = 300  # 5 minutes
+CACHE_TTL = 1800  # 30 minutes
 
 
 def _post(endpoint: str, payload: dict) -> dict:

@@ -730,7 +730,7 @@ function renderSalesTeamSummary(deals) {
   const totalRev = sorted.reduce((s, o) => s + o.rev, 0);
 
   const cards = sorted.map((o, i) => {
-    const pct = totalRev ? Math.round(o.rev / totalRev * 100) : 0;
+    const pct = totalRev ? (o.rev / totalRev * 100).toFixed(1) : '0.0';
     return '<div class="office-card">' +
       '<div class="office-card-rank">#' + (i+1) + ' &nbsp; ' + pct + '% of total</div>' +
       '<div class="office-card-name">' + esc(o.name) + '</div>' +
@@ -752,11 +752,12 @@ function renderCloserSummary(deals) {
     byCloser[c].wins += 1;
   });
 
-  const sorted = Object.values(byCloser).sort((a, b) => b.rev - a.rev).slice(0, 3);
-  const totalRev = sorted.reduce((s, c) => s + c.rev, 0);
+  const allClosers = Object.values(byCloser);
+  const sorted = allClosers.sort((a, b) => b.rev - a.rev).slice(0, 3);
+  const totalRev = allClosers.reduce((s, c) => s + c.rev, 0);
 
   const cards = sorted.map((c, i) => {
-    const pct = totalRev ? Math.round(c.rev / totalRev * 100) : 0;
+    const pct = totalRev ? (c.rev / totalRev * 100).toFixed(1) : '0.0';
     const rankLabel = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '#' + (i+1);
     return '<div class="office-card">' +
       '<div class="office-card-rank">' + rankLabel + ' &nbsp; ' + pct + '% of total</div>' +
@@ -783,7 +784,7 @@ function renderSetterSummary(deals) {
   const totalRev = Object.values(bySetter).reduce((s, c) => s + c.rev, 0);
 
   const cards = sorted.map((s, i) => {
-    const pct = totalRev ? Math.round(s.rev / totalRev * 100) : 0;
+    const pct = totalRev ? (s.rev / totalRev * 100).toFixed(1) : '0.0';
     const rankLabel = i === 0 ? '🥇' : i === 1 ? '🥈' : '🥉';
     return '<div class="office-card">' +
       '<div class="office-card-rank">' + rankLabel + ' &nbsp; ' + pct + '% of total</div>' +
