@@ -42,7 +42,7 @@
   .title { display: flex; align-items: baseline; gap: 0; flex-wrap: wrap; }
   .title-brand { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 800; color: var(--white); letter-spacing: -.3px; }
   .title-divider { font-size: 14px; font-weight: 300; padding: 0 10px; color: #333; }
-  .title-leadership { font-family: 'DM Mono', monospace; font-size: 9px; font-weight: 400; letter-spacing: .18em; text-transform: uppercase; color: #555; align-self: center; }
+  .title-leadership { font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700; letter-spacing: .04em; color: var(--white); align-self: center; }
   .subtitle { font-family: 'DM Mono', monospace; font-size: 10px; color: #444; margin-top: 2px; letter-spacing: .06em; }
 
   /* ── Main Nav ── */
@@ -292,12 +292,12 @@
   .cm-role-badge { display: inline-block; font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: .1em; text-transform: uppercase; padding: 3px 8px; border-radius: 4px; margin-top: 4px; }
   .cm-role-closer { background: var(--blue-bg); color: var(--blue); border: 1px solid rgba(91,141,239,.2); }
   .cm-role-setter { background: var(--green-bg); color: var(--green); border: 1px solid rgba(46,204,130,.2); }
-  .cm-divider { font-family: 'DM Mono', monospace; font-size: 9px; font-weight: 500; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin: 20px 0 10px; padding-bottom: 8px; border-bottom: 1px solid var(--border-light); }
+  .cm-divider { font-family: 'DM Mono', monospace; font-size: 11px; font-weight: 600; letter-spacing: .10em; text-transform: uppercase; color: var(--white); margin: 20px 0 10px; padding-bottom: 8px; border-bottom: 1px solid var(--border-light); }
   .cm-total-num { font-family: 'Syne', sans-serif; font-size: 32px; font-weight: 800; color: var(--white); line-height: 1; }
   .cm-total-label { font-family: 'DM Mono', monospace; font-size: 9px; color: var(--muted); letter-spacing: .06em; text-transform: uppercase; margin-top: 3px; }
   .cm-goal-bars { display: flex; flex-direction: column; gap: 12px; margin-top: 14px; }
   .cm-goal-row { display: flex; align-items: center; gap: 10px; }
-  .cm-goal-tag { font-family: 'DM Mono', monospace; font-size: 9px; width: 56px; flex-shrink: 0; padding: 2px 6px; border-radius: 3px; text-align: center; }
+  .cm-goal-tag { font-family: 'DM Mono', monospace; font-size: 9px; min-width: 80px; flex-shrink: 0; padding: 2px 8px; border-radius: 3px; text-align: center; white-space: nowrap; }
   .cm-goal-bar-track { flex: 1; height: 8px; background: var(--surface2); border-radius: 4px; position: relative; overflow: hidden; }
   .cm-goal-bar-fill { height: 100%; border-radius: 4px; transition: width .5s ease; }
   .cm-goal-pct { font-family: 'Syne', sans-serif; font-size: 12px; font-weight: 700; width: 46px; text-align: right; flex-shrink: 0; }
@@ -1103,8 +1103,8 @@ function renderCompetition(deals) {
 
   document.getElementById('compContainer').innerHTML =
     '<div class="comp-grid">' +
-      section('Closers', 'L1 $1.6M', 'L2 $1.8M', closerRows) +
-      section('Setters', 'L1 $640K', 'L2 $800K', setterRows) +
+      section('Closers', 'Target 1 $1.6M', 'Target 2 $1.8M', closerRows) +
+      section('Setters', 'Target 1 $640K', 'Target 2 $800K', setterRows) +
     '</div>';
 }
 
@@ -1212,12 +1212,12 @@ function openCompDrilldown(name) {
 
     '<div class="cm-goal-bars">' +
       '<div class="cm-goal-row">' +
-        '<span class="cm-goal-tag comp-goal-l1">L1 ' + fmt(rep.l1) + '</span>' +
+        '<span class="cm-goal-tag comp-goal-l1">Target 1 ' + fmt(rep.l1) + '</span>' +
         '<div class="cm-goal-bar-track"><div class="cm-goal-bar-fill" style="width:' + pctL1 + '%;background:' + barColor(pctL1) + '"></div></div>' +
         '<span class="cm-goal-pct" style="color:' + barColor(pctL1) + '">' + (rep.total / rep.l1 * 100).toFixed(1) + '%</span>' +
       '</div>' +
       '<div class="cm-goal-row">' +
-        '<span class="cm-goal-tag comp-goal-l2">L2 ' + fmt(rep.l2) + '</span>' +
+        '<span class="cm-goal-tag comp-goal-l2">Target 2 ' + fmt(rep.l2) + '</span>' +
         '<div class="cm-goal-bar-track"><div class="cm-goal-bar-fill" style="width:' + pctL2 + '%;background:' + barColor(pctL2) + '"></div></div>' +
         '<span class="cm-goal-pct" style="color:' + barColor(pctL2) + '">' + (rep.total / rep.l2 * 100).toFixed(1) + '%</span>' +
       '</div>' +
@@ -1232,8 +1232,8 @@ function openCompDrilldown(name) {
     '</div>' +
 
     '<div class="cm-divider">Pathway to Goals</div>' +
-    pathwayBlock('L1', rep.l1, 'var(--amber)', pctL1) +
-    pathwayBlock('L2', rep.l2, 'var(--green)', pctL2);
+    pathwayBlock('Target 1', rep.l1, 'var(--amber)', pctL1) +
+    pathwayBlock('Target 2', rep.l2, 'var(--green)', pctL2);
 
   document.getElementById('compModalContent').innerHTML = html;
   document.getElementById('compModal').classList.add('open');
