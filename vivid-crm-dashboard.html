@@ -212,7 +212,7 @@
   .trow-deals { color: var(--muted); font-weight: 400; font-size: 10px; }
   .trow-rev { display: block; color: var(--green); font-family: 'Syne', sans-serif; font-weight: 700; font-size: 12px; margin-top: 1px; }
 
-  /* ── Incentives Tracker ── */
+  /* ── Summer Bonus Tracker ── */
   .incentives-wrapper { padding: 16px 28px 28px; background: var(--black); }
   .incentives-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 18px; }
   .inc-board { border-radius: 10px; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,.12); border: 1px solid rgba(0,0,0,.1); }
@@ -247,6 +247,40 @@
   .inc-footer-rule:last-child { border-right: none; }
   .inc-footer-num { font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 800; color: #fff; }
   .inc-footer-label { font-family: 'DM Mono', monospace; font-size: 9px; color: rgba(255,255,255,.5); letter-spacing: .05em; text-transform: uppercase; margin-top: 1px; }
+  /* Section divider */
+  .inc-section-label { font-family: 'DM Mono', monospace; font-size: 9px; font-weight: 500; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); padding: 20px 28px 10px; border-top: 1px solid var(--border); margin-top: 8px; }
+
+  /* ── Competition Tracker ── */
+  .comp-wrapper { padding: 20px 28px 36px; }
+  .comp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
+  .comp-section { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .comp-sec-header { padding: 14px 18px 12px; border-bottom: 1px solid var(--border); display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+  .comp-sec-title { font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 800; color: var(--white); letter-spacing: -.2px; }
+  .comp-sec-period { font-family: 'DM Mono', monospace; font-size: 9px; color: var(--muted); letter-spacing: .06em; text-transform: uppercase; margin-top: 4px; }
+  .comp-goals { display: flex; gap: 6px; flex-shrink: 0; align-items: flex-start; margin-top: 2px; }
+  .comp-goal-badge { font-family: 'DM Mono', monospace; font-size: 9px; font-weight: 500; letter-spacing: .04em; padding: 3px 7px; border-radius: 4px; white-space: nowrap; }
+  .comp-goal-l1 { background: var(--amber-bg); color: var(--amber); border: 1px solid rgba(224,160,48,.25); }
+  .comp-goal-l2 { background: var(--green-bg); color: var(--green); border: 1px solid rgba(46,204,130,.25); }
+  .comp-row { padding: 9px 18px; border-bottom: 1px solid var(--border-light); display: flex; align-items: center; gap: 10px; }
+  .comp-row:last-child { border-bottom: none; }
+  .comp-row:hover { background: var(--surface2); }
+  .comp-rank { font-family: 'Syne', sans-serif; font-size: 12px; font-weight: 800; width: 20px; text-align: center; flex-shrink: 0; }
+  .comp-rank.r1 { color: #ffd700; }
+  .comp-rank.r2 { color: #c0c0c0; }
+  .comp-rank.r3 { color: #cd7f32; }
+  .comp-rank.rn { color: var(--muted); }
+  .comp-info { flex: 1; min-width: 0; }
+  .comp-name { font-family: 'DM Sans', sans-serif; font-weight: 500; font-size: 12px; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .comp-detail { font-family: 'DM Mono', monospace; font-size: 9px; color: var(--muted); margin-top: 2px; }
+  .comp-bar-wrap { width: 130px; flex-shrink: 0; }
+  .comp-bar-track { position: relative; height: 5px; background: var(--surface2); border-radius: 3px; }
+  .comp-bar-fill { height: 100%; border-radius: 3px; transition: width .4s ease; }
+  .comp-bar-l1 { position: absolute; top: -4px; bottom: -4px; width: 1px; background: var(--amber); opacity: .6; }
+  .comp-pcts { display: flex; gap: 4px; margin-top: 5px; }
+  .comp-pct { font-family: 'DM Mono', monospace; font-size: 9px; padding: 1px 5px; border-radius: 3px; }
+  .comp-pct-l1 { background: var(--amber-bg); color: var(--amber); }
+  .comp-pct-l2 { background: var(--green-bg); color: var(--green); }
+  .comp-total { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700; color: var(--ink); text-align: right; flex-shrink: 0; min-width: 72px; }
 
   /* ── Mobile ── */
   @media (max-width: 680px) {
@@ -283,6 +317,8 @@
     .team-panel-total { font-size: 17px; }
     .incentives-wrapper { padding: 12px 16px 20px; }
     .incentives-grid { grid-template-columns: 1fr; gap: 14px; }
+    .comp-wrapper { padding: 12px 16px 20px; }
+    .comp-grid { grid-template-columns: 1fr; gap: 14px; }
   }
   @media (max-width: 400px) {
     .team-lists { grid-template-columns: 1fr; }
@@ -435,8 +471,17 @@
     <span id="incStatusText">Click Refresh to load</span>
   </div>
 
+  <!-- Summer Bonus -->
   <div class="incentives-wrapper">
     <div class="incentives-grid" id="incentivesGrid">
+      <div style="color:var(--muted);font-size:13px;padding:10px 0">Click Refresh to load…</div>
+    </div>
+  </div>
+
+  <!-- Revenue Competition -->
+  <div class="inc-section-label">Tahiti Trip Incentive Tracker — Apr 17 to Dec 31</div>
+  <div class="comp-wrapper">
+    <div id="compContainer">
       <div style="color:var(--muted);font-size:13px;padding:10px 0">Click Refresh to load…</div>
     </div>
   </div>
@@ -761,13 +806,13 @@ async function loadData() {
 
 // ── Incentives Tracker ────────────────────────────────────────
 function getMonthWeeks() {
-  const now = new Date();
-  const year = now.getFullYear(), month = now.getMonth();
-  const firstDay = new Date(year, month, 1);
-  const lastDay  = new Date(year, month + 1, 0);
-  const pad = function(n){return String(n).padStart(2,'0');};
-  const fmt = function(d){return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());};
-  const todayStr = fmt(now);
+  var now = new Date();
+  var year = now.getFullYear(), month = now.getMonth();
+  var firstDay = new Date(year, month, 1);
+  var lastDay  = new Date(year, month + 1, 0);
+  var pad = function(n){return String(n).padStart(2,'0');};
+  var fmt = function(d){return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());};
+  var todayStr = fmt(now);
   var weeks = [], num = 1;
   var cur = new Date(firstDay);
   var dow = cur.getDay();
@@ -786,30 +831,35 @@ function getMonthWeeks() {
 }
 
 async function loadIncentivesData() {
-  const btn = document.getElementById('incRefreshBtn');
+  var btn = document.getElementById('incRefreshBtn');
   btn.disabled = true; btn.textContent = 'Loading…';
   document.getElementById('incStatusDot').className   = 'dot loading';
-  document.getElementById('incStatusText').textContent = 'Fetching from Odoo…';
+  document.getElementById('incStatusText').textContent = 'Fetching data…';
 
-  const now = new Date();
-  const pad = function(n){return String(n).padStart(2,'0');};
-  const monthStart = now.getFullYear()+'-'+pad(now.getMonth()+1)+'-01';
-  const monthEnd   = now.getFullYear()+'-'+pad(now.getMonth()+1)+'-'+pad(now.getDate());
-  const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  var now = new Date();
+  var pad = function(n){return String(n).padStart(2,'0');};
+  var MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  var monthStart = now.getFullYear()+'-'+pad(now.getMonth()+1)+'-01';
+  var monthEnd   = now.getFullYear()+'-'+pad(now.getMonth()+1)+'-'+pad(now.getDate());
+  var COMP_START = '2026-04-17';
+  var COMP_END   = '2026-12-31';
+
   document.getElementById('incMonthLabel').textContent = MONTHS[now.getMonth()]+' '+now.getFullYear();
 
   try {
-    const res = await fetch(LOCAL_API + '/api/odoo/deals?start='+monthStart+'&end='+monthEnd);
-    if (!res.ok) throw new Error('HTTP '+res.status);
-    const data = await res.json();
-    monthDeals = data.deals || [];
+    var results = await Promise.all([
+      fetch(LOCAL_API + '/api/odoo/deals?start='+monthStart+'&end='+monthEnd).then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); }),
+      fetch(LOCAL_API + '/api/odoo/deals?start='+COMP_START+'&end='+COMP_END).then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
+    ]);
+    var monthDeals = results[0].deals || [];
+    var compDeals  = results[1].deals || [];
     renderIncentivesTracker(monthDeals);
+    renderCompetition(compDeals);
     document.getElementById('incStatusDot').className   = 'dot';
-    document.getElementById('incStatusText').textContent = monthDeals.length+' deals loaded for '+MONTHS[now.getMonth()];
+    document.getElementById('incStatusText').textContent = monthDeals.length+' deals this month · '+compDeals.length+' in competition · updated '+new Date().toLocaleTimeString();
   } catch(err) {
     document.getElementById('incStatusDot').className   = 'dot error';
     document.getElementById('incStatusText').textContent = 'Error: '+err.message;
-    document.getElementById('incentivesGrid').innerHTML = '<div style="color:var(--red);padding:20px">'+esc(err.message)+'</div>';
   }
   btn.disabled = false; btn.textContent = 'Refresh';
 }
@@ -819,7 +869,7 @@ function renderIncentivesTracker(deals) {
     document.getElementById('incentivesGrid').innerHTML = '<div style="color:var(--muted);font-size:13px;padding:10px 0">No setter deals found this month.</div>';
     return;
   }
-  const weeks = getMonthWeeks();
+  var weeks = getMonthWeeks();
 
   var byOffice = {};
   deals.forEach(function(d) {
@@ -897,6 +947,106 @@ function renderIncentivesTracker(deals) {
   }).join('');
 
   document.getElementById('incentivesGrid').innerHTML = html;
+}
+
+function renderCompetition(deals) {
+  var CLOSER_L1 = 1600000, CLOSER_L2 = 1800000;
+  var SETTER_L1 = 640000,  SETTER_L2 = 800000;
+
+  var closers = {}, setters = {};
+
+  deals.forEach(function(d) {
+    var closer  = (d.closer  || '').trim();
+    var setter  = (d.setter  || '').trim();
+    var rev     = d.rev || 0;
+    var selfgen = closer && setter && closer === setter;
+
+    if (closer) {
+      if (!closers[closer]) closers[closer] = { name: closer, regular: 0, sgDoubled: 0 };
+      if (selfgen) { closers[closer].sgDoubled += rev * 2; }
+      else         { closers[closer].regular   += rev; }
+    }
+    if (setter) {
+      if (!setters[setter]) setters[setter] = { name: setter, rev: 0 };
+      setters[setter].rev += rev;
+    }
+  });
+
+  var closerList = Object.values(closers).map(function(c) {
+    c.total = c.regular + c.sgDoubled;
+    return c;
+  }).sort(function(a, b) { return b.total - a.total; });
+
+  var setterList = Object.values(setters).sort(function(a, b) { return b.rev - a.rev; });
+
+  function fmt(n) {
+    if (n >= 1000000) return '$' + (n / 1000000).toFixed(2) + 'M';
+    if (n >= 1000)    return '$' + Math.round(n / 1000) + 'K';
+    return '$' + Math.round(n);
+  }
+
+  function rankCls(i) { return i === 0 ? 'r1' : i === 1 ? 'r2' : i === 2 ? 'r3' : 'rn'; }
+
+  function barColor(pct) {
+    return pct >= 100 ? 'var(--green)' : pct >= 80 ? 'var(--blue)' : pct >= 50 ? 'var(--amber)' : 'var(--red)';
+  }
+
+  function compRow(rank, name, total, detail, l1Goal, l2Goal) {
+    var barPct  = Math.min(total / l2Goal * 100, 100);
+    var l1Mark  = l1Goal / l2Goal * 100;
+    var pctL1   = (total / l1Goal * 100).toFixed(1);
+    var pctL2   = (total / l2Goal * 100).toFixed(1);
+    var color   = barColor(total / l2Goal * 100);
+    return '<div class="comp-row">' +
+      '<div class="comp-rank ' + rankCls(rank) + '">' + (rank + 1) + '</div>' +
+      '<div class="comp-info">' +
+        '<div class="comp-name">' + esc(name) + '</div>' +
+        (detail ? '<div class="comp-detail">' + esc(detail) + '</div>' : '') +
+      '</div>' +
+      '<div class="comp-bar-wrap">' +
+        '<div class="comp-bar-track">' +
+          '<div class="comp-bar-fill" style="width:' + barPct + '%;background:' + color + '"></div>' +
+          '<div class="comp-bar-l1" style="left:' + l1Mark + '%"></div>' +
+        '</div>' +
+        '<div class="comp-pcts">' +
+          '<span class="comp-pct comp-pct-l1">' + pctL1 + '%</span>' +
+          '<span class="comp-pct comp-pct-l2">' + pctL2 + '%</span>' +
+        '</div>' +
+      '</div>' +
+      '<div class="comp-total">' + fmt(total) + '</div>' +
+    '</div>';
+  }
+
+  var closerRows = closerList.map(function(c, i) {
+    var detail = c.sgDoubled > 0 ? 'reg ' + fmt(c.regular) + ' + sg×2 ' + fmt(c.sgDoubled) : '';
+    return compRow(i, c.name, c.total, detail, CLOSER_L1, CLOSER_L2);
+  }).join('');
+
+  var setterRows = setterList.map(function(s, i) {
+    return compRow(i, s.name, s.rev, '', SETTER_L1, SETTER_L2);
+  }).join('');
+
+  function section(title, l1Label, l2Label, rows) {
+    return '<div class="comp-section">' +
+      '<div class="comp-sec-header">' +
+        '<div>' +
+          '<div class="comp-sec-title">' + title + '</div>' +
+          '<div class="comp-sec-period">Apr 17 – Dec 31, 2026</div>' +
+        '</div>' +
+        '<div class="comp-goals">' +
+          '<span class="comp-goal-badge comp-goal-l1">' + l1Label + '</span>' +
+          '<span class="comp-goal-badge comp-goal-l2">' + l2Label + '</span>' +
+        '</div>' +
+      '</div>' +
+      rows +
+    '</div>';
+  }
+
+  document.getElementById('compContainer').innerHTML =
+    '<div class="comp-grid">' +
+      section('Closers', 'L1 $1.6M', 'L2 $1.8M', closerRows) +
+      section('Setters', 'L1 $640K', 'L2 $800K', setterRows) +
+    '</div>';
 }
 
 // ── Init ──────────────────────────────────────────────────────
