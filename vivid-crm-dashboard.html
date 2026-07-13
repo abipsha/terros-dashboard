@@ -282,6 +282,46 @@
   .comp-pct-l2 { background: var(--green-bg); color: var(--green); }
   .comp-total { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700; color: var(--ink); text-align: right; flex-shrink: 0; min-width: 72px; }
 
+  /* ── Rep Drilldown Modal ── */
+  .comp-modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.75); z-index: 1000; display: none; align-items: center; justify-content: center; padding: 16px; }
+  .comp-modal-overlay.open { display: flex; }
+  .comp-modal { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; width: min(580px, 100%); max-height: 88vh; overflow-y: auto; padding: 28px; position: relative; }
+  .comp-modal-close { position: absolute; top: 16px; right: 18px; background: none; border: none; color: var(--muted); font-size: 22px; cursor: pointer; line-height: 1; padding: 4px 8px; border-radius: 4px; }
+  .comp-modal-close:hover { color: var(--ink); background: var(--surface2); }
+  .cm-rep-name { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 800; color: var(--white); letter-spacing: -.3px; }
+  .cm-role-badge { display: inline-block; font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: .1em; text-transform: uppercase; padding: 3px 8px; border-radius: 4px; margin-top: 4px; }
+  .cm-role-closer { background: var(--blue-bg); color: var(--blue); border: 1px solid rgba(91,141,239,.2); }
+  .cm-role-setter { background: var(--green-bg); color: var(--green); border: 1px solid rgba(46,204,130,.2); }
+  .cm-divider { font-family: 'DM Mono', monospace; font-size: 9px; font-weight: 500; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin: 20px 0 10px; padding-bottom: 8px; border-bottom: 1px solid var(--border-light); }
+  .cm-total-num { font-family: 'Syne', sans-serif; font-size: 32px; font-weight: 800; color: var(--white); line-height: 1; }
+  .cm-total-label { font-family: 'DM Mono', monospace; font-size: 9px; color: var(--muted); letter-spacing: .06em; text-transform: uppercase; margin-top: 3px; }
+  .cm-goal-bars { display: flex; flex-direction: column; gap: 12px; margin-top: 14px; }
+  .cm-goal-row { display: flex; align-items: center; gap: 10px; }
+  .cm-goal-tag { font-family: 'DM Mono', monospace; font-size: 9px; width: 56px; flex-shrink: 0; padding: 2px 6px; border-radius: 3px; text-align: center; }
+  .cm-goal-bar-track { flex: 1; height: 8px; background: var(--surface2); border-radius: 4px; position: relative; overflow: hidden; }
+  .cm-goal-bar-fill { height: 100%; border-radius: 4px; transition: width .5s ease; }
+  .cm-goal-pct { font-family: 'Syne', sans-serif; font-size: 12px; font-weight: 700; width: 46px; text-align: right; flex-shrink: 0; }
+  .cm-pace-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 4px; }
+  .cm-pace-card { background: var(--surface2); border: 1px solid var(--border-light); border-radius: 8px; padding: 12px 14px; }
+  .cm-pace-val { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; color: var(--ink); }
+  .cm-pace-lbl { font-family: 'DM Mono', monospace; font-size: 9px; color: var(--muted); letter-spacing: .06em; text-transform: uppercase; margin-top: 2px; }
+  .cm-pathway-row { background: var(--surface2); border: 1px solid var(--border-light); border-radius: 8px; padding: 14px 16px; margin-bottom: 10px; }
+  .cm-pathway-row:last-child { margin-bottom: 0; }
+  .cm-pathway-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
+  .cm-pathway-goal { font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700; color: var(--white); }
+  .cm-status-chip { font-family: 'DM Mono', monospace; font-size: 9px; padding: 3px 8px; border-radius: 4px; white-space: nowrap; }
+  .cm-on-track { background: var(--green-bg); color: var(--green); border: 1px solid rgba(46,204,130,.2); }
+  .cm-behind { background: var(--amber-bg); color: var(--amber); border: 1px solid rgba(224,160,48,.2); }
+  .cm-achieved { background: var(--green-bg); color: var(--green); border: 1px solid rgba(46,204,130,.2); }
+  .cm-pathway-stats { display: flex; gap: 16px; flex-wrap: wrap; }
+  .cm-pathway-stat { }
+  .cm-pathway-stat-val { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700; color: var(--ink); }
+  .cm-pathway-stat-lbl { font-family: 'DM Mono', monospace; font-size: 9px; color: var(--muted); letter-spacing: .04em; text-transform: uppercase; margin-top: 1px; }
+  .cm-hit-date { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--blue); margin-top: 6px; }
+  .cm-sg-note { font-family: 'DM Mono', monospace; font-size: 9px; color: var(--muted); margin-top: 10px; padding: 8px 10px; background: var(--surface2); border-radius: 6px; }
+  .comp-row-clickable { cursor: pointer; }
+  .comp-row-clickable:hover .comp-name { color: var(--blue); text-decoration: underline; }
+
   /* ── Mobile ── */
   @media (max-width: 680px) {
     .header { padding: 12px 16px; }
@@ -488,6 +528,14 @@
 
 </div><!-- /main-incentives -->
 
+<!-- Rep Drilldown Modal -->
+<div class="comp-modal-overlay" id="compModal" onclick="if(event.target===this)closeCompDrilldown()">
+  <div class="comp-modal">
+    <button class="comp-modal-close" onclick="closeCompDrilldown()">×</button>
+    <div id="compModalContent"></div>
+  </div>
+</div>
+
 
 <script>
 const PROD_API  = 'https://terros-dashboard.onrender.com';
@@ -496,6 +544,7 @@ const LOCAL_API = (location.hostname === 'localhost' || location.hostname === '1
 
 let allDeals      = [];
 let monthDeals    = [];
+var _compReps     = {};
 let sortState     = { closers: { col: 'date_closed', dir: -1 }, setters: { col: 'date_closed', dir: -1 } };
 let activeTab     = 'closers';
 let activeMainTab = 'revenue';
@@ -997,7 +1046,7 @@ function renderCompetition(deals) {
     var pctL1   = (total / l1Goal * 100).toFixed(1);
     var pctL2   = (total / l2Goal * 100).toFixed(1);
     var color   = barColor(total / l2Goal * 100);
-    return '<div class="comp-row">' +
+    return '<div class="comp-row comp-row-clickable" data-rep="' + name.replace(/"/g,'&quot;') + '" onclick="openCompDrilldown(this.dataset.rep)">' +
       '<div class="comp-rank ' + rankCls(rank) + '">' + (rank + 1) + '</div>' +
       '<div class="comp-info">' +
         '<div class="comp-name">' + esc(name) + '</div>' +
@@ -1016,6 +1065,15 @@ function renderCompetition(deals) {
       '<div class="comp-total">' + fmt(total) + '</div>' +
     '</div>';
   }
+
+  // Store rep data globally for drilldown
+  _compReps = {};
+  closerList.forEach(function(c) {
+    _compReps[c.name] = { name: c.name, total: c.total, regular: c.regular, sgDoubled: c.sgDoubled, role: 'Closer', l1: CLOSER_L1, l2: CLOSER_L2 };
+  });
+  setterList.forEach(function(s) {
+    _compReps[s.name] = { name: s.name, total: s.rev, regular: s.rev, sgDoubled: 0, role: 'Setter', l1: SETTER_L1, l2: SETTER_L2 };
+  });
 
   var closerRows = closerList.map(function(c, i) {
     var detail = c.sgDoubled > 0 ? 'reg ' + fmt(c.regular) + ' + sg×2 ' + fmt(c.sgDoubled) : '';
@@ -1047,6 +1105,143 @@ function renderCompetition(deals) {
       section('Closers', 'L1 $1.6M', 'L2 $1.8M', closerRows) +
       section('Setters', 'L1 $640K', 'L2 $800K', setterRows) +
     '</div>';
+}
+
+// ── Rep Drilldown ─────────────────────────────────────────────
+function openCompDrilldown(name) {
+  var rep = _compReps[name];
+  if (!rep) return;
+
+  var COMP_START   = new Date('2026-04-17');
+  var COMP_END     = new Date('2026-12-31');
+  var today        = new Date();
+  var daysElapsed  = Math.max(1, (today - COMP_START) / 86400000);
+  var daysLeft     = Math.max(0, (COMP_END - today) / 86400000);
+  var weeksElapsed = daysElapsed / 7;
+  var weeksLeft    = daysLeft / 7;
+
+  var weekRate  = rep.total / weeksElapsed;
+  var monthRate = weekRate * (52 / 12);
+  var projected = rep.total + weekRate * weeksLeft;
+
+  function fmt(n) {
+    if (n >= 1000000) return '$' + (n / 1000000).toFixed(2) + 'M';
+    if (n >= 1000)    return '$' + Math.round(n / 1000) + 'K';
+    return '$' + Math.round(n);
+  }
+  function fmtFull(n) {
+    return '$' + Math.round(n).toLocaleString();
+  }
+  function hitDate(goal) {
+    if (rep.total >= goal) return null; // already hit
+    var weeksNeeded = (goal - rep.total) / weekRate;
+    var d = new Date(today.getTime() + weeksNeeded * 7 * 86400000);
+    if (d > COMP_END) return null; // can't hit by deadline at this pace
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  }
+  function barColor(pct) {
+    return pct >= 100 ? 'var(--green)' : pct >= 80 ? 'var(--blue)' : pct >= 50 ? 'var(--amber)' : 'var(--red)';
+  }
+
+  var pctL1 = Math.min(rep.total / rep.l1 * 100, 100);
+  var pctL2 = Math.min(rep.total / rep.l2 * 100, 100);
+
+  function pathwayBlock(goalLabel, goalAmt, goalColor, goalPct) {
+    var needAmt  = Math.max(0, goalAmt - rep.total);
+    var achieved = rep.total >= goalAmt;
+    var reqWeek  = weeksLeft > 0 ? needAmt / weeksLeft : Infinity;
+    var reqMonth = reqWeek * (52 / 12);
+    var onTrack  = projected >= goalAmt;
+    var hd       = hitDate(goalAmt);
+
+    var statusHtml;
+    if (achieved) {
+      statusHtml = '<span class="cm-status-chip cm-achieved">✓ Achieved</span>';
+    } else if (onTrack) {
+      statusHtml = '<span class="cm-status-chip cm-on-track">✓ On Track</span>';
+    } else {
+      statusHtml = '<span class="cm-status-chip cm-behind">⚠ Behind Pace</span>';
+    }
+
+    var statsHtml = '';
+    if (!achieved) {
+      statsHtml =
+        '<div class="cm-pathway-stats">' +
+          '<div class="cm-pathway-stat">' +
+            '<div class="cm-pathway-stat-val">' + fmtFull(needAmt) + '</div>' +
+            '<div class="cm-pathway-stat-lbl">Still needed</div>' +
+          '</div>' +
+          '<div class="cm-pathway-stat">' +
+            '<div class="cm-pathway-stat-val">' + fmt(reqWeek) + '</div>' +
+            '<div class="cm-pathway-stat-lbl">Required / week</div>' +
+          '</div>' +
+          '<div class="cm-pathway-stat">' +
+            '<div class="cm-pathway-stat-val">' + fmt(reqMonth) + '</div>' +
+            '<div class="cm-pathway-stat-lbl">Required / month</div>' +
+          '</div>' +
+        '</div>' +
+        (hd ? '<div class="cm-hit-date">At current pace: hits ' + goalLabel + ' around ' + hd + '</div>' :
+              (onTrack ? '' : '<div class="cm-hit-date" style="color:var(--red)">Cannot reach at current pace — need ' + fmt(reqWeek - weekRate) + ' more/week</div>'));
+    } else {
+      statsHtml = '<div class="cm-pathway-stats"><div class="cm-pathway-stat"><div class="cm-pathway-stat-val" style="color:var(--green)">Goal reached!</div></div></div>';
+    }
+
+    return '<div class="cm-pathway-row">' +
+      '<div class="cm-pathway-head">' +
+        '<div class="cm-pathway-goal" style="color:' + goalColor + '">' + goalLabel + ' — ' + fmtFull(goalAmt) + '</div>' +
+        statusHtml +
+      '</div>' +
+      statsHtml +
+    '</div>';
+  }
+
+  var roleCls   = rep.role === 'Closer' ? 'cm-role-closer' : 'cm-role-setter';
+  var sgNote    = rep.sgDoubled > 0
+    ? '<div class="cm-sg-note">Self-gen: ' + fmtFull(rep.sgDoubled / 2) + ' raw revenue × 2 = ' + fmtFull(rep.sgDoubled) + ' credited (self-gen counts double)</div>'
+    : '';
+
+  var html =
+    '<div class="cm-rep-name">' + esc(rep.name) + '</div>' +
+    '<span class="cm-role-badge ' + roleCls + '">' + rep.role + ' · Tahiti Trip Incentive</span>' +
+
+    '<div class="cm-divider">Current Progress</div>' +
+    '<div class="cm-total-num">' + fmtFull(rep.total) + '</div>' +
+    '<div class="cm-total-label">Total competition revenue (Apr 17 – Dec 31)</div>' +
+    sgNote +
+
+    '<div class="cm-goal-bars">' +
+      '<div class="cm-goal-row">' +
+        '<span class="cm-goal-tag comp-goal-l1">L1 ' + fmt(rep.l1) + '</span>' +
+        '<div class="cm-goal-bar-track"><div class="cm-goal-bar-fill" style="width:' + pctL1 + '%;background:' + barColor(pctL1) + '"></div></div>' +
+        '<span class="cm-goal-pct" style="color:' + barColor(pctL1) + '">' + (rep.total / rep.l1 * 100).toFixed(1) + '%</span>' +
+      '</div>' +
+      '<div class="cm-goal-row">' +
+        '<span class="cm-goal-tag comp-goal-l2">L2 ' + fmt(rep.l2) + '</span>' +
+        '<div class="cm-goal-bar-track"><div class="cm-goal-bar-fill" style="width:' + pctL2 + '%;background:' + barColor(pctL2) + '"></div></div>' +
+        '<span class="cm-goal-pct" style="color:' + barColor(pctL2) + '">' + (rep.total / rep.l2 * 100).toFixed(1) + '%</span>' +
+      '</div>' +
+    '</div>' +
+
+    '<div class="cm-divider">Current Pace (' + Math.round(weeksElapsed) + ' weeks in · ' + Math.round(weeksLeft) + ' weeks left)</div>' +
+    '<div class="cm-pace-grid">' +
+      '<div class="cm-pace-card"><div class="cm-pace-val">' + fmt(weekRate) + '</div><div class="cm-pace-lbl">Avg per week</div></div>' +
+      '<div class="cm-pace-card"><div class="cm-pace-val">' + fmt(monthRate) + '</div><div class="cm-pace-lbl">Avg per month</div></div>' +
+      '<div class="cm-pace-card"><div class="cm-pace-val" style="color:' + barColor(projected / rep.l2 * 100) + '">' + fmtFull(projected) + '</div><div class="cm-pace-lbl">Projected by Dec 31</div></div>' +
+      '<div class="cm-pace-card"><div class="cm-pace-val">' + Math.round(weeksLeft) + ' wks</div><div class="cm-pace-lbl">Remaining</div></div>' +
+    '</div>' +
+
+    '<div class="cm-divider">Pathway to Goals</div>' +
+    pathwayBlock('L1', rep.l1, 'var(--amber)', pctL1) +
+    pathwayBlock('L2', rep.l2, 'var(--green)', pctL2);
+
+  document.getElementById('compModalContent').innerHTML = html;
+  document.getElementById('compModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeCompDrilldown() {
+  document.getElementById('compModal').classList.remove('open');
+  document.body.style.overflow = '';
 }
 
 // ── Init ──────────────────────────────────────────────────────
