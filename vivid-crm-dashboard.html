@@ -1040,13 +1040,13 @@ function renderCompetition(deals) {
     return pct >= 100 ? 'var(--green)' : pct >= 80 ? 'var(--blue)' : pct >= 50 ? 'var(--amber)' : 'var(--red)';
   }
 
-  function compRow(rank, name, total, detail, l1Goal, l2Goal) {
+  function compRow(rank, key, name, total, detail, l1Goal, l2Goal) {
     var barPct  = Math.min(total / l2Goal * 100, 100);
     var l1Mark  = l1Goal / l2Goal * 100;
     var pctL1   = (total / l1Goal * 100).toFixed(1);
     var pctL2   = (total / l2Goal * 100).toFixed(1);
     var color   = barColor(total / l2Goal * 100);
-    return '<div class="comp-row comp-row-clickable" data-rep="' + name.replace(/"/g,'&quot;') + '" onclick="openCompDrilldown(this.dataset.rep)">' +
+    return '<div class="comp-row comp-row-clickable" data-rep="' + key.replace(/"/g,'&quot;') + '" onclick="openCompDrilldown(this.dataset.rep)">' +
       '<div class="comp-rank ' + rankCls(rank) + '">' + (rank + 1) + '</div>' +
       '<div class="comp-info">' +
         '<div class="comp-name">' + esc(name) + '</div>' +
@@ -1066,22 +1066,23 @@ function renderCompetition(deals) {
     '</div>';
   }
 
-  // Store rep data globally for drilldown
+  // Store rep data globally for drilldown — key includes role to avoid collision
+  // (same person can appear as both closer and setter)
   _compReps = {};
   closerList.forEach(function(c) {
-    _compReps[c.name] = { name: c.name, total: c.total, regular: c.regular, sgDoubled: c.sgDoubled, role: 'Closer', l1: CLOSER_L1, l2: CLOSER_L2 };
+    _compReps['Closer|' + c.name] = { name: c.name, total: c.total, regular: c.regular, sgDoubled: c.sgDoubled, role: 'Closer', l1: CLOSER_L1, l2: CLOSER_L2 };
   });
   setterList.forEach(function(s) {
-    _compReps[s.name] = { name: s.name, total: s.rev, regular: s.rev, sgDoubled: 0, role: 'Setter', l1: SETTER_L1, l2: SETTER_L2 };
+    _compReps['Setter|' + s.name] = { name: s.name, total: s.rev, regular: s.rev, sgDoubled: 0, role: 'Setter', l1: SETTER_L1, l2: SETTER_L2 };
   });
 
   var closerRows = closerList.map(function(c, i) {
     var detail = c.sgDoubled > 0 ? 'reg ' + fmt(c.regular) + ' + sg×2 ' + fmt(c.sgDoubled) : '';
-    return compRow(i, c.name, c.total, detail, CLOSER_L1, CLOSER_L2);
+    return compRow(i, 'Closer|' + c.name, c.name, c.total, detail, CLOSER_L1, CLOSER_L2);
   }).join('');
 
   var setterRows = setterList.map(function(s, i) {
-    return compRow(i, s.name, s.rev, '', SETTER_L1, SETTER_L2);
+    return compRow(i, 'Setter|' + s.name, s.name, s.rev, '', SETTER_L1, SETTER_L2);
   }).join('');
 
   function section(title, l1Label, l2Label, rows) {
