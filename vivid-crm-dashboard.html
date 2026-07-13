@@ -871,7 +871,7 @@ function revDrillOffice(officeName) {
       var sn = "'" + r.name.replace(/\\/g,'\\\\').replace(/'/g,"\\'") + "'";
       var sr = "'" + role + "'";
       return '<tr onclick="revDrillRep('+sn+','+sr+')">' +
-        '<td><span class="rev-rep-name">'+esc(r.name)+'</span></td>' +
+        '<td><span class="rev-rep-name">'+esc(r.name)+'</span> <span style="font-family:\'DM Mono\',monospace;font-size:10px;color:var(--muted);font-weight:400;">'+r.wins+' deal'+(r.wins!==1?'s':'')+'</span></td>' +
         '<td style="font-family:\'Syne\',sans-serif;font-weight:700;color:var(--green);">$'+Math.round(r.rev).toLocaleString()+'</td>' +
         '<td style="color:var(--muted);font-family:\'DM Mono\',monospace;font-size:11px;">'+r.wins+' deal'+(r.wins!==1?'s':'')+'</td>' +
         '<td class="hide-mobile" style="color:var(--muted);font-family:\'DM Mono\',monospace;font-size:11px;">$'+Math.round(r.rev/(r.wins||1)).toLocaleString()+' avg</td>' +
@@ -928,7 +928,7 @@ function revDrillRep(repName, role) {
       '<span class="rev-deal-index">'+(i+1)+'</span>' +
       '<div class="rev-deal-info">' +
         '<div class="rev-deal-name">'+esc(d.name||'—')+'</div>' +
-        '<div class="rev-deal-meta">'+esc(addr)+(other?' &nbsp;·&nbsp; '+other:'')+'</div>' +
+        '<div class="rev-deal-meta">'+esc(addr)+(other?' &nbsp;·&nbsp; '+other:'')+(d.office?' &nbsp;·&nbsp; <span style="color:var(--blue)">'+esc(d.office)+'</span>':'')+'</div>' +
       '</div>' +
       '<span class="rev-deal-date">'+esc(d.date_closed||'—')+'</span>' +
       '<span class="rev-deal-rev">$'+Math.round(d.rev||0).toLocaleString()+'</span>' +
