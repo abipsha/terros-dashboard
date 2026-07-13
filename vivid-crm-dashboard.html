@@ -77,6 +77,23 @@
   }
   .date-btn:hover { border-color: var(--ink); color: var(--ink); }
   .date-btn.active { border-color: var(--ink); color: var(--ink); background: var(--surface2); }
+  .custom-dates {
+    display: none; align-items: center; gap: 8px; flex-wrap: wrap;
+  }
+  .custom-dates.visible { display: flex; }
+  .custom-dates label { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); letter-spacing: .06em; text-transform: uppercase; }
+  .custom-dates input[type="date"] {
+    font-family: 'DM Mono', monospace; font-size: 10px; color: var(--ink);
+    background: var(--surface2); border: 1px solid var(--border); border-radius: 5px;
+    padding: 6px 10px; cursor: pointer; outline: none; color-scheme: dark;
+  }
+  .custom-dates input[type="date"]:focus { border-color: var(--ink); }
+  .apply-btn {
+    font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: .08em; text-transform: uppercase;
+    background: var(--ink); border: 1px solid var(--ink); color: var(--black);
+    padding: 6px 14px; border-radius: 5px; cursor: pointer; font-weight: 600; transition: opacity .15s;
+  }
+  .apply-btn:hover { opacity: .85; }
   .refresh-btn {
     font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: .08em; text-transform: uppercase;
     background: none; border: 1px solid var(--border); color: var(--muted);
@@ -397,6 +414,14 @@
   <div class="controls-bar">
     <button class="date-btn active" data-r="mtd"    onclick="setRange('mtd')">Month-to-Date</button>
     <button class="date-btn"        data-r="week"   onclick="setRange('week')">This Week</button>
+    <button class="date-btn"        data-r="custom" onclick="setRange('custom')">Custom</button>
+    <div class="custom-dates" id="customDates">
+      <label>From</label>
+      <input type="date" id="customStart" min="2026-01-01" value="2026-01-01">
+      <label>To</label>
+      <input type="date" id="customEnd" min="2026-01-01">
+      <button class="apply-btn" onclick="applyCustomRange()">Apply</button>
+    </div>
     <button class="refresh-btn" id="refreshBtn" onclick="loadData()">Refresh</button>
     <span class="range-label" id="rangeLabel"></span>
   </div>
@@ -590,12 +615,38 @@ function getRange(r) {
     const ms = mon.getFullYear()+'-'+String(mon.getMonth()+1).padStart(2,'0')+'-'+String(mon.getDate()).padStart(2,'0');
     return { start: ms, end: today };
   }
+  if (r === 'custom') {
+    var s = document.getElementById('customStart').value;
+    var e = document.getElementById('customEnd').value;
+    if (!s || !e) return { start: y+'-'+m+'-01', end: today };
+    return { start: s, end: e };
+  }
   return { start: y+'-'+m+'-01', end: today };
 }
 
 function setRange(r) {
   curRange = r;
   document.querySelectorAll('.date-btn').forEach(function(b) { b.classList.toggle('active', b.dataset.r === r); });
+  var cd = document.getElementById('customDates');
+  if (r === 'custom') {
+    cd.classList.add('visible');
+    // set max to today for both inputs
+    var now = new Date(), today = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');
+    document.getElementById('customStart').max = today;
+    document.getElementById('customEnd').max   = today;
+    if (!document.getElementById('customEnd').value) document.getElementById('customEnd').value = today;
+    // don't auto-load — wait for Apply
+  } else {
+    cd.classList.remove('visible');
+    loadData();
+  }
+}
+
+function applyCustomRange() {
+  var s = document.getElementById('customStart').value;
+  var e = document.getElementById('customEnd').value;
+  if (!s || !e) { alert('Please select both a start and end date.'); return; }
+  if (s > e)    { alert('Start date must be before end date.'); return; }
   loadData();
 }
 
@@ -816,7 +867,7 @@ async function loadData() {
 
   const { start, end } = getRange(curRange);
   document.getElementById('rangeLabel').textContent = start + ' → ' + end;
-  const periodText = curRange === 'mtd' ? 'current month' : curRange === 'week' ? 'this week' : start + ' → ' + end;
+  const periodText = curRange === 'mtd' ? 'current month' : curRange === 'week' ? 'this week' : curRange === 'custom' ? start + ' → ' + end : start + ' → ' + end;
   ['periodLabel','periodLabel2','periodLabel3','periodLabel4','totalPeriodLabel'].forEach(function(id) {
     document.getElementById(id).textContent = periodText;
   });
