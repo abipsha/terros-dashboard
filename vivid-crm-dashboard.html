@@ -53,13 +53,13 @@
   }
   .main-nav::-webkit-scrollbar { display: none; }
   .main-tab {
-    font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: .06em; text-transform: uppercase;
-    padding: 14px 20px; color: var(--muted); cursor: pointer; border: none; background: none;
+    font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 600; letter-spacing: -.1px;
+    padding: 15px 22px; color: var(--muted); cursor: pointer; border: none; background: none;
     border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
     transition: color .15s, border-color .15s;
   }
   .main-tab:hover { color: var(--ink); }
-  .main-tab.active { color: var(--ink); border-bottom-color: var(--ink); font-weight: 500; }
+  .main-tab.active { color: var(--white); border-bottom-color: var(--white); font-weight: 700; }
 
   /* ── Main panels ── */
   .main-panel { display: none; }
@@ -125,9 +125,9 @@
 
   /* ── Sub-tabs ── */
   .tabs-bar { display: flex; background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 28px; }
-  .tab { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: .06em; text-transform: uppercase; padding: 12px 16px; color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: color .15s, border-color .15s; }
+  .tab { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: -.1px; padding: 13px 18px; color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: color .15s, border-color .15s; }
   .tab:hover { color: var(--ink); }
-  .tab.active { color: var(--ink); border-bottom-color: var(--ink); font-weight: 500; }
+  .tab.active { color: var(--white); border-bottom-color: var(--white); font-weight: 700; }
   .tab-badge { display: inline-block; background: var(--surface2); border-radius: 8px; padding: 1px 7px; font-size: 10px; margin-left: 6px; color: var(--muted); }
   .tab.active .tab-badge { background: var(--blue-bg); color: var(--blue); }
 
@@ -248,7 +248,7 @@
   .inc-footer-num { font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 800; color: #fff; }
   .inc-footer-label { font-family: 'DM Mono', monospace; font-size: 9px; color: rgba(255,255,255,.5); letter-spacing: .05em; text-transform: uppercase; margin-top: 1px; }
   /* Section divider */
-  .inc-section-label { font-family: 'DM Mono', monospace; font-size: 9px; font-weight: 500; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); padding: 20px 28px 10px; border-top: 1px solid var(--border); margin-top: 8px; }
+  .inc-section-label { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; letter-spacing: -.2px; color: var(--white); padding: 24px 28px 12px; border-top: 1px solid var(--border); margin-top: 8px; }
 
   /* ── Competition Tracker ── */
   .comp-wrapper { padding: 20px 28px 36px; }
@@ -395,7 +395,7 @@
 <div class="main-panel active" id="main-revenue">
 
   <div class="controls-bar">
-    <button class="date-btn active" data-r="mtd"    onclick="setRange('mtd')">MTD</button>
+    <button class="date-btn active" data-r="mtd"    onclick="setRange('mtd')">Month-to-Date</button>
     <button class="date-btn"        data-r="week"   onclick="setRange('week')">This Week</button>
     <button class="refresh-btn" id="refreshBtn" onclick="loadData()">Refresh</button>
     <span class="range-label" id="rangeLabel"></span>
