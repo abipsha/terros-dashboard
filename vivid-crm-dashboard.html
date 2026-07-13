@@ -762,7 +762,7 @@ function renderLevel1(deals) {
   var officeHTML = offices.map(function(o,i) {
     var pct = maxRev ? Math.round(o.rev/maxRev*100) : 0;
     var col = offColors[i]||'var(--muted)';
-    var safeName = JSON.stringify(o.name);
+    var safeName = "'" + o.name.replace(/\\/g,'\\\\').replace(/'/g,"\\'") + "'";
     return '<div class="rev-ocard" onclick="revDrillOffice('+safeName+')">' +
       '<div class="rev-ocard-rank">#'+(i+1)+'</div>' +
       '<div class="rev-ocard-name">'+esc(o.name)+'</div>' +
@@ -775,8 +775,8 @@ function renderLevel1(deals) {
   function mkTop3Rows(reps, role) {
     if (!reps.length) return '<div style="padding:14px;color:var(--muted);font-size:12px;">No data</div>';
     return reps.map(function(r,i) {
-      var safeName = JSON.stringify(r.name);
-      var safeRole = JSON.stringify(role);
+      var safeName = "'" + r.name.replace(/\\/g,'\\\\').replace(/'/g,"\\'") + "'";
+      var safeRole = "'" + role + "'";
       return '<div class="rev-top3-row" onclick="revDrillRep('+safeName+','+safeRole+')">' +
         '<span class="rev-top3-rank '+(rankCls[i]||'')+'">'+(i+1)+'</span>' +
         '<div class="rev-top3-info">' +
@@ -829,8 +829,8 @@ function revDrillOffice(officeName) {
   var reps = Object.values(byRep).sort(function(a,b){return b.rev-a.rev;});
 
   var rows = reps.map(function(r) {
-    var sn = JSON.stringify(r.name);
-    var sr = JSON.stringify(r.role);
+    var sn = "'" + r.name.replace(/\\/g,'\\\\').replace(/'/g,"\\'") + "'";
+    var sr = "'" + r.role + "'";
     return '<tr onclick="revDrillRep('+sn+','+sr+')">' +
       '<td><span class="rev-rep-name">'+esc(r.name)+'</span></td>' +
       '<td><span class="rev-role-'+(r.role==='Closer'?'closer':'setter')+'">'+r.role+'</span></td>' +
@@ -857,7 +857,7 @@ function revDrillRep(repName, role) {
   }).sort(function(a,b){ return (b.rev||0)-(a.rev||0); });
 
   var crumbs = [{label:'All Offices', onclick:'revGoHome()'}];
-  if (revOffice) crumbs.push({label:revOffice, onclick:'revDrillOffice('+JSON.stringify(revOffice)+')'});
+  if (revOffice) { var safeOff = "'" + revOffice.replace(/\\/g,'\\\\').replace(/'/g,"\\'") + "'"; crumbs.push({label:revOffice, onclick:'revDrillOffice('+safeOff+')'}); }
   crumbs.push({label:repName});
   setRevBreadcrumb(crumbs);
   updateKPIs(deals, repName);
