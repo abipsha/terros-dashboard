@@ -813,38 +813,57 @@ function revDrillOffice(officeName) {
   ]);
   updateKPIs(deals, officeName);
 
-  var byRep = {};
+  // Closers — every deal contributes to its closer
+  var byCloser = {};
   deals.forEach(function(d) {
     var c = d.closer||'Unknown';
-    var ck = 'C|'+c;
-    if (!byRep[ck]) byRep[ck] = {name:c, role:'Closer', rev:0, wins:0};
-    byRep[ck].rev += d.rev||0; byRep[ck].wins++;
-    if (d.setter && d.setter !== d.closer) {
-      var s = d.setter;
-      var sk = 'S|'+s;
-      if (!byRep[sk]) byRep[sk] = {name:s, role:'Setter', rev:0, wins:0};
-      byRep[sk].rev += d.rev||0; byRep[sk].wins++;
-    }
+    if (!byCloser[c]) byCloser[c] = {name:c, rev:0, wins:0};
+    byCloser[c].rev += d.rev||0; byCloser[c].wins++;
   });
-  var reps = Object.values(byRep).sort(function(a,b){return b.rev-a.rev;});
+  var closers = Object.values(byCloser).sort(function(a,b){return b.rev-a.rev;});
 
-  var rows = reps.map(function(r) {
-    var sn = "'" + r.name.replace(/\\/g,'\\\\').replace(/'/g,"\\'") + "'";
-    var sr = "'" + r.role + "'";
-    return '<tr onclick="revDrillRep('+sn+','+sr+')">' +
-      '<td><span class="rev-rep-name">'+esc(r.name)+'</span></td>' +
-      '<td><span class="rev-role-'+(r.role==='Closer'?'closer':'setter')+'">'+r.role+'</span></td>' +
-      '<td style="font-family:\'Syne\',sans-serif;font-weight:700;color:var(--green);">$'+Math.round(r.rev).toLocaleString()+'</td>' +
-      '<td style="color:var(--muted);font-family:\'DM Mono\',monospace;font-size:11px;">'+r.wins+' deal'+(r.wins!==1?'s':'')+'</td>' +
-      '<td style="color:var(--muted);font-family:\'DM Mono\',monospace;font-size:11px;">$'+Math.round(r.rev/(r.wins||1)).toLocaleString()+' avg</td>' +
-      '</tr>';
-  }).join('') || '<tr><td colspan="5" style="padding:30px;text-align:center;color:var(--muted)">No data</td></tr>';
+  // Setters — non-self-gen only (setter exists and differs from closer)
+  var bySetter = {};
+  deals.forEach(function(d) {
+    if (!d.setter || d.setter === d.closer) return;
+    var s = d.setter;
+    if (!bySetter[s]) bySetter[s] = {name:s, rev:0, wins:0};
+    bySetter[s].rev += d.rev||0; bySetter[s].wins++;
+  });
+  var setters = Object.values(bySetter).sort(function(a,b){return b.rev-a.rev;});
+
+  function mkRepRows(reps, role) {
+    if (!reps.length) return '<tr><td colspan="4" style="padding:20px;text-align:center;color:var(--muted);font-size:12px;">No data</td></tr>';
+    return reps.map(function(r) {
+      var sn = "'" + r.name.replace(/\\/g,'\\\\').replace(/'/g,"\\'") + "'";
+      var sr = "'" + role + "'";
+      return '<tr onclick="revDrillRep('+sn+','+sr+')">' +
+        '<td><span class="rev-rep-name">'+esc(r.name)+'</span></td>' +
+        '<td style="font-family:\'Syne\',sans-serif;font-weight:700;color:var(--green);">$'+Math.round(r.rev).toLocaleString()+'</td>' +
+        '<td style="color:var(--muted);font-family:\'DM Mono\',monospace;font-size:11px;">'+r.wins+' deal'+(r.wins!==1?'s':'')+'</td>' +
+        '<td style="color:var(--muted);font-family:\'DM Mono\',monospace;font-size:11px;">$'+Math.round(r.rev/(r.wins||1)).toLocaleString()+' avg</td>' +
+        '</tr>';
+    }).join('');
+  }
+
+  function mkBox(title, roleClass, reps, role) {
+    return '<div class="rev-top3-block">' +
+      '<div class="rev-top3-head" style="display:flex;justify-content:space-between;align-items:center;">' +
+        '<span>'+title+'</span>' +
+        '<span style="color:var(--muted);font-weight:400;">'+reps.length+' rep'+(reps.length!==1?'s':'')+'</span>' +
+      '</div>' +
+      '<table class="rev-rep-table">' +
+        '<thead><tr><th>Rep</th><th>Revenue</th><th>Deals</th><th>Avg</th></tr></thead>' +
+        '<tbody>'+mkRepRows(reps, role)+'</tbody>' +
+      '</table>' +
+    '</div>';
+  }
 
   document.getElementById('revContent').innerHTML =
-    '<table class="rev-rep-table">' +
-      '<thead><tr><th>Rep</th><th>Role</th><th>Revenue</th><th>Deals</th><th>Avg</th></tr></thead>' +
-      '<tbody>'+rows+'</tbody>' +
-    '</table>';
+    '<div class="rev-top3-grid">' +
+      mkBox('Closers', 'closer', closers, 'Closer') +
+      mkBox('Setters (non-self-gen)', 'setter', setters, 'Setter') +
+    '</div>';
 }
 
 function revDrillRep(repName, role) {
