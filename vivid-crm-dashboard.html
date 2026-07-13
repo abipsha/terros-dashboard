@@ -339,6 +339,81 @@
   .comp-row-clickable { cursor: pointer; }
   .comp-row-clickable:hover .comp-name { color: var(--blue); text-decoration: underline; }
 
+  /* ── Revenue Drill-down ── */
+  .rev-kpi-bar { display: grid; grid-template-columns: repeat(4,1fr); border-bottom: 1px solid var(--border); background: var(--surface); }
+  .rev-kpi { padding: 18px 28px; border-right: 1px solid var(--border-light); }
+  .rev-kpi:last-child { border-right: none; }
+  .rev-kpi-label { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: 7px; }
+  .rev-kpi-val { font-family: 'Syne', sans-serif; font-size: 30px; font-weight: 700; line-height: 1; color: var(--green); }
+  .rev-kpi-val.kpi-blue { color: var(--blue); }
+  .rev-kpi-val.kpi-gold { color: var(--amber); }
+  .rev-kpi-val.kpi-white { color: var(--ink); }
+  .rev-kpi-sub { font-size: 12px; color: var(--muted); margin-top: 5px; }
+  .rev-breadcrumb { background: var(--surface); border-bottom: 1px solid var(--border); padding: 9px 28px; display: flex; align-items: center; gap: 6px; font-family: 'DM Mono', monospace; font-size: 11px; }
+  .rev-bc-sep { color: var(--muted); }
+  .rev-bc-link { color: var(--blue); cursor: pointer; }
+  .rev-bc-link:hover { text-decoration: underline; }
+  .rev-bc-active { color: var(--ink); font-weight: 500; }
+  .rev-content { padding: 22px 28px 40px; background: var(--black); }
+  .rev-sec-label { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin-bottom: 12px; }
+  /* Office cards */
+  .rev-office-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px,1fr)); gap: 10px; margin-bottom: 28px; }
+  .rev-ocard { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; cursor: pointer; position: relative; overflow: hidden; transition: border-color .15s, background .15s; }
+  .rev-ocard::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+  .rev-ocard:nth-child(1)::before { background: var(--blue); }
+  .rev-ocard:nth-child(2)::before { background: var(--green); }
+  .rev-ocard:nth-child(3)::before { background: #d97706; }
+  .rev-ocard:nth-child(4)::before { background: var(--red); }
+  .rev-ocard:nth-child(5)::before { background: #a07ef5; }
+  .rev-ocard:hover { border-color: var(--ink); background: var(--surface2); }
+  .rev-ocard-rank { font-family: 'DM Mono', monospace; font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 4px; }
+  .rev-ocard-name { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700; margin-bottom: 5px; color: var(--ink); }
+  .rev-ocard-rev { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 700; line-height: 1; }
+  .rev-ocard:nth-child(1) .rev-ocard-rev { color: var(--blue); }
+  .rev-ocard:nth-child(2) .rev-ocard-rev { color: var(--green); }
+  .rev-ocard:nth-child(3) .rev-ocard-rev { color: #d97706; }
+  .rev-ocard:nth-child(4) .rev-ocard-rev { color: var(--red); }
+  .rev-ocard:nth-child(5) .rev-ocard-rev { color: #a07ef5; }
+  .rev-ocard-meta { font-size: 11px; color: var(--muted); margin-top: 4px; }
+  .rev-ocard-bar { height: 3px; background: var(--border); border-radius: 2px; margin-top: 10px; }
+  .rev-ocard-bar-fill { height: 3px; border-radius: 2px; }
+  /* Top 3 */
+  .rev-top3-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .rev-top3-block { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+  .rev-top3-head { background: var(--surface2); padding: 10px 14px; border-bottom: 1px solid var(--border); font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+  .rev-top3-row { display: flex; align-items: center; gap: 10px; padding: 11px 14px; border-bottom: 1px solid var(--border-light); cursor: pointer; transition: background .12s; }
+  .rev-top3-row:last-child { border-bottom: none; }
+  .rev-top3-row:hover { background: var(--surface2); }
+  .rev-top3-rank { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 800; width: 22px; text-align: center; flex-shrink: 0; }
+  .rev-top3-rank.r1 { color: #ffd700; }
+  .rev-top3-rank.r2 { color: #c0c0c0; }
+  .rev-top3-rank.r3 { color: #cd7f32; }
+  .rev-top3-info { flex: 1; min-width: 0; }
+  .rev-top3-name { font-size: 13px; font-weight: 500; color: var(--blue); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .rev-top3-row:hover .rev-top3-name { text-decoration: underline; }
+  .rev-top3-meta { font-family: 'DM Mono', monospace; font-size: 9px; color: var(--muted); margin-top: 2px; }
+  .rev-top3-rev { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700; color: var(--green); white-space: nowrap; flex-shrink: 0; }
+  /* Rep table (Level 2) */
+  .rev-rep-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .rev-rep-table th { text-align: left; padding: 8px 12px; font-family: 'DM Mono', monospace; font-size: 9px; font-weight: 400; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--border); white-space: nowrap; }
+  .rev-rep-table td { padding: 12px 12px; border-bottom: .5px solid var(--border-light); vertical-align: middle; }
+  .rev-rep-table tbody tr { cursor: pointer; transition: background .1s; }
+  .rev-rep-table tbody tr:hover { background: var(--surface2); }
+  .rev-rep-table tbody tr:last-child td { border-bottom: none; }
+  .rev-rep-name { font-family: 'Syne', sans-serif; font-weight: 700; color: var(--blue); font-size: 14px; }
+  .rev-rep-table tbody tr:hover .rev-rep-name { text-decoration: underline; }
+  .rev-role-closer { display: inline-block; font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: .08em; padding: 2px 7px; border-radius: 3px; background: var(--blue-bg); color: var(--blue); border: 1px solid rgba(91,141,239,.2); }
+  .rev-role-setter { display: inline-block; font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: .08em; padding: 2px 7px; border-radius: 3px; background: var(--green-bg); color: var(--green); border: 1px solid rgba(46,204,130,.2); }
+  /* Deal list (Level 3) */
+  .rev-deal-item { display: flex; align-items: center; gap: 14px; padding: 12px 0; border-bottom: .5px solid var(--border-light); }
+  .rev-deal-item:last-child { border-bottom: none; }
+  .rev-deal-index { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); width: 20px; text-align: right; flex-shrink: 0; }
+  .rev-deal-info { flex: 1; min-width: 0; }
+  .rev-deal-name { font-weight: 500; color: var(--ink); font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .rev-deal-meta { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); margin-top: 3px; }
+  .rev-deal-date { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); flex-shrink: 0; text-align: right; }
+  .rev-deal-rev { font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700; color: var(--green); flex-shrink: 0; }
+
   /* ── Mobile ── */
   @media (max-width: 680px) {
     .header { padding: 12px 16px; }
@@ -372,6 +447,13 @@
     tbody td { padding: 7px 10px; }
     .team-grid { padding: 10px 16px 16px; gap: 10px; grid-template-columns: 1fr; }
     .team-panel-total { font-size: 17px; }
+    .rev-kpi-bar { grid-template-columns: 1fr 1fr; }
+    .rev-kpi { padding: 12px 16px; }
+    .rev-kpi-val { font-size: 22px; }
+    .rev-breadcrumb { padding: 8px 16px; }
+    .rev-content { padding: 14px 16px 28px; }
+    .rev-top3-grid { grid-template-columns: 1fr; }
+    .rev-office-grid { grid-template-columns: 1fr 1fr; }
     .incentives-wrapper { padding: 12px 16px 20px; }
     .incentives-grid { grid-template-columns: 1fr; gap: 14px; }
     .comp-wrapper { padding: 12px 16px 20px; }
@@ -426,87 +508,45 @@
     <span class="range-label" id="rangeLabel"></span>
   </div>
 
-  <div class="stats-row">
-    <div class="stat-item">
-      <div class="stat-label">Total Revenue — <span id="totalPeriodLabel">current month</span></div>
-      <div id="totalRevDisplay" class="stat-num stat-green">—</div>
-      <div id="totalDealsSubDisplay" class="stat-sub">— deals &nbsp;·&nbsp; avg —</div>
+  <!-- KPI Bar -->
+  <div class="rev-kpi-bar">
+    <div class="rev-kpi">
+      <div class="rev-kpi-label">Total Revenue</div>
+      <div class="rev-kpi-val" id="kpiRev">—</div>
+      <div class="rev-kpi-sub" id="kpiRevSub">loading…</div>
+    </div>
+    <div class="rev-kpi">
+      <div class="rev-kpi-label">Deals Closed</div>
+      <div class="rev-kpi-val kpi-blue" id="kpiDeals">—</div>
+      <div class="rev-kpi-sub" id="kpiDealsSub">this period</div>
+    </div>
+    <div class="rev-kpi">
+      <div class="rev-kpi-label">Avg Deal Size</div>
+      <div class="rev-kpi-val kpi-gold" id="kpiAvg">—</div>
+      <div class="rev-kpi-sub">per deal</div>
+    </div>
+    <div class="rev-kpi">
+      <div class="rev-kpi-label">Active Reps</div>
+      <div class="rev-kpi-val kpi-white" id="kpiReps">—</div>
+      <div class="rev-kpi-sub" id="kpiRepsSub">with closed deals</div>
     </div>
   </div>
 
-  <div class="office-summary">
-    <div class="office-summary-label">Revenue by Sales Team — <span id="periodLabel">current month</span></div>
-    <div class="office-cards" id="officeCards">
-      <div class="office-card" style="opacity:.4"><div class="office-card-name">Loading…</div></div>
-    </div>
+  <!-- Breadcrumb -->
+  <div class="rev-breadcrumb" id="revBreadcrumb">
+    <span class="rev-bc-active">All Offices</span>
   </div>
 
-  <div class="office-summary" style="border-top:none;">
-    <div class="office-summary-label">Top 3 Closers — <span id="periodLabel2">current month</span></div>
-    <div class="office-cards" id="closerCards">
-      <div class="office-card" style="opacity:.4"><div class="office-card-name">Loading…</div></div>
-    </div>
-  </div>
-
-  <div class="office-summary" style="border-top:none;">
-    <div class="office-summary-label">Top 3 Setters — <span id="periodLabel3">current month</span></div>
-    <div class="office-cards" id="setterCards">
-      <div class="office-card" style="opacity:.4"><div class="office-card-name">Loading…</div></div>
-    </div>
-  </div>
-
-  <div class="team-spread-header">
-    <div class="team-spread-label">Revenue Spread by Sales Team</div>
-    <div class="team-spread-period"><span id="periodLabel4">current month</span></div>
-  </div>
-  <div class="team-grid" id="teamBreakdown">
-    <div style="opacity:.4;color:var(--muted);font-size:13px;">Loading…</div>
-  </div>
-
-  <div class="search-bar">
-    <input class="search-input" type="text" id="searchInput" placeholder="Search by name, closer, setter, address…" oninput="applyFilter()">
-    <div class="stats-chips">
-      <div class="chip">Deals: <b id="statDeals">—</b></div>
-      <div class="chip">Revenue: <b id="statRev">—</b></div>
-      <div class="chip">Avg: <b id="statAvg">—</b></div>
-    </div>
-  </div>
-
+  <!-- Status bar -->
   <div class="status-bar">
     <span class="dot" id="statusDot"></span>
     <span id="statusText">Connecting…</span>
   </div>
 
-  <div class="tabs-bar">
-    <div class="tab active" data-tab="closers" onclick="switchTab('closers')">
-      Closers Won Accounts <span class="tab-badge" id="badge-closers">—</span>
-    </div>
-    <div class="tab" data-tab="setters" onclick="switchTab('setters')">
-      Setters Won Accounts <span class="tab-badge" id="badge-setters">—</span>
-    </div>
-  </div>
-
-  <div class="tab-panel active" id="panel-closers">
-    <div class="table-wrap">
-      <table id="tbl-closers">
-        <thead><tr>
-          <th>Customer / Deal</th><th>Sales Team</th><th>Canvasser</th>
-          <th>Revenue</th><th>Close Date</th><th>Address</th><th>Tags</th><th></th>
-        </tr></thead>
-        <tbody id="body-closers"></tbody>
-      </table>
-    </div>
-  </div>
-
-  <div class="tab-panel" id="panel-setters">
-    <div class="table-wrap">
-      <table id="tbl-setters">
-        <thead><tr>
-          <th>Customer / Deal</th><th>Sales Team</th><th>Closer</th>
-          <th>Revenue</th><th>Close Date</th><th>Address</th><th>Tags</th><th></th>
-        </tr></thead>
-        <tbody id="body-setters"></tbody>
-      </table>
+  <!-- Drill-down content -->
+  <div id="revContent" class="rev-content">
+    <div style="text-align:center;padding:60px 0;color:var(--muted)">
+      <div class="spinner"></div>
     </div>
   </div>
 
@@ -657,248 +697,229 @@ function setStatus(state, text) {
   document.getElementById('statusText').textContent = text;
 }
 
-// ── Sub-tab switching ─────────────────────────────────────────
-function switchTab(tab) {
-  activeTab = tab;
-  document.querySelectorAll('.tab').forEach(function(t) { t.classList.toggle('active', t.dataset.tab===tab); });
-  document.querySelectorAll('.tab-panel').forEach(function(p) { p.classList.toggle('active', p.id==='panel-'+tab); });
-  renderTable(tab);
+// ── Revenue Drill-down ────────────────────────────────────────
+var revLevel = 'home';
+var revOffice = null;
+var revRep = null;
+
+function updateKPIs(deals, sublabel) {
+  var total = deals.reduce(function(s,d){return s+(d.rev||0);},0);
+  var avg   = deals.length ? total/deals.length : 0;
+  var repSet = {};
+  deals.forEach(function(d){ if(d.closer) repSet[d.closer]=1; });
+  var reps = Object.keys(repSet).length;
+  document.getElementById('kpiRev').textContent   = '$'+Math.round(total).toLocaleString();
+  document.getElementById('kpiDeals').textContent = deals.length;
+  document.getElementById('kpiAvg').textContent   = deals.length ? '$'+Math.round(avg).toLocaleString() : '—';
+  document.getElementById('kpiReps').textContent  = reps;
+  if (sublabel) {
+    document.getElementById('kpiRevSub').textContent   = sublabel;
+    document.getElementById('kpiDealsSub').textContent = sublabel;
+  }
 }
 
-// ── Filter ────────────────────────────────────────────────────
-function applyFilter() { renderTable(activeTab); }
+function setRevBreadcrumb(parts) {
+  document.getElementById('revBreadcrumb').innerHTML = parts.map(function(p, i) {
+    if (i === parts.length-1) return '<span class="rev-bc-active">'+esc(p.label)+'</span>';
+    return '<span class="rev-bc-link" onclick="'+p.onclick+'">'+esc(p.label)+'</span>' +
+           '<span class="rev-bc-sep"> › </span>';
+  }).join('');
+}
 
-function filteredDeals(tab) {
-  const q = (document.getElementById('searchInput').value || '').toLowerCase().trim();
-  let deals = allDeals;
-  if (tab === 'setters') deals = deals.filter(function(d) { return d.setter && d.setter !== d.closer; });
-  if (!q) return deals;
-  return deals.filter(function(d) {
-    return (d.name||'').toLowerCase().includes(q) ||
-           (d.closer||'').toLowerCase().includes(q) ||
-           (d.setter||'').toLowerCase().includes(q) ||
-           (d.city||'').toLowerCase().includes(q) ||
-           (d.office||'').toLowerCase().includes(q) ||
-           (d.street||'').toLowerCase().includes(q);
+function renderLevel1(deals) {
+  revLevel = 'home'; revOffice = null; revRep = null;
+  setRevBreadcrumb([{label:'All Offices'}]);
+  updateKPIs(deals, 'this period');
+
+  var byOffice = {};
+  deals.forEach(function(d) {
+    var o = d.office||'Unknown';
+    if (!byOffice[o]) byOffice[o] = {name:o, rev:0, wins:0};
+    byOffice[o].rev += d.rev||0; byOffice[o].wins++;
   });
-}
+  var offices = Object.values(byOffice).sort(function(a,b){return b.rev-a.rev;});
+  var maxRev  = offices.length ? offices[0].rev : 1;
+  var offColors = ['var(--blue)','var(--green)','#d97706','var(--red)','#a07ef5'];
 
-// ── Render deals table ────────────────────────────────────────
-function renderTable(tab) {
-  const deals = filteredDeals(tab);
-  const body  = document.getElementById('body-'+tab);
-  document.getElementById('badge-'+tab).textContent = deals.length;
+  var byCloser = {};
+  deals.forEach(function(d) {
+    var c = d.closer||'Unknown';
+    if (!byCloser[c]) byCloser[c] = {name:c, rev:0, wins:0, office:d.office||''};
+    byCloser[c].rev += d.rev||0; byCloser[c].wins++;
+  });
+  var top3c = Object.values(byCloser).sort(function(a,b){return b.rev-a.rev;}).slice(0,3);
 
-  if (!deals.length) {
-    body.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:40px;color:var(--muted)">No records found</td></tr>';
-    return;
+  var bySetter = {};
+  deals.filter(function(d){return d.setter && d.setter!==d.closer;}).forEach(function(d) {
+    var s = d.setter;
+    if (!bySetter[s]) bySetter[s] = {name:s, rev:0, wins:0, office:d.office||''};
+    bySetter[s].rev += d.rev||0; bySetter[s].wins++;
+  });
+  var top3s = Object.values(bySetter).sort(function(a,b){return b.rev-a.rev;}).slice(0,3);
+
+  var rankCls = ['r1','r2','r3'];
+
+  var officeHTML = offices.map(function(o,i) {
+    var pct = maxRev ? Math.round(o.rev/maxRev*100) : 0;
+    var col = offColors[i]||'var(--muted)';
+    var safeName = JSON.stringify(o.name);
+    return '<div class="rev-ocard" onclick="revDrillOffice('+safeName+')">' +
+      '<div class="rev-ocard-rank">#'+(i+1)+'</div>' +
+      '<div class="rev-ocard-name">'+esc(o.name)+'</div>' +
+      '<div class="rev-ocard-rev">$'+Math.round(o.rev).toLocaleString()+'</div>' +
+      '<div class="rev-ocard-meta">'+o.wins+' deal'+(o.wins!==1?'s':'')+'</div>' +
+      '<div class="rev-ocard-bar"><div class="rev-ocard-bar-fill" style="width:'+pct+'%;background:'+col+'"></div></div>' +
+      '</div>';
+  }).join('');
+
+  function mkTop3Rows(reps, role) {
+    if (!reps.length) return '<div style="padding:14px;color:var(--muted);font-size:12px;">No data</div>';
+    return reps.map(function(r,i) {
+      var safeName = JSON.stringify(r.name);
+      var safeRole = JSON.stringify(role);
+      return '<div class="rev-top3-row" onclick="revDrillRep('+safeName+','+safeRole+')">' +
+        '<span class="rev-top3-rank '+(rankCls[i]||'')+'">'+(i+1)+'</span>' +
+        '<div class="rev-top3-info">' +
+          '<div class="rev-top3-name">'+esc(r.name)+'</div>' +
+          '<div class="rev-top3-meta">'+esc(r.office)+' &nbsp;·&nbsp; '+r.wins+' deal'+(r.wins!==1?'s':'')+'</div>' +
+        '</div>' +
+        '<span class="rev-top3-rev">$'+Math.round(r.rev).toLocaleString()+'</span>' +
+        '</div>';
+    }).join('');
   }
 
-  const total = deals.reduce(function(s,d) { return s+(d.rev||0); }, 0);
-  const avg   = deals.length ? total/deals.length : 0;
-  document.getElementById('statDeals').textContent = deals.length;
-  document.getElementById('statRev').textContent   = '$'+Math.round(total).toLocaleString();
-  document.getElementById('statAvg').textContent   = '$'+Math.round(avg).toLocaleString();
+  document.getElementById('revContent').innerHTML =
+    '<div class="rev-sec-label">Revenue by office — click to drill in</div>' +
+    '<div class="rev-office-grid">'+officeHTML+'</div>' +
+    '<div class="rev-sec-label" style="margin-top:4px;">Top performers — all offices combined</div>' +
+    '<div class="rev-top3-grid">' +
+      '<div class="rev-top3-block">' +
+        '<div class="rev-top3-head">Top 3 Closers</div>' +
+        mkTop3Rows(top3c,'Closer') +
+      '</div>' +
+      '<div class="rev-top3-block">' +
+        '<div class="rev-top3-head">Top 3 Setters</div>' +
+        mkTop3Rows(top3s,'Setter') +
+      '</div>' +
+    '</div>';
+}
 
-  const groupKey = tab === 'closers' ? 'closer' : 'setter';
-  const groups = {};
+function revDrillOffice(officeName) {
+  revLevel = 'office'; revOffice = officeName; revRep = null;
+  var deals = allDeals.filter(function(d){ return (d.office||'Unknown') === officeName; });
+  setRevBreadcrumb([
+    {label:'All Offices', onclick:'revGoHome()'},
+    {label:officeName}
+  ]);
+  updateKPIs(deals, officeName);
+
+  var byRep = {};
   deals.forEach(function(d) {
-    const key = d[groupKey] || '—';
-    if (!groups[key]) groups[key] = { name: key, total: 0, wins: 0, deals: [] };
-    groups[key].total += d.rev || 0; groups[key].wins += 1; groups[key].deals.push(d);
-  });
-  const sorted = Object.values(groups).sort(function(a,b) { return b.total - a.total; });
-  const prefix = tab === 'closers' ? 'grp-' : 'sgrp-';
-  const otherCol = tab === 'closers' ? 'setter' : 'closer';
-  const rows = [];
-  sorted.forEach(function(g, gi) {
-    const gid = prefix + gi;
-    g.deals.sort(function(a,b) { return (b.rev||0)-(a.rev||0); });
-    rows.push(
-      '<tr style="background:var(--surface2);cursor:pointer;border-bottom:1px solid var(--border-light);" onclick="toggleGroup(\'' + gid + '\')">' +
-      '<td colspan="8" style="padding:11px 13px;">' +
-        '<span id="chev-'+gid+'" style="display:inline-block;margin-right:8px;color:var(--muted);font-size:11px;transition:transform .2s;">&#9658;</span>' +
-        '<span style="font-family:\'Syne\',sans-serif;font-weight:700;font-size:14px;color:var(--ink)">'+esc(g.name)+'</span>' +
-        '<span style="margin-left:14px;color:var(--green);font-family:\'Syne\',sans-serif;font-weight:700;font-size:14px;">$'+Math.round(g.total).toLocaleString()+'</span>' +
-        '<span style="margin-left:12px;font-family:\'DM Mono\',monospace;color:var(--muted);font-size:11px;">'+g.wins+' deal'+(g.wins!==1?'s':'')+'</span>' +
-      '</td></tr>'
-    );
-    g.deals.forEach(function(d) {
-      const addr = [d.street, d.city, d.state].filter(Boolean).join(', ');
-      const tags = (d.tags||[]).map(function(t) { return '<span class="tag">'+esc(t)+'</span>'; }).join('');
-      const oc   = officeClass(d.office);
-      rows.push(
-        '<tr class="grp-row '+gid+'" style="display:none;">' +
-        '<td style="padding-left:32px;" class="deal-name">'+esc(d.name)+'</td>' +
-        '<td><span class="office-chip '+oc+'">'+esc(d.office)+'</span></td>' +
-        '<td class="no-wrap">'+esc(d[otherCol]||'—')+'</td>' +
-        '<td>'+fmtRev(d.rev)+'</td>' +
-        '<td>'+fmtDate(d.date_closed)+'</td>' +
-        '<td class="addr">'+esc(addr)+'</td>' +
-        '<td>'+tags+'</td>' +
-        '<td></td>' +
-        '</tr>'
-      );
-    });
-  });
-  body.innerHTML = rows.join('');
-}
-
-function toggleGroup(gid) {
-  const rows = document.querySelectorAll('tr.' + gid);
-  const chev = document.getElementById('chev-' + gid);
-  const open = rows.length && rows[0].style.display !== 'none';
-  rows.forEach(function(r) { r.style.display = open ? 'none' : ''; });
-  if (chev) chev.style.transform = open ? '' : 'rotate(90deg)';
-}
-
-// ── Summary cards ─────────────────────────────────────────────
-function renderSalesTeamSummary(deals) {
-  const by = {};
-  deals.forEach(function(d) {
-    const o = d.office || 'Unknown';
-    if (!by[o]) by[o] = { name: o, rev: 0, wins: 0 };
-    by[o].rev += d.rev||0; by[o].wins++;
-  });
-  const sorted = Object.values(by).sort(function(a,b) { return b.rev-a.rev; });
-  const total  = sorted.reduce(function(s,o) { return s+o.rev; }, 0);
-  document.getElementById('officeCards').innerHTML = sorted.map(function(o, i) {
-    const pct = total ? (o.rev/total*100).toFixed(1) : '0.0';
-    return '<div class="office-card"><div class="office-card-rank">#'+(i+1)+' &nbsp; '+pct+'% of total</div>' +
-      '<div class="office-card-name">'+esc(o.name)+'</div>' +
-      '<div class="office-card-rev">$'+Math.round(o.rev).toLocaleString()+'</div>' +
-      '<div class="office-card-meta">'+o.wins+' deals</div></div>';
-  }).join('') || '<div style="color:var(--muted);font-size:13px">No data</div>';
-}
-
-function renderCloserSummary(deals) {
-  const by = {};
-  deals.forEach(function(d) {
-    const c = d.closer||'Unknown';
-    if (!by[c]) by[c] = { name: c, rev: 0, wins: 0 };
-    by[c].rev += d.rev||0; by[c].wins++;
-  });
-  const all    = Object.values(by);
-  const top3   = all.sort(function(a,b) { return b.rev-a.rev; }).slice(0,3);
-  const total  = all.reduce(function(s,c) { return s+c.rev; }, 0);
-  const medals = ['🥇','🥈','🥉'];
-  document.getElementById('closerCards').innerHTML = top3.map(function(c, i) {
-    const pct = total ? (c.rev/total*100).toFixed(1) : '0.0';
-    return '<div class="office-card"><div class="office-card-rank">'+medals[i]+' &nbsp; '+pct+'% of total</div>' +
-      '<div class="office-card-name">'+esc(c.name)+'</div>' +
-      '<div class="office-card-rev">$'+Math.round(c.rev).toLocaleString()+'</div>' +
-      '<div class="office-card-meta">'+c.wins+' deal'+(c.wins!==1?'s':'')+'</div></div>';
-  }).join('') || '<div style="color:var(--muted);font-size:13px">No data</div>';
-}
-
-function renderSetterSummary(deals) {
-  const by = {};
-  deals.filter(function(d) { return d.setter; }).forEach(function(d) {
-    const s = d.setter;
-    if (!by[s]) by[s] = { name: s, rev: 0, wins: 0 };
-    by[s].rev += d.rev||0; by[s].wins++;
-  });
-  const all   = Object.values(by);
-  const top3  = all.sort(function(a,b) { return b.rev-a.rev; }).slice(0,3);
-  const total = all.reduce(function(s,c) { return s+c.rev; }, 0);
-  const medals = ['🥇','🥈','🥉'];
-  document.getElementById('setterCards').innerHTML = top3.map(function(s, i) {
-    const pct = total ? (s.rev/total*100).toFixed(1) : '0.0';
-    return '<div class="office-card"><div class="office-card-rank">'+medals[i]+' &nbsp; '+pct+'% of total</div>' +
-      '<div class="office-card-name">'+esc(s.name)+'</div>' +
-      '<div class="office-card-rev">$'+Math.round(s.rev).toLocaleString()+'</div>' +
-      '<div class="office-card-meta">'+s.wins+' deal'+(s.wins!==1?'s':'')+'</div></div>';
-  }).join('') || '<div style="color:var(--muted);font-size:13px">No data</div>';
-}
-
-// ── Team Breakdown ────────────────────────────────────────────
-function renderTeamBreakdown(deals) {
-  const overallTotal = deals.reduce(function(s,d) { return s+(d.rev||0); }, 0);
-  const teamColors   = ['var(--blue)','var(--green)','var(--amber)','var(--red)','#a07ef5'];
-  const byTeam = {};
-  deals.forEach(function(d) {
-    const team = d.office || 'Unknown';
-    if (!byTeam[team]) byTeam[team] = { name: team, rev: 0, closers: {}, setters: {} };
-    byTeam[team].rev += d.rev||0;
-    const cl = d.closer||'—';
-    if (!byTeam[team].closers[cl]) byTeam[team].closers[cl] = { name: cl, rev: 0, wins: 0 };
-    byTeam[team].closers[cl].rev += d.rev||0; byTeam[team].closers[cl].wins++;
+    var c = d.closer||'Unknown';
+    var ck = 'C|'+c;
+    if (!byRep[ck]) byRep[ck] = {name:c, role:'Closer', rev:0, wins:0};
+    byRep[ck].rev += d.rev||0; byRep[ck].wins++;
     if (d.setter && d.setter !== d.closer) {
-      const st = d.setter;
-      if (!byTeam[team].setters[st]) byTeam[team].setters[st] = { name: st, rev: 0, wins: 0 };
-      byTeam[team].setters[st].rev += d.rev||0; byTeam[team].setters[st].wins++;
+      var s = d.setter;
+      var sk = 'S|'+s;
+      if (!byRep[sk]) byRep[sk] = {name:s, role:'Setter', rev:0, wins:0};
+      byRep[sk].rev += d.rev||0; byRep[sk].wins++;
     }
   });
-  const teams = Object.values(byTeam).sort(function(a,b) { return b.rev-a.rev; });
-  const mkRows = function(people) {
-    return Object.values(people).sort(function(a,b) { return b.rev-a.rev; }).map(function(p, i) {
-      return '<div class="trow"><span class="trow-rank">'+(i+1)+'</span>' +
-        '<div class="trow-info"><span class="trow-name">'+esc(p.name)+' <span class="trow-deals">('+p.wins+')</span></span>' +
-        '<span class="trow-rev">$'+Math.round(p.rev).toLocaleString()+'</span></div></div>';
-    }).join('') || '<div class="trow" style="color:var(--muted);font-size:11px;padding:4px 0">—</div>';
-  };
-  document.getElementById('teamBreakdown').innerHTML = teams.map(function(team, idx) {
-    const color = teamColors[idx % teamColors.length];
-    const pct   = overallTotal ? (team.rev/overallTotal*100).toFixed(1) : '0.0';
-    const wins  = Object.values(team.closers).reduce(function(s,c) { return s+c.wins; }, 0);
-    return '<div class="team-panel">' +
-      '<div class="team-panel-header">' +
-        '<div class="team-color-bar" style="background:'+color+'"></div>' +
-        '<div class="team-header-info">' +
-          '<div class="team-panel-name" style="color:'+color+'">'+esc(team.name)+'</div>' +
-          '<div class="team-panel-meta">'+wins+' deals &nbsp;·&nbsp; '+pct+'% of total</div>' +
-        '</div>' +
-        '<div class="team-panel-total" style="color:'+color+'">$'+Math.round(team.rev).toLocaleString()+'</div>' +
-      '</div>' +
-      '<div class="team-lists">' +
-        '<div class="team-list"><div class="team-list-title">Setters</div>'+mkRows(team.setters)+'</div>' +
-        '<div class="team-list"><div class="team-list-title">Closers</div>'+mkRows(team.closers)+'</div>' +
-      '</div></div>';
-  }).join('') || '<div style="color:var(--muted)">No data</div>';
+  var reps = Object.values(byRep).sort(function(a,b){return b.rev-a.rev;});
+
+  var rows = reps.map(function(r) {
+    var sn = JSON.stringify(r.name);
+    var sr = JSON.stringify(r.role);
+    return '<tr onclick="revDrillRep('+sn+','+sr+')">' +
+      '<td><span class="rev-rep-name">'+esc(r.name)+'</span></td>' +
+      '<td><span class="rev-role-'+(r.role==='Closer'?'closer':'setter')+'">'+r.role+'</span></td>' +
+      '<td style="font-family:\'Syne\',sans-serif;font-weight:700;color:var(--green);">$'+Math.round(r.rev).toLocaleString()+'</td>' +
+      '<td style="color:var(--muted);font-family:\'DM Mono\',monospace;font-size:11px;">'+r.wins+' deal'+(r.wins!==1?'s':'')+'</td>' +
+      '<td style="color:var(--muted);font-family:\'DM Mono\',monospace;font-size:11px;">$'+Math.round(r.rev/(r.wins||1)).toLocaleString()+' avg</td>' +
+      '</tr>';
+  }).join('') || '<tr><td colspan="5" style="padding:30px;text-align:center;color:var(--muted)">No data</td></tr>';
+
+  document.getElementById('revContent').innerHTML =
+    '<table class="rev-rep-table">' +
+      '<thead><tr><th>Rep</th><th>Role</th><th>Revenue</th><th>Deals</th><th>Avg</th></tr></thead>' +
+      '<tbody>'+rows+'</tbody>' +
+    '</table>';
 }
 
+function revDrillRep(repName, role) {
+  revLevel = 'rep'; revRep = repName;
+  var isCloser = role === 'Closer';
+  var deals = allDeals.filter(function(d) {
+    return isCloser
+      ? (d.closer||'Unknown') === repName
+      : (d.setter||'') === repName && d.setter !== d.closer;
+  }).sort(function(a,b){ return (b.rev||0)-(a.rev||0); });
+
+  var crumbs = [{label:'All Offices', onclick:'revGoHome()'}];
+  if (revOffice) crumbs.push({label:revOffice, onclick:'revDrillOffice('+JSON.stringify(revOffice)+')'});
+  crumbs.push({label:repName});
+  setRevBreadcrumb(crumbs);
+  updateKPIs(deals, repName);
+
+  var totalRev = deals.reduce(function(s,d){return s+(d.rev||0);},0);
+  var roleTag  = isCloser
+    ? '<span class="rev-role-closer">Closer</span>'
+    : '<span class="rev-role-setter">Setter</span>';
+
+  var dealItems = deals.map(function(d,i) {
+    var addr  = [d.street, d.city, d.state].filter(Boolean).join(', ');
+    var other = isCloser
+      ? (d.setter ? 'Set by '+esc(d.setter) : '')
+      : 'Closed by '+esc(d.closer||'—');
+    return '<div class="rev-deal-item">' +
+      '<span class="rev-deal-index">'+(i+1)+'</span>' +
+      '<div class="rev-deal-info">' +
+        '<div class="rev-deal-name">'+esc(d.name||'—')+'</div>' +
+        '<div class="rev-deal-meta">'+esc(addr)+(other?' &nbsp;·&nbsp; '+other:'')+'</div>' +
+      '</div>' +
+      '<span class="rev-deal-date">'+esc(d.date_closed||'—')+'</span>' +
+      '<span class="rev-deal-rev">$'+Math.round(d.rev||0).toLocaleString()+'</span>' +
+      '</div>';
+  }).join('') || '<div style="padding:30px;text-align:center;color:var(--muted)">No deals found</div>';
+
+  document.getElementById('revContent').innerHTML =
+    '<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">' +
+      '<span style="font-family:\'Syne\',sans-serif;font-size:20px;font-weight:800;color:var(--white);">'+esc(repName)+'</span>' +
+      roleTag +
+    '</div>' +
+    '<div style="font-family:\'DM Mono\',monospace;font-size:10px;color:var(--muted);margin-bottom:20px;letter-spacing:.04em;">' +
+      deals.length+' deals &nbsp;·&nbsp; $'+Math.round(totalRev).toLocaleString()+' total' +
+    '</div>' +
+    '<div>'+dealItems+'</div>';
+}
+
+function revGoHome() { renderLevel1(allDeals); }
+
+// ── (legacy stubs kept for compat) ────────────────────────────
 // ── Revenue data load ─────────────────────────────────────────
 async function loadData() {
   const btn = document.getElementById('refreshBtn');
   btn.disabled = true; btn.textContent = 'Loading…';
   setStatus('loading', 'Fetching from Odoo CRM…');
-  document.getElementById('body-closers').innerHTML = '<tr><td colspan="8" class="empty-state"><div class="spinner"></div></td></tr>';
-  document.getElementById('body-setters').innerHTML = '<tr><td colspan="8" class="empty-state"><div class="spinner"></div></td></tr>';
+  document.getElementById('revContent').innerHTML =
+    '<div style="text-align:center;padding:60px 0;color:var(--muted)"><div class="spinner"></div></div>';
 
   const { start, end } = getRange(curRange);
   document.getElementById('rangeLabel').textContent = start + ' → ' + end;
-  const periodText = curRange === 'mtd' ? 'current month' : curRange === 'week' ? 'this week' : curRange === 'custom' ? start + ' → ' + end : start + ' → ' + end;
-  ['periodLabel','periodLabel2','periodLabel3','periodLabel4','totalPeriodLabel'].forEach(function(id) {
-    document.getElementById(id).textContent = periodText;
-  });
 
   try {
     const res = await fetch(LOCAL_API + '/api/odoo/deals?start='+start+'&end='+end);
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const data = await res.json();
     allDeals = data.deals || [];
-
-    document.getElementById('badge-closers').textContent = allDeals.length;
-    document.getElementById('badge-setters').textContent = allDeals.filter(function(d){return d.setter;}).length;
-
-    const totalRev = allDeals.reduce(function(s,d){return s+(d.rev||0);},0);
-    const avgRev   = allDeals.length ? totalRev/allDeals.length : 0;
-    document.getElementById('totalRevDisplay').textContent      = '$'+Math.round(totalRev).toLocaleString();
-    document.getElementById('totalDealsSubDisplay').textContent = allDeals.length+' deals · avg $'+Math.round(avgRev).toLocaleString();
-
-    renderSalesTeamSummary(allDeals);
-    renderCloserSummary(allDeals);
-    renderSetterSummary(allDeals);
-    renderTeamBreakdown(allDeals);
-    renderTable('closers');
-    renderTable('setters');
-
+    renderLevel1(allDeals);
     const gen = data.generated_at ? new Date(data.generated_at).toLocaleTimeString() : '';
     setStatus('ok', data.total_deals+' deals · $'+Math.round(data.total_rev).toLocaleString()+' revenue · refreshed '+gen);
   } catch(err) {
     setStatus('error', 'Error: '+err.message);
-    document.getElementById('body-closers').innerHTML = '<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--red)">'+esc(err.message)+'<br><small>Is the API server running?</small></td></tr>';
-    document.getElementById('body-setters').innerHTML = '<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--red)">'+esc(err.message)+'</td></tr>';
+    document.getElementById('revContent').innerHTML =
+      '<div style="text-align:center;padding:60px 0;color:var(--red);">'+esc(err.message)+'<br><small style="color:var(--muted)">Is the API server running?</small></div>';
   }
   btn.disabled = false; btn.textContent = 'Refresh';
 }
