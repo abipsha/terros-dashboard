@@ -872,9 +872,8 @@ function revDrillOffice(officeName) {
       var sr = "'" + role + "'";
       return '<tr onclick="revDrillRep('+sn+','+sr+')">' +
         '<td><span class="rev-rep-name">'+esc(r.name)+'</span> <span style="font-family:\'DM Mono\',monospace;font-size:10px;color:var(--muted);font-weight:400;">'+r.wins+' deal'+(r.wins!==1?'s':'')+'</span></td>' +
-        '<td style="font-family:\'Syne\',sans-serif;font-weight:700;color:var(--green);">$'+Math.round(r.rev).toLocaleString()+'</td>' +
-        '<td style="color:var(--muted);font-family:\'DM Mono\',monospace;font-size:11px;">'+r.wins+' deal'+(r.wins!==1?'s':'')+'</td>' +
-        '<td class="hide-mobile" style="color:var(--muted);font-family:\'DM Mono\',monospace;font-size:11px;">$'+Math.round(r.rev/(r.wins||1)).toLocaleString()+' avg</td>' +
+        '<td style="font-family:\'Syne\',sans-serif;font-weight:700;color:var(--green);white-space:nowrap;">$'+Math.round(r.rev).toLocaleString()+'</td>' +
+        '<td class="hide-mobile" style="color:var(--muted);font-family:\'DM Mono\',monospace;font-size:11px;white-space:nowrap;">$'+Math.round(r.rev/(r.wins||1)).toLocaleString()+' avg</td>' +
         '</tr>';
     }).join('');
   }
@@ -885,10 +884,12 @@ function revDrillOffice(officeName) {
         '<span>'+title+'</span>' +
         '<span style="color:var(--muted);font-weight:400;">'+reps.length+' rep'+(reps.length!==1?'s':'')+'</span>' +
       '</div>' +
-      '<table class="rev-rep-table">' +
-        '<thead><tr><th>Rep</th><th>Revenue</th><th>Deals</th><th class="hide-mobile">Avg</th></tr></thead>' +
-        '<tbody>'+mkRepRows(reps, role)+'</tbody>' +
-      '</table>' +
+      '<div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">' +
+        '<table class="rev-rep-table">' +
+          '<thead><tr><th>Rep</th><th>Revenue</th><th class="hide-mobile">Avg</th></tr></thead>' +
+          '<tbody>'+mkRepRows(reps, role)+'</tbody>' +
+        '</table>' +
+      '</div>' +
     '</div>';
   }
 
@@ -935,13 +936,25 @@ function revDrillRep(repName, role) {
       '</div>';
   }).join('') || '<div style="padding:30px;text-align:center;color:var(--muted)">No deals found</div>';
 
+  var avgDeal = deals.length ? Math.round(totalRev / deals.length) : 0;
   document.getElementById('revContent').innerHTML =
-    '<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">' +
+    '<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">' +
       '<span style="font-family:\'Syne\',sans-serif;font-size:20px;font-weight:800;color:var(--white);">'+esc(repName)+'</span>' +
       roleTag +
     '</div>' +
-    '<div style="font-family:\'DM Mono\',monospace;font-size:10px;color:var(--muted);margin-bottom:20px;letter-spacing:.04em;">' +
-      deals.length+' deals &nbsp;·&nbsp; $'+Math.round(totalRev).toLocaleString()+' total' +
+    '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:24px;">' +
+      '<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 14px;">' +
+        '<div style="font-family:\'DM Mono\',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">Total Revenue</div>' +
+        '<div style="font-family:\'Syne\',sans-serif;font-size:22px;font-weight:800;color:var(--green);line-height:1;">$'+Math.round(totalRev).toLocaleString()+'</div>' +
+      '</div>' +
+      '<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 14px;">' +
+        '<div style="font-family:\'DM Mono\',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">Deals Closed</div>' +
+        '<div style="font-family:\'Syne\',sans-serif;font-size:22px;font-weight:800;color:var(--blue);line-height:1;">'+deals.length+'</div>' +
+      '</div>' +
+      '<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 14px;">' +
+        '<div style="font-family:\'DM Mono\',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">Avg Deal</div>' +
+        '<div style="font-family:\'Syne\',sans-serif;font-size:22px;font-weight:800;color:var(--amber);line-height:1;">'+(deals.length?'$'+avgDeal.toLocaleString():'—')+'</div>' +
+      '</div>' +
     '</div>' +
     '<div>'+dealItems+'</div>';
 }
