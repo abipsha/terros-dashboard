@@ -947,7 +947,7 @@ function revDrillOffice(officeName) {
   var heroCol = officeColor(officeName);
 
   function mkBoldRepRows(reps, role) {
-    if (!reps.length) return '<div style="padding:14px 16px;text-align:center;color:#444;font-size:11px;font-family:'Inter', sans-serif;">No data</div>';
+    if (!reps.length) return '<div style="padding:14px 16px;text-align:center;color:#444;font-size:11px;font-family:Inter, sans-serif;">No data</div>';
     var isCloserRole = role === 'Closer';
     return reps.map(function(r, i) {
       var sn = "'" + r.name.replace(/\\/g,'\\\\').replace(/'/g,"\\'") + "'";
@@ -955,7 +955,7 @@ function revDrillOffice(officeName) {
       var rankCls = i===0?'r1':i===1?'r2':i===2?'r3':'';
       var sgRate = isCloserRole && r.wins > 0 ? Math.round(r.selfGen / r.wins * 100) : 0;
       var sgTag = isCloserRole
-        ? '<span style="font-family:'Inter', sans-serif;font-size:8px;padding:1px 4px;border-radius:2px;margin-left:5px;background:' +
+        ? '<span style="font-family:Inter, sans-serif;font-size:8px;padding:1px 4px;border-radius:2px;margin-left:5px;background:' +
           (sgRate >= 50 ? 'rgba(224,160,48,.15);color:#e0a030;border:.5px solid rgba(224,160,48,.3)' :
            sgRate >  0  ? 'rgba(0,67,118,.15);color:#004376;border:.5px solid rgba(0,67,118,.3)' :
                           'rgba(102,99,112,.1);color:#666370;border:.5px solid rgba(102,99,112,.2)') +
@@ -1086,19 +1086,19 @@ function revDrillRep(repName, role) {
         '<span style="font-family:\'Roboto Condensed\',sans-serif;font-size:20px;font-weight:800;color:var(--white);">'+esc(repName)+'</span>' +
         roleTag +
       '</div>' +
-      (rankStr ? '<div style="font-family:'Inter', sans-serif;font-size:10px;color:var(--amber);letter-spacing:.04em;">'+esc(rankStr)+'</div>' : '') +
+      (rankStr ? '<div style="font-family:Inter, sans-serif;font-size:10px;color:var(--amber);letter-spacing:.04em;">'+esc(rankStr)+'</div>' : '') +
     '</div>' +
     '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:24px;">' +
       '<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 14px;">' +
-        '<div style="font-family:'Inter', sans-serif;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">'+(isCloser?'Total Revenue':'Revenue Generated')+'</div>' +
+        '<div style="font-family:Inter, sans-serif;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">'+(isCloser?'Total Revenue':'Revenue Generated')+'</div>' +
         '<div style="font-family:\'Roboto Condensed\',sans-serif;font-size:22px;font-weight:800;color:var(--green);line-height:1;">$'+Math.round(totalRev).toLocaleString()+'</div>' +
       '</div>' +
       '<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 14px;">' +
-        '<div style="font-family:'Inter', sans-serif;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">'+(isCloser?'Deals Closed':'Deals Set')+'</div>' +
+        '<div style="font-family:Inter, sans-serif;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">'+(isCloser?'Deals Closed':'Deals Set')+'</div>' +
         '<div style="font-family:\'Roboto Condensed\',sans-serif;font-size:22px;font-weight:800;color:var(--blue);line-height:1;">'+deals.length+'</div>' +
       '</div>' +
       '<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 14px;">' +
-        '<div style="font-family:'Inter', sans-serif;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">'+(isCloser?'Avg Deal':'Avg Deal Set')+'</div>' +
+        '<div style="font-family:Inter, sans-serif;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">'+(isCloser?'Avg Deal':'Avg Deal Set')+'</div>' +
         '<div style="font-family:\'Roboto Condensed\',sans-serif;font-size:22px;font-weight:800;color:var(--amber);line-height:1;">'+(deals.length?'$'+avgDeal.toLocaleString():'—')+'</div>' +
       '</div>' +
     '</div>' +
