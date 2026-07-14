@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Vivid Windows - Leadership Dashboard</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
   :root {
     --black:        #0e0e0f;
@@ -420,6 +420,33 @@
   .rev-deal-footer { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
   .rev-deal-setter { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); }
   .rev-office-pill { font-family: 'DM Mono', monospace; font-size: 9px; padding: 2px 7px; border-radius: 3px; letter-spacing: .03em; white-space: nowrap; border: .5px solid; }
+  /* ── Bold Level 2 office drill-down ── */
+  .bold-office-hero { margin: -22px -28px 0; background: #0a0a0b; border-bottom: 3px solid; padding: 20px 22px 14px; text-align: center; }
+  .bold-office-name { font-family: 'Bebas Neue', sans-serif; font-size: 52px; line-height: .95; letter-spacing: 2px; }
+  .bold-office-sub { font-family: 'Bebas Neue', sans-serif; font-size: 17px; color: var(--white); letter-spacing: 4px; margin-top: 5px; }
+  .bold-kpi-strip { margin: 0 -28px; display: grid; grid-template-columns: repeat(3,1fr); border-bottom: 1px solid var(--border); }
+  .bold-kpi-cell { padding: 10px 14px; border-right: 1px solid var(--border); text-align: center; }
+  .bold-kpi-cell:last-child { border-right: none; }
+  .bold-kpi-num { font-family: 'Bebas Neue', sans-serif; font-size: 24px; color: var(--white); line-height: 1; }
+  .bold-kpi-lbl { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-top: 2px; }
+  .bold-cols { margin: 0 -28px -40px; display: grid; grid-template-columns: 1fr 1fr; }
+  .bold-col { border-right: 1px solid var(--border-light); }
+  .bold-col:last-child { border-right: none; }
+  .bold-col-head { padding: 10px 14px 8px; border-bottom: 2px solid #cc2200; display: flex; justify-content: space-between; align-items: baseline; }
+  .bold-col-title { font-family: 'Bebas Neue', sans-serif; font-size: 20px; color: var(--white); letter-spacing: 2px; }
+  .bold-col-money { font-family: 'Bebas Neue', sans-serif; font-size: 15px; color: #cc2200; letter-spacing: 1px; }
+  .bold-rep-row { display: flex; align-items: center; gap: 8px; padding: 9px 14px; border-bottom: 1px solid var(--border-light); cursor: pointer; transition: background .1s; }
+  .bold-rep-row:last-child { border-bottom: none; }
+  .bold-rep-row:hover { background: var(--surface2); }
+  .bold-rep-num { font-family: 'Bebas Neue', sans-serif; font-size: 18px; color: #2a2a2e; width: 18px; flex-shrink: 0; text-align: center; }
+  .bold-rep-num.r1 { color: #ffd700; }
+  .bold-rep-num.r2 { color: #c0c0c0; }
+  .bold-rep-num.r3 { color: #cd7f32; }
+  .bold-rep-info { flex: 1; min-width: 0; }
+  .bold-rep-name { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; }
+  .bold-rep-row:hover .bold-rep-name { color: var(--white); }
+  .bold-rep-deals { font-family: 'DM Mono', monospace; font-size: 9px; color: #444; margin-top: 2px; letter-spacing: .04em; }
+  .bold-rep-rev { font-family: 'Bebas Neue', sans-serif; font-size: 15px; color: var(--white); white-space: nowrap; flex-shrink: 0; }
 
   /* ── Mobile (tablet / small screen) ── */
   @media (max-width: 680px) {
@@ -463,6 +490,12 @@
     .rev-rep-rev { font-size: 11px; }
     /* Deal list */
     .rev-deal-item { gap: 8px; }
+    /* Bold Level 2 — tablet */
+    .bold-office-hero { margin: -14px -14px 0; }
+    .bold-office-name { font-size: 38px; }
+    .bold-kpi-strip { margin: 0 -14px; }
+    .bold-cols { margin: 0 -14px -28px; }
+    .bold-rep-row { padding: 8px 10px; }
     /* Incentives */
     .incentives-wrapper { padding: 12px 14px 20px; }
     .incentives-grid { grid-template-columns: 1fr; gap: 14px; }
@@ -494,6 +527,13 @@
     .rev-top3-meta { font-size: 8px; }
     /* Rep table — hide Avg column to save space */
     .rev-rep-table .hide-mobile { display: none; }
+    /* Bold Level 2 — iPhone */
+    .bold-office-name { font-size: 30px; }
+    .bold-office-sub { font-size: 13px; letter-spacing: 2px; }
+    .bold-kpi-num { font-size: 19px; }
+    .bold-rep-name { font-size: 9px; }
+    .bold-rep-rev { font-size: 13px; }
+    .bold-rep-num { font-size: 15px; }
     /* Deal list — already mobile-native, no overrides needed */
     /* Custom date pickers — stack below buttons */
     .custom-dates { flex-wrap: wrap; }
@@ -902,44 +942,70 @@ function revDrillOffice(officeName) {
   });
   var setters = Object.values(bySetter).sort(function(a,b){return b.rev-a.rev;});
 
-  function mkRepRows(reps, role) {
-    if (!reps.length) return '<div style="padding:20px;text-align:center;color:var(--muted);font-size:12px;">No data</div>';
+  var totalRev = deals.reduce(function(s,d){return s+(d.rev||0);},0);
+  var avgRev = deals.length ? Math.round(totalRev/deals.length) : 0;
+  var heroCol = officeColor(officeName);
+
+  function mkBoldRepRows(reps, role) {
+    if (!reps.length) return '<div style="padding:14px 16px;text-align:center;color:#444;font-size:11px;font-family:\'DM Mono\',monospace;">No data</div>';
     var isCloserRole = role === 'Closer';
-    return reps.map(function(r) {
+    return reps.map(function(r, i) {
       var sn = "'" + r.name.replace(/\\/g,'\\\\').replace(/'/g,"\\'") + "'";
       var sr = "'" + role + "'";
+      var rankCls = i===0?'r1':i===1?'r2':i===2?'r3':'';
       var sgRate = isCloserRole && r.wins > 0 ? Math.round(r.selfGen / r.wins * 100) : 0;
-      var sgTag  = isCloserRole
-        ? '<span style="font-family:\'DM Mono\',monospace;font-size:9px;padding:1px 5px;border-radius:3px;margin-left:5px;background:' +
-          (sgRate >= 50 ? 'rgba(224,160,48,.12);color:var(--amber);border:.5px solid rgba(224,160,48,.3)' :
-           sgRate >  0  ? 'rgba(91,141,239,.1);color:var(--blue);border:.5px solid rgba(91,141,239,.25)' :
-                          'var(--surface2);color:var(--muted);border:.5px solid var(--border)') +
+      var sgTag = isCloserRole
+        ? '<span style="font-family:\'DM Mono\',monospace;font-size:8px;padding:1px 4px;border-radius:2px;margin-left:5px;background:' +
+          (sgRate >= 50 ? 'rgba(224,160,48,.15);color:#e0a030;border:.5px solid rgba(224,160,48,.3)' :
+           sgRate >  0  ? 'rgba(91,141,239,.12);color:#5b8def;border:.5px solid rgba(91,141,239,.25)' :
+                          'rgba(102,99,112,.1);color:#666370;border:.5px solid rgba(102,99,112,.2)') +
           '">' + sgRate + '% SG</span>'
         : '';
-      return '<div class="rev-rep-row" onclick="revDrillRep('+sn+','+sr+')">' +
-        '<div class="rev-rep-left">' +
-          '<div class="rev-rep-name" style="display:flex;align-items:center;flex-wrap:wrap;gap:0;">'+esc(r.name)+sgTag+'</div>' +
-          '<div class="rev-rep-deals">'+r.wins+' deal'+(r.wins!==1?'s':'')+'</div>' +
+      return '<div class="bold-rep-row" onclick="revDrillRep('+sn+','+sr+')">' +
+        '<span class="bold-rep-num ' + rankCls + '">' + (i+1) + '</span>' +
+        '<div class="bold-rep-info">' +
+          '<div class="bold-rep-name">' + esc(r.name) + sgTag + '</div>' +
+          '<div class="bold-rep-deals">' + r.wins + ' deal' + (r.wins!==1?'s':'') + '</div>' +
         '</div>' +
-        '<div class="rev-rep-rev">$'+Math.round(r.rev).toLocaleString()+'</div>' +
+        '<span class="bold-rep-rev">$' + Math.round(r.rev).toLocaleString() + '</span>' +
         '</div>';
     }).join('');
   }
 
-  function mkBox(title, roleClass, reps, role) {
-    return '<div class="rev-top3-block">' +
-      '<div class="rev-top3-head" style="display:flex;justify-content:space-between;align-items:center;">' +
-        '<span>'+title+'</span>' +
-        '<span style="color:var(--muted);font-weight:400;">'+reps.length+' rep'+(reps.length!==1?'s':'')+'</span>' +
-      '</div>' +
-      mkRepRows(reps, role) +
-    '</div>';
-  }
-
   document.getElementById('revContent').innerHTML =
-    '<div class="rev-top3-grid">' +
-      mkBox('Closers', 'closer', closers, 'Closer') +
-      mkBox('Setters (non-self-gen)', 'setter', setters, 'Setter') +
+    '<div class="bold-office-hero" style="border-bottom-color:' + heroCol + '">' +
+      '<div class="bold-office-name" style="color:' + heroCol + '">' + esc(officeName) + '</div>' +
+      '<div class="bold-office-sub">Revenue Tracker</div>' +
+    '</div>' +
+    '<div class="bold-kpi-strip">' +
+      '<div class="bold-kpi-cell">' +
+        '<div class="bold-kpi-num" style="color:' + heroCol + '">$' + Math.round(totalRev).toLocaleString() + '</div>' +
+        '<div class="bold-kpi-lbl">Total Revenue</div>' +
+      '</div>' +
+      '<div class="bold-kpi-cell">' +
+        '<div class="bold-kpi-num">' + deals.length + '</div>' +
+        '<div class="bold-kpi-lbl">Deals</div>' +
+      '</div>' +
+      '<div class="bold-kpi-cell">' +
+        '<div class="bold-kpi-num" style="color:#e0a030">$' + avgRev.toLocaleString() + '</div>' +
+        '<div class="bold-kpi-lbl">Avg Deal</div>' +
+      '</div>' +
+    '</div>' +
+    '<div class="bold-cols">' +
+      '<div class="bold-col">' +
+        '<div class="bold-col-head">' +
+          '<span class="bold-col-title">Setters</span>' +
+          '<span class="bold-col-money">$$$</span>' +
+        '</div>' +
+        mkBoldRepRows(setters, 'Setter') +
+      '</div>' +
+      '<div class="bold-col">' +
+        '<div class="bold-col-head">' +
+          '<span class="bold-col-title">Closers</span>' +
+          '<span class="bold-col-money">$$$</span>' +
+        '</div>' +
+        mkBoldRepRows(closers, 'Closer') +
+      '</div>' +
     '</div>';
 }
 
