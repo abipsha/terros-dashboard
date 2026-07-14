@@ -266,6 +266,20 @@
   .inc-footer-label { font-family: 'DM Mono', monospace; font-size: 9px; color: rgba(255,255,255,.5); letter-spacing: .05em; text-transform: uppercase; margin-top: 1px; }
   /* Section divider */
   .inc-section-label { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; letter-spacing: -.2px; color: var(--white); padding: 24px 28px 12px; border-top: 1px solid var(--border); margin-top: 8px; }
+  .tahiti-countdown { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 20px; padding: 14px 28px; background: var(--surface); border-bottom: 1px solid var(--border); }
+  .tahiti-days { text-align: center; }
+  .tahiti-days-num { font-family: 'Syne', sans-serif; font-size: 36px; font-weight: 800; color: var(--amber); line-height: 1; }
+  .tahiti-days-lbl { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-top: 3px; }
+  .tahiti-progress { display: flex; flex-direction: column; gap: 8px; }
+  .tahiti-prog-row { display: flex; align-items: center; gap: 10px; }
+  .tahiti-prog-lbl { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); width: 70px; flex-shrink: 0; }
+  .tahiti-prog-track { flex: 1; height: 4px; background: var(--border); border-radius: 2px; }
+  .tahiti-prog-fill { height: 4px; border-radius: 2px; transition: width .6s ease; }
+  .tahiti-prog-val { font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 700; width: 38px; text-align: right; flex-shrink: 0; }
+  .tahiti-pace { display: flex; flex-direction: column; gap: 4px; text-align: right; }
+  .tahiti-pace-item { display: flex; flex-direction: column; }
+  .tahiti-pace-val { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700; color: var(--ink); }
+  .tahiti-pace-lbl { font-family: 'DM Mono', monospace; font-size: 9px; color: var(--muted); letter-spacing: .06em; }
 
   /* ── Competition Tracker ── */
   .comp-wrapper { padding: 20px 28px 36px; }
@@ -359,21 +373,11 @@
   /* Office cards */
   .rev-office-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px,1fr)); gap: 10px; margin-bottom: 28px; }
   .rev-ocard { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; cursor: pointer; position: relative; overflow: hidden; transition: border-color .15s, background .15s; }
-  .rev-ocard::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
-  .rev-ocard:nth-child(1)::before { background: var(--blue); }
-  .rev-ocard:nth-child(2)::before { background: var(--green); }
-  .rev-ocard:nth-child(3)::before { background: #d97706; }
-  .rev-ocard:nth-child(4)::before { background: var(--red); }
-  .rev-ocard:nth-child(5)::before { background: #a07ef5; }
+  .rev-ocard::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--ocard-color, var(--muted)); }
   .rev-ocard:hover { border-color: var(--ink); background: var(--surface2); }
   .rev-ocard-rank { font-family: 'DM Mono', monospace; font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 4px; }
   .rev-ocard-name { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700; margin-bottom: 5px; color: var(--ink); }
-  .rev-ocard-rev { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 700; line-height: 1; }
-  .rev-ocard:nth-child(1) .rev-ocard-rev { color: var(--blue); }
-  .rev-ocard:nth-child(2) .rev-ocard-rev { color: var(--green); }
-  .rev-ocard:nth-child(3) .rev-ocard-rev { color: #d97706; }
-  .rev-ocard:nth-child(4) .rev-ocard-rev { color: var(--red); }
-  .rev-ocard:nth-child(5) .rev-ocard-rev { color: #a07ef5; }
+  .rev-ocard-rev { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 700; line-height: 1; color: var(--ocard-color, var(--muted)); }
   .rev-ocard-meta { font-size: 11px; color: var(--muted); margin-top: 4px; }
   .rev-ocard-bar { height: 3px; background: var(--border); border-radius: 2px; margin-top: 10px; }
   .rev-ocard-bar-fill { height: 3px; border-radius: 2px; }
@@ -415,11 +419,7 @@
   .rev-deal-addr { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .rev-deal-footer { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
   .rev-deal-setter { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); }
-  .rev-office-pill { font-family: 'DM Mono', monospace; font-size: 9px; padding: 2px 7px; border-radius: 3px; letter-spacing: .03em; white-space: nowrap; }
-  .rev-office-pill.pill-blue  { background: var(--blue-bg); color: var(--blue); border: .5px solid rgba(91,141,239,.25); }
-  .rev-office-pill.pill-green { background: var(--green-bg); color: var(--green); border: .5px solid rgba(46,204,130,.25); }
-  .rev-office-pill.pill-amber { background: rgba(240,165,0,.08); color: var(--amber); border: .5px solid rgba(240,165,0,.25); }
-  .rev-office-pill.pill-muted { background: var(--surface2); color: var(--muted); border: .5px solid var(--border); }
+  .rev-office-pill { font-family: 'DM Mono', monospace; font-size: 9px; padding: 2px 7px; border-radius: 3px; letter-spacing: .03em; white-space: nowrap; border: .5px solid; }
 
   /* ── Mobile (tablet / small screen) ── */
   @media (max-width: 680px) {
@@ -468,6 +468,11 @@
     .incentives-grid { grid-template-columns: 1fr; gap: 14px; }
     .comp-wrapper { padding: 12px 14px 20px; }
     .comp-grid { grid-template-columns: 1fr; gap: 14px; }
+    /* Tahiti countdown */
+    .tahiti-countdown { grid-template-columns: auto 1fr; gap: 12px; padding: 12px 14px; }
+    .tahiti-pace { display: none; }
+    .tahiti-days-num { font-size: 28px; }
+    .tahiti-prog-lbl { width: 60px; }
   }
 
   /* ── iPhone (≤ 430px) ── */
@@ -617,6 +622,7 @@
 
   <!-- Revenue Competition -->
   <div class="inc-section-label">Tahiti Trip Incentive Tracker — Apr 17 to Dec 31</div>
+  <div id="tahitiCountdown" class="tahiti-countdown"></div>
   <div class="comp-wrapper">
     <div id="compContainer">
       <div style="color:var(--muted);font-size:13px;padding:10px 0">Click Refresh to load…</div>
@@ -666,6 +672,33 @@ function officeClass(o) {
   return 'office-XX';
 }
 function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function countUp(el, target, prefix, duration) {
+  if (typeof target !== 'number' || isNaN(target)) { el.textContent = prefix || '—'; return; }
+  var startTime = null;
+  duration = duration || 700;
+  function step(ts) {
+    if (!startTime) startTime = ts;
+    var progress = Math.min((ts - startTime) / duration, 1);
+    var eased = 1 - Math.pow(1 - progress, 3);
+    el.textContent = (prefix||'') + Math.round(eased * target).toLocaleString();
+    if (progress < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+var OFFICE_COLORS = {
+  'northern utah':      '#5b8def',
+  'southern utah':      '#e0a030',
+  'eastern idaho':      '#2ecc82',
+  'northern california':'#e05555',
+  'inside sales':       '#a07ef5'
+};
+function officeColor(name) {
+  var key = (name||'').toLowerCase().trim();
+  for (var k in OFFICE_COLORS) { if (key.indexOf(k) >= 0) return OFFICE_COLORS[k]; }
+  return '#888';
+}
 
 // ── Main tab switching ────────────────────────────────────────
 function switchMainTab(tab) {
@@ -743,10 +776,10 @@ function updateKPIs(deals, sublabel) {
     if(d.setter && d.setter !== d.closer) repSet[d.setter]=1;
   });
   var reps = Object.keys(repSet).length;
-  document.getElementById('kpiRev').textContent   = '$'+Math.round(total).toLocaleString();
-  document.getElementById('kpiDeals').textContent = deals.length;
-  document.getElementById('kpiAvg').textContent   = deals.length ? '$'+Math.round(avg).toLocaleString() : '—';
-  document.getElementById('kpiReps').textContent  = reps;
+  countUp(document.getElementById('kpiRev'),   Math.round(total),               '$');
+  countUp(document.getElementById('kpiDeals'), deals.length,                    '');
+  countUp(document.getElementById('kpiAvg'),   deals.length ? Math.round(avg) : null, deals.length ? '$' : '');
+  countUp(document.getElementById('kpiReps'),  reps,                            '');
   if (sublabel) {
     document.getElementById('kpiRevSub').textContent   = sublabel;
     document.getElementById('kpiDealsSub').textContent = sublabel;
@@ -774,7 +807,6 @@ function renderLevel1(deals) {
   });
   var offices = Object.values(byOffice).sort(function(a,b){return b.rev-a.rev;});
   var maxRev  = offices.length ? offices[0].rev : 1;
-  var offColors = ['var(--blue)','var(--green)','#d97706','var(--red)','#a07ef5'];
 
   var byCloser = {};
   deals.forEach(function(d) {
@@ -796,9 +828,9 @@ function renderLevel1(deals) {
 
   var officeHTML = offices.map(function(o,i) {
     var pct = maxRev ? Math.round(o.rev/maxRev*100) : 0;
-    var col = offColors[i]||'var(--muted)';
+    var col = officeColor(o.name);
     var safeName = "'" + o.name.replace(/\\/g,'\\\\').replace(/'/g,"\\'") + "'";
-    return '<div class="rev-ocard" onclick="revDrillOffice('+safeName+')">' +
+    return '<div class="rev-ocard" style="--ocard-color:'+col+'" onclick="revDrillOffice('+safeName+')">' +
       '<div class="rev-ocard-rank">#'+(i+1)+'</div>' +
       '<div class="rev-ocard-name">'+esc(o.name)+'</div>' +
       '<div class="rev-ocard-rev">$'+Math.round(o.rev).toLocaleString()+'</div>' +
@@ -933,8 +965,9 @@ function revDrillRep(repName, role) {
     var setter = isCloser
       ? (d.setter ? 'Set by ' + esc(d.setter) : '')
       : ('Closed by ' + esc(d.closer||'—'));
+    var oc = officeColor(d.office||'');
     var pillHtml = d.office
-      ? '<span class="rev-office-pill ' + officePillClass(d.office) + '">' + esc(d.office) + '</span>'
+      ? '<span class="rev-office-pill" style="color:'+oc+';background:'+oc+'18;border-color:'+oc+'44;">' + esc(d.office) + '</span>'
       : '';
     return '<div class="rev-deal-item">' +
       '<span class="rev-deal-index">'+(i+1)+'</span>' +
@@ -1258,6 +1291,68 @@ function renderCompetition(deals) {
     '<div class="comp-grid">' +
       section('Closers', 'Target 1 $1.6M', 'Target 2 $1.8M', closerRows) +
       section('Setters', 'Target 1 $640K', 'Target 2 $800K', setterRows) +
+    '</div>';
+
+  renderTahitiCountdown(closerList, setterList);
+}
+
+function renderTahitiCountdown(closerList, setterList) {
+  var COMP_START  = new Date('2026-04-17T00:00:00');
+  var COMP_END    = new Date('2026-12-31T23:59:59');
+  var today       = new Date();
+  var totalDays   = (COMP_END - COMP_START) / 86400000;
+  var elapsed     = Math.max(0, (today - COMP_START) / 86400000);
+  var daysLeft    = Math.max(0, Math.ceil((COMP_END - today) / 86400000));
+  var pctDone     = Math.min(100, elapsed / totalDays * 100);
+
+  var totalCloserRev = closerList.reduce(function(s,c){ return s + c.total; }, 0);
+  var totalSetterRev = setterList.reduce(function(s,r){ return s + r.rev; }, 0);
+
+  var dailyRateC = elapsed > 0 ? totalCloserRev / elapsed : 0;
+  var dailyRateS = elapsed > 0 ? totalSetterRev / elapsed : 0;
+  var neededC1   = Math.max(0, CLOSER_L1 - totalCloserRev);
+  var neededS1   = Math.max(0, SETTER_L1  - totalSetterRev);
+  var reqPerDayC = daysLeft > 0 ? neededC1 / daysLeft : 0;
+  var reqPerDayS = daysLeft > 0 ? neededS1 / daysLeft : 0;
+
+  function fmtK(v) { return v >= 1000000 ? '$'+(v/1000000).toFixed(2)+'M' : '$'+(v/1000).toFixed(0)+'K'; }
+  function paceColor(rate, required) { return rate >= required ? 'var(--green)' : rate >= required * 0.8 ? 'var(--amber)' : 'var(--red)'; }
+
+  var closerPct  = Math.min(100, totalCloserRev / CLOSER_L1 * 100);
+  var setterPct  = Math.min(100, totalSetterRev / SETTER_L1 * 100);
+
+  document.getElementById('tahitiCountdown').innerHTML =
+    '<div class="tahiti-days">' +
+      '<div class="tahiti-days-num">'+daysLeft+'</div>' +
+      '<div class="tahiti-days-lbl">days left</div>' +
+    '</div>' +
+    '<div class="tahiti-progress">' +
+      '<div class="tahiti-prog-row">' +
+        '<span class="tahiti-prog-lbl">Competition</span>' +
+        '<div class="tahiti-prog-track"><div class="tahiti-prog-fill" style="width:'+pctDone.toFixed(1)+'%;background:var(--muted)"></div></div>' +
+        '<span class="tahiti-prog-val" style="color:var(--muted)">'+pctDone.toFixed(0)+'%</span>' +
+      '</div>' +
+      '<div class="tahiti-prog-row">' +
+        '<span class="tahiti-prog-lbl">Closers T1</span>' +
+        '<div class="tahiti-prog-track"><div class="tahiti-prog-fill" style="width:'+closerPct.toFixed(1)+'%;background:var(--amber)"></div></div>' +
+        '<span class="tahiti-prog-val" style="color:var(--amber)">'+closerPct.toFixed(0)+'%</span>' +
+      '</div>' +
+      '<div class="tahiti-prog-row">' +
+        '<span class="tahiti-prog-lbl">Setters T1</span>' +
+        '<div class="tahiti-prog-track"><div class="tahiti-prog-fill" style="width:'+setterPct.toFixed(1)+'%;background:var(--blue)"></div></div>' +
+        '<span class="tahiti-prog-val" style="color:var(--blue)">'+setterPct.toFixed(0)+'%</span>' +
+      '</div>' +
+    '</div>' +
+    '<div class="tahiti-pace">' +
+      '<div class="tahiti-pace-item">' +
+        '<span class="tahiti-pace-val" style="color:'+paceColor(dailyRateC, reqPerDayC)+'">'+fmtK(reqPerDayC)+'/day</span>' +
+        '<span class="tahiti-pace-lbl">Closer pace needed</span>' +
+      '</div>' +
+      '<div style="height:8px"></div>' +
+      '<div class="tahiti-pace-item">' +
+        '<span class="tahiti-pace-val" style="color:'+paceColor(dailyRateS, reqPerDayS)+'">'+fmtK(reqPerDayS)+'/day</span>' +
+        '<span class="tahiti-pace-lbl">Setter pace needed</span>' +
+      '</div>' +
     '</div>';
 }
 
