@@ -394,25 +394,35 @@
   .rev-top3-meta { font-family: 'DM Mono', monospace; font-size: 9px; color: var(--muted); margin-top: 2px; }
   .rev-top3-rev { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700; color: var(--green); white-space: nowrap; flex-shrink: 0; }
   /* Rep table (Level 2) */
-  .rev-rep-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  .rev-rep-table th { text-align: left; padding: 8px 12px; font-family: 'DM Mono', monospace; font-size: 9px; font-weight: 400; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--border); white-space: nowrap; }
-  .rev-rep-table td { padding: 12px 12px; border-bottom: .5px solid var(--border-light); vertical-align: middle; }
+  .rev-rep-table { width: 100%; border-collapse: collapse; font-size: 12px; table-layout: fixed; }
+  .rev-rep-table th { text-align: left; padding: 7px 10px; font-family: 'DM Mono', monospace; font-size: 9px; font-weight: 400; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--border); white-space: nowrap; }
+  .rev-rep-table td { padding: 9px 10px; border-bottom: .5px solid var(--border-light); vertical-align: middle; }
+  .rev-rep-table td:first-child { width: 60%; }
+  .rev-rep-table td:last-child { width: 40%; text-align: right; }
+  .rev-rep-table th:last-child { text-align: right; }
   .rev-rep-table tbody tr { cursor: pointer; transition: background .1s; }
   .rev-rep-table tbody tr:hover { background: var(--surface2); }
   .rev-rep-table tbody tr:last-child td { border-bottom: none; }
-  .rev-rep-name { font-family: 'Syne', sans-serif; font-weight: 700; color: var(--blue); font-size: 14px; }
+  .rev-rep-name { font-family: 'Syne', sans-serif; font-weight: 700; color: var(--blue); font-size: 12px; }
   .rev-rep-table tbody tr:hover .rev-rep-name { text-decoration: underline; }
   .rev-role-closer { display: inline-block; font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: .08em; padding: 2px 7px; border-radius: 3px; background: var(--blue-bg); color: var(--blue); border: 1px solid rgba(91,141,239,.2); }
   .rev-role-setter { display: inline-block; font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: .08em; padding: 2px 7px; border-radius: 3px; background: var(--green-bg); color: var(--green); border: 1px solid rgba(46,204,130,.2); }
   /* Deal list (Level 3) */
-  .rev-deal-item { display: flex; align-items: center; gap: 14px; padding: 12px 0; border-bottom: .5px solid var(--border-light); }
+  .rev-deal-item { display: flex; align-items: flex-start; gap: 10px; padding: 11px 0; border-bottom: .5px solid var(--border-light); }
   .rev-deal-item:last-child { border-bottom: none; }
-  .rev-deal-index { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); width: 20px; text-align: right; flex-shrink: 0; }
+  .rev-deal-index { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); width: 16px; text-align: right; flex-shrink: 0; padding-top: 2px; }
   .rev-deal-info { flex: 1; min-width: 0; }
+  .rev-deal-top { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 3px; }
   .rev-deal-name { font-weight: 500; color: var(--ink); font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .rev-deal-meta { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); margin-top: 3px; }
-  .rev-deal-date { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); flex-shrink: 0; text-align: right; }
-  .rev-deal-rev { font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700; color: var(--green); flex-shrink: 0; }
+  .rev-deal-rev { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700; color: var(--green); white-space: nowrap; flex-shrink: 0; }
+  .rev-deal-addr { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .rev-deal-footer { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .rev-deal-setter { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); }
+  .rev-office-pill { font-family: 'DM Mono', monospace; font-size: 9px; padding: 2px 7px; border-radius: 3px; letter-spacing: .03em; white-space: nowrap; }
+  .rev-office-pill.pill-blue  { background: var(--blue-bg); color: var(--blue); border: .5px solid rgba(91,141,239,.25); }
+  .rev-office-pill.pill-green { background: var(--green-bg); color: var(--green); border: .5px solid rgba(46,204,130,.25); }
+  .rev-office-pill.pill-amber { background: rgba(240,165,0,.08); color: var(--amber); border: .5px solid rgba(240,165,0,.25); }
+  .rev-office-pill.pill-muted { background: var(--surface2); color: var(--muted); border: .5px solid var(--border); }
 
   /* ── Mobile (tablet / small screen) ── */
   @media (max-width: 680px) {
@@ -451,12 +461,11 @@
     .rev-top3-grid { grid-template-columns: 1fr; gap: 10px; }
     .rev-top3-row { padding: 13px 14px; min-height: 52px; }
     /* Rep table */
-    .rev-rep-table { font-size: 12px; }
-    .rev-rep-table th, .rev-rep-table td { padding: 10px 8px; }
-    .rev-rep-name { font-size: 13px; }
+    .rev-rep-table { font-size: 11px; }
+    .rev-rep-table th, .rev-rep-table td { padding: 8px 7px; }
+    .rev-rep-name { font-size: 11px; }
     /* Deal list */
-    .rev-deal-item { gap: 10px; }
-    .rev-deal-date { display: none; }
+    .rev-deal-item { gap: 8px; }
     /* Incentives */
     .incentives-wrapper { padding: 12px 14px 20px; }
     .incentives-grid { grid-template-columns: 1fr; gap: 14px; }
@@ -483,11 +492,7 @@
     .rev-top3-meta { font-size: 8px; }
     /* Rep table — hide Avg column to save space */
     .rev-rep-table .hide-mobile { display: none; }
-    /* Deal list — stack rev below name */
-    .rev-deal-item { flex-wrap: wrap; gap: 6px; }
-    .rev-deal-info { flex: 1 1 100%; order: 1; }
-    .rev-deal-rev { order: 2; margin-left: auto; font-size: 13px; }
-    .rev-deal-index { order: 0; }
+    /* Deal list — already mobile-native, no overrides needed */
     /* Custom date pickers — stack below buttons */
     .custom-dates { flex-wrap: wrap; }
     /* Drilldown rep header */
@@ -872,7 +877,7 @@ function revDrillOffice(officeName) {
       var sr = "'" + role + "'";
       return '<tr onclick="revDrillRep('+sn+','+sr+')">' +
         '<td><span class="rev-rep-name">'+esc(r.name)+'</span> <span style="font-family:\'DM Mono\',monospace;font-size:10px;color:var(--muted);font-weight:400;">'+r.wins+' deal'+(r.wins!==1?'s':'')+'</span></td>' +
-        '<td style="font-family:\'Syne\',sans-serif;font-weight:700;color:var(--green);white-space:nowrap;">$'+Math.round(r.rev).toLocaleString()+'</td>' +
+        '<td style="font-family:\'Syne\',sans-serif;font-weight:700;color:var(--green);font-size:12px;">$'+Math.round(r.rev).toLocaleString()+'</td>' +
         '</tr>';
     }).join('');
   }
@@ -919,19 +924,36 @@ function revDrillRep(repName, role) {
     ? '<span class="rev-role-closer">Closer</span>'
     : '<span class="rev-role-setter">Setter</span>';
 
+  function officePillClass(office) {
+    if (!office) return 'pill-muted';
+    var o = office.toLowerCase();
+    if (o.indexOf('northern utah') >= 0 || o.indexOf('inside') >= 0) return 'pill-blue';
+    if (o.indexOf('eastern idaho') >= 0 || o.indexOf('northern california') >= 0) return 'pill-green';
+    if (o.indexOf('southern utah') >= 0) return 'pill-amber';
+    return 'pill-muted';
+  }
+
   var dealItems = deals.map(function(d,i) {
     var addr  = [d.street, d.city, d.state].filter(Boolean).join(', ');
-    var other = isCloser
-      ? (d.setter ? 'Set by '+esc(d.setter) : '')
-      : 'Closed by '+esc(d.closer||'—');
+    var setter = isCloser
+      ? (d.setter ? 'Set by ' + esc(d.setter) : '')
+      : ('Closed by ' + esc(d.closer||'—'));
+    var pillHtml = d.office
+      ? '<span class="rev-office-pill ' + officePillClass(d.office) + '">' + esc(d.office) + '</span>'
+      : '';
     return '<div class="rev-deal-item">' +
       '<span class="rev-deal-index">'+(i+1)+'</span>' +
       '<div class="rev-deal-info">' +
-        '<div class="rev-deal-name">'+esc(d.name||'—')+'</div>' +
-        '<div class="rev-deal-meta">'+esc(addr)+(other?' &nbsp;·&nbsp; '+other:'')+(d.office?' &nbsp;·&nbsp; <span style="color:var(--blue)">'+esc(d.office)+'</span>':'')+'</div>' +
+        '<div class="rev-deal-top">' +
+          '<div class="rev-deal-name">'+esc(d.name||'—')+'</div>' +
+          '<div class="rev-deal-rev">$'+Math.round(d.rev||0).toLocaleString()+'</div>' +
+        '</div>' +
+        (addr ? '<div class="rev-deal-addr">'+esc(addr)+'</div>' : '') +
+        '<div class="rev-deal-footer">' +
+          (setter ? '<span class="rev-deal-setter">'+setter+'</span>' : '') +
+          pillHtml +
+        '</div>' +
       '</div>' +
-      '<span class="rev-deal-date">'+esc(d.date_closed||'—')+'</span>' +
-      '<span class="rev-deal-rev">$'+Math.round(d.rev||0).toLocaleString()+'</span>' +
       '</div>';
   }).join('') || '<div style="padding:30px;text-align:center;color:var(--muted)">No deals found</div>';
 
