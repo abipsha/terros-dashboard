@@ -265,7 +265,7 @@
   .inc-footer-num { font-family: 'Roboto Condensed', sans-serif; font-size: 11px; font-weight: 800; color: #fff; }
   .inc-footer-label { font-family: 'Inter', sans-serif; font-size: 9px; color: rgba(255,255,255,.5); letter-spacing: .05em; text-transform: uppercase; margin-top: 1px; }
   /* Section divider */
-  .inc-section-label { font-family: 'Roboto Condensed', sans-serif; font-size: 16px; font-weight: 700; letter-spacing: -.2px; color: var(--white); padding: 24px 28px 12px; border-top: 1px solid var(--border); margin-top: 8px; }
+  .inc-section-label { font-family: 'Roboto Condensed', sans-serif; font-size: 32px; font-weight: 900; letter-spacing: .04em; text-transform: uppercase; text-align: center; color: var(--white); padding: 28px 28px 14px; border-top: 1px solid var(--border); margin-top: 8px; }
   .tahiti-countdown { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 20px; padding: 14px 28px; background: var(--surface); border-bottom: 1px solid var(--border); }
   .tahiti-days { text-align: center; }
   .tahiti-days-num { font-family: 'Roboto Condensed', sans-serif; font-size: 36px; font-weight: 800; color: var(--amber); line-height: 1; }
@@ -654,6 +654,7 @@
   </div>
 
   <!-- Summer Bonus -->
+  <div class="inc-section-label">Weekly Summer Bonus</div>
   <div class="incentives-wrapper">
     <div class="incentives-grid" id="incentivesGrid">
       <div style="color:var(--muted);font-size:13px;padding:10px 0">Click Refresh to load…</div>
@@ -1427,17 +1428,7 @@ function renderTahitiCountdown(closerList, setterList) {
         '<span class="tahiti-prog-val" style="color:var(--muted)">'+pctDone.toFixed(0)+'% elapsed</span>' +
       '</div>' +
     '</div>' +
-    '<div class="tahiti-pace">' +
-      '<div class="tahiti-pace-item">' +
-        '<span class="tahiti-pace-val" style="color:'+paceColor(dailyRateC, reqPerDayC)+'">'+fmtK(reqPerDayC)+'/day</span>' +
-        '<span class="tahiti-pace-lbl">Closer pace needed</span>' +
-      '</div>' +
-      '<div style="height:8px"></div>' +
-      '<div class="tahiti-pace-item">' +
-        '<span class="tahiti-pace-val" style="color:'+paceColor(dailyRateS, reqPerDayS)+'">'+fmtK(reqPerDayS)+'/day</span>' +
-        '<span class="tahiti-pace-lbl">Setter pace needed</span>' +
-      '</div>' +
-    '</div>';
+    '';
 }
 
 // ── Rep Drilldown ─────────────────────────────────────────────
