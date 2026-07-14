@@ -349,11 +349,11 @@
   .rev-kpi-val.kpi-gold { color: var(--amber); }
   .rev-kpi-val.kpi-white { color: var(--ink); }
   .rev-kpi-sub { font-size: 12px; color: var(--muted); margin-top: 5px; }
-  .rev-breadcrumb { background: var(--surface); border-bottom: 1px solid var(--border); padding: 9px 28px; display: flex; align-items: center; gap: 6px; font-family: 'DM Mono', monospace; font-size: 11px; }
-  .rev-bc-sep { color: var(--muted); }
-  .rev-bc-link { color: var(--blue); cursor: pointer; }
+  .rev-breadcrumb { background: var(--surface2); border-bottom: 1px solid var(--border); padding: 11px 28px; display: flex; align-items: center; gap: 8px; font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 600; }
+  .rev-bc-sep { color: var(--muted); font-weight: 400; }
+  .rev-bc-link { color: var(--blue); cursor: pointer; font-weight: 600; }
   .rev-bc-link:hover { text-decoration: underline; }
-  .rev-bc-active { color: var(--ink); font-weight: 500; }
+  .rev-bc-active { color: var(--white); font-weight: 700; }
   .rev-content { padding: 22px 28px 40px; background: var(--black); }
   .rev-sec-label { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin-bottom: 12px; }
   /* Office cards */
@@ -873,7 +873,6 @@ function revDrillOffice(officeName) {
       return '<tr onclick="revDrillRep('+sn+','+sr+')">' +
         '<td><span class="rev-rep-name">'+esc(r.name)+'</span> <span style="font-family:\'DM Mono\',monospace;font-size:10px;color:var(--muted);font-weight:400;">'+r.wins+' deal'+(r.wins!==1?'s':'')+'</span></td>' +
         '<td style="font-family:\'Syne\',sans-serif;font-weight:700;color:var(--green);white-space:nowrap;">$'+Math.round(r.rev).toLocaleString()+'</td>' +
-        '<td class="hide-mobile" style="color:var(--muted);font-family:\'DM Mono\',monospace;font-size:11px;white-space:nowrap;">$'+Math.round(r.rev/(r.wins||1)).toLocaleString()+' avg</td>' +
         '</tr>';
     }).join('');
   }
@@ -886,7 +885,7 @@ function revDrillOffice(officeName) {
       '</div>' +
       '<div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">' +
         '<table class="rev-rep-table">' +
-          '<thead><tr><th>Rep</th><th>Revenue</th><th class="hide-mobile">Avg</th></tr></thead>' +
+          '<thead><tr><th>Rep</th><th>Revenue</th></tr></thead>' +
           '<tbody>'+mkRepRows(reps, role)+'</tbody>' +
         '</table>' +
       '</div>' +
