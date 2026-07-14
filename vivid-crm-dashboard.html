@@ -648,6 +648,8 @@ const LOCAL_API = (location.hostname === 'localhost' || location.hostname === '1
 let allDeals      = [];
 let monthDeals    = [];
 var _compReps     = {};
+var CLOSER_L1 = 1600000, CLOSER_L2 = 1800000;
+var SETTER_L1 = 640000,  SETTER_L2 = 800000;
 let sortState     = { closers: { col: 'date_closed', dir: -1 }, setters: { col: 'date_closed', dir: -1 } };
 let activeTab     = 'closers';
 let activeMainTab = 'revenue';
@@ -1214,9 +1216,6 @@ function renderIncentivesTracker(deals) {
 }
 
 function renderCompetition(deals) {
-  var CLOSER_L1 = 1600000, CLOSER_L2 = 1800000;
-  var SETTER_L1 = 640000,  SETTER_L2 = 800000;
-
   var closers = {}, setters = {};
 
   deals.forEach(function(d) {
