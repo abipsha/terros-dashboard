@@ -266,7 +266,7 @@
   .inc-footer-label { font-family: 'DM Mono', monospace; font-size: 9px; color: rgba(255,255,255,.5); letter-spacing: .05em; text-transform: uppercase; margin-top: 1px; }
   /* Section divider */
   .inc-section-label { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; letter-spacing: -.2px; color: var(--white); padding: 24px 28px 12px; border-top: 1px solid var(--border); margin-top: 8px; }
-  .tahiti-countdown { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 20px; padding: 14px 28px; background: var(--surface); border-bottom: 1px solid var(--border); }
+  .tahiti-countdown { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 20px; padding: 14px 28px; background: var(--surface); border-bottom: 1px solid var(--border); }
   .tahiti-days { text-align: center; }
   .tahiti-days-num { font-family: 'Syne', sans-serif; font-size: 36px; font-weight: 800; color: var(--amber); line-height: 1; }
   .tahiti-days-lbl { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-top: 3px; }
@@ -1358,17 +1358,7 @@ function renderTahitiCountdown(closerList, setterList) {
       '<div class="tahiti-prog-row">' +
         '<span class="tahiti-prog-lbl">Competition</span>' +
         '<div class="tahiti-prog-track"><div class="tahiti-prog-fill" style="width:'+pctDone.toFixed(1)+'%;background:var(--muted)"></div></div>' +
-        '<span class="tahiti-prog-val" style="color:var(--muted)">'+pctDone.toFixed(0)+'%</span>' +
-      '</div>' +
-      '<div class="tahiti-prog-row">' +
-        '<span class="tahiti-prog-lbl">Closers T1</span>' +
-        '<div class="tahiti-prog-track"><div class="tahiti-prog-fill" style="width:'+closerPct.toFixed(1)+'%;background:var(--amber)"></div></div>' +
-        '<span class="tahiti-prog-val" style="color:var(--amber)">'+closerPct.toFixed(0)+'%</span>' +
-      '</div>' +
-      '<div class="tahiti-prog-row">' +
-        '<span class="tahiti-prog-lbl">Setters T1</span>' +
-        '<div class="tahiti-prog-track"><div class="tahiti-prog-fill" style="width:'+setterPct.toFixed(1)+'%;background:var(--blue)"></div></div>' +
-        '<span class="tahiti-prog-val" style="color:var(--blue)">'+setterPct.toFixed(0)+'%</span>' +
+        '<span class="tahiti-prog-val" style="color:var(--muted)">'+pctDone.toFixed(0)+'% elapsed</span>' +
       '</div>' +
     '</div>' +
     '<div class="tahiti-pace">' +
