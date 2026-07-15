@@ -15,7 +15,7 @@ from datetime import datetime, timezone, timedelta
 
 ODOO_URL   = os.environ.get("ODOO_URL",      "https://myvivid.odoo.com")
 ODOO_DB    = os.environ.get("ODOO_DB",       "myvivid")
-ODOO_USER  = os.environ.get("ODOO_USER",     "")
+ODOO_USER  = os.environ.get("ODOO_USER",     "abipsha.joshi@vividwindows.com")
 ODOO_PASS  = os.environ.get("ODOO_PASSWORD", "")
 
 # XML-RPC proxies for external API (bypasses web session IP restrictions)
