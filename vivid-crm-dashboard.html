@@ -1069,7 +1069,7 @@ function revDrillRep(repName, role) {
       '<span class="rev-deal-index">'+(i+1)+'</span>' +
       '<div class="rev-deal-info">' +
         '<div class="rev-deal-top">' +
-          '<div class="rev-deal-name">'+esc(d.name||'—')+'</div>' +
+          '<div class="rev-deal-name">'+(d.id ? '<a href="https://myvivid.odoo.com/odoo/crm/'+d.id+'" target="_blank" style="color:inherit;text-decoration:none;" onmouseover="this.style.textDecoration=\'underline\'" onmouseout="this.style.textDecoration=\'none\'">'+esc(d.name||'—')+'</a>' : esc(d.name||'—'))+(isCloser && d.setter && d.setter === d.closer ? '<span style="display:inline-flex;align-items:center;font-size:9px;font-weight:600;padding:1px 5px;border-radius:3px;background:rgba(224,160,48,.15);color:#e0a030;border:.5px solid rgba(224,160,48,.35);letter-spacing:.06em;margin-left:7px;vertical-align:middle;">SG</span>' : '')+'</div>' +
           '<div class="rev-deal-rev">$'+Math.round(d.rev||0).toLocaleString()+'</div>' +
         '</div>' +
         (addr ? '<div class="rev-deal-addr">'+esc(addr)+'</div>' : '') +
