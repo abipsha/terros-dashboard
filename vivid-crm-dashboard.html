@@ -230,31 +230,31 @@
   .trow-rev { display: block; color: var(--green); font-family: 'Roboto Condensed', sans-serif; font-weight: 700; font-size: 12px; margin-top: 1px; }
 
   /* ── Summer Bonus Tracker ── */
-  .incentives-wrapper { padding: 16px 28px 28px; background: var(--black); }
-  .incentives-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 18px; }
+  .incentives-wrapper { padding: 16px 28px 28px; background: var(--black); max-width: 1200px; margin: 0 auto; }
+  .incentives-grid { display: grid; grid-template-columns: 1fr; gap: 18px; }
   .inc-board { border-radius: 10px; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,.12); border: 1px solid rgba(0,0,0,.1); }
   .inc-board-header { background: #185c4d; padding: 14px 18px 12px; display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
   .inc-board-left { min-width: 0; }
-  .inc-board-office { font-family: 'Roboto Condensed', sans-serif; font-size: 13px; font-weight: 800; letter-spacing: .4px; text-transform: uppercase; color: #fff; line-height: 1.3; }
+  .inc-board-office { font-family: 'Roboto Condensed', sans-serif; font-size: 20px; font-weight: 800; letter-spacing: .6px; text-transform: uppercase; color: #fff; line-height: 1.2; }
   .inc-board-subtitle { font-family: 'Inter', sans-serif; font-size: 9px; color: rgba(255,255,255,.6); margin-top: 3px; letter-spacing: .04em; }
   .inc-board-right { text-align: right; flex-shrink: 0; }
   .inc-board-weekly { font-family: 'Roboto Condensed', sans-serif; font-size: 17px; font-weight: 800; color: #fff; font-style: italic; line-height: 1; }
   .inc-board-period { font-family: 'Inter', sans-serif; font-size: 9px; color: rgba(255,255,255,.5); letter-spacing: .05em; text-transform: uppercase; margin-top: 2px; }
   .inc-table-wrap { overflow-x: auto; }
-  .inc-table { width: 100%; border-collapse: collapse; font-size: 12px; background: #1e7265; min-width: 300px; }
-  .inc-table thead th { background: rgba(0,0,0,.3); color: rgba(255,255,255,.85); font-family: 'Inter', sans-serif; font-size: 9px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; padding: 8px 10px; text-align: center; border-bottom: 1px solid rgba(0,0,0,.25); white-space: nowrap; }
+  .inc-table { width: 100%; border-collapse: collapse; font-size: 13px; background: #1e7265; min-width: 300px; }
+  .inc-table thead th { background: rgba(0,0,0,.3); color: rgba(255,255,255,.85); font-family: 'Inter', sans-serif; font-size: 10px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; padding: 10px 14px; text-align: center; border-bottom: 1px solid rgba(0,0,0,.25); white-space: nowrap; }
   .inc-table thead th:first-child { text-align: left; }
   .inc-table thead th.inc-wk-cur { background: rgba(255,255,255,.14) !important; }
   .inc-table tbody tr { border-bottom: 1px solid rgba(0,0,0,.18); }
   .inc-table tbody tr:last-child { border-bottom: none; }
   .inc-table tbody tr:hover { background: rgba(255,255,255,.07); }
-  .inc-table tbody td { padding: 8px 10px; color: #fff; }
+  .inc-table tbody td { padding: 11px 14px; color: #fff; }
   .inc-table tbody td:not(:first-child) { text-align: center; }
   .inc-table tbody td.inc-wk-cur-cell { background: rgba(255,255,255,.06); }
   .inc-wk-dates { display: block; font-size: 8px; opacity: .55; margin-top: 1px; letter-spacing: 0; text-transform: none; font-weight: 400; }
-  .inc-rep { font-family: 'Inter', sans-serif; font-weight: 500; font-size: 12px; }
+  .inc-rep { font-family: 'Inter', sans-serif; font-weight: 500; font-size: 13px; }
   .inc-self { font-family: 'Inter', sans-serif; font-size: 10px; color: rgba(255,255,255,.5); margin-left: 4px; }
-  .inc-deal-badge { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; font-weight: 800; font-size: 12px; }
+  .inc-deal-badge { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 50%; font-weight: 800; font-size: 13px; }
   .inc-tier-0 { color: rgba(255,255,255,.2); }
   .inc-tier-1 { background: rgba(255,255,255,.2); color: #fff; }
   .inc-tier-2 { background: rgba(0,198,162,.6); color: #fff; }
@@ -266,6 +266,11 @@
   .inc-footer-label { font-family: 'Inter', sans-serif; font-size: 9px; color: rgba(255,255,255,.5); letter-spacing: .05em; text-transform: uppercase; margin-top: 1px; }
   /* Section divider */
   .inc-section-label { font-family: 'Roboto Condensed', sans-serif; font-size: 32px; font-weight: 900; letter-spacing: .04em; text-transform: uppercase; text-align: center; color: var(--white); padding: 28px 28px 14px; border-top: 1px solid var(--border); margin-top: 8px; }
+  .inc-nav { display: flex; align-items: stretch; background: var(--surface2); border-bottom: 1px solid var(--border); padding: 0 28px; overflow-x: auto; scrollbar-width: none; }
+  .inc-nav::-webkit-scrollbar { display: none; }
+  .inc-nav-tab { font-family: 'Roboto Condensed', sans-serif; font-size: 13px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; padding: 13px 22px; color: var(--muted); cursor: pointer; border: none; background: none; border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap; transition: color .15s, border-color .15s; }
+  .inc-nav-tab:hover { color: var(--ink); }
+  .inc-nav-tab.active { color: #00c6a2; border-bottom-color: #00c6a2; }
   .tahiti-countdown { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 20px; padding: 14px 28px; background: var(--surface); border-bottom: 1px solid var(--border); }
   .tahiti-days { text-align: center; }
   .tahiti-days-num { font-family: 'Roboto Condensed', sans-serif; font-size: 36px; font-weight: 800; color: var(--amber); line-height: 1; }
@@ -499,6 +504,11 @@
     /* Incentives */
     .incentives-wrapper { padding: 12px 14px 20px; }
     .incentives-grid { grid-template-columns: 1fr; gap: 14px; }
+    .inc-table { font-size: 11px; }
+    .inc-table thead th { font-size: 9px; padding: 8px 8px; }
+    .inc-table tbody td { padding: 8px 8px; }
+    .inc-rep { font-size: 11px; }
+    .inc-deal-badge { width: 22px; height: 22px; font-size: 11px; }
     .comp-wrapper { padding: 12px 14px 20px; }
     .comp-grid { grid-template-columns: 1fr; gap: 14px; }
     /* Tahiti countdown */
@@ -653,21 +663,28 @@
     <span id="incStatusText">Click Refresh to load</span>
   </div>
 
-  <!-- Summer Bonus -->
-  <div style="border-top: 1px solid var(--border);"></div>
-  <div class="inc-section-label" style="border-top: none;">Weekly Summer Bonus</div>
-  <div class="incentives-wrapper">
-    <div class="incentives-grid" id="incentivesGrid">
-      <div style="color:var(--muted);font-size:13px;padding:10px 0">Click Refresh to load…</div>
+  <!-- Sub-navigation -->
+  <div class="inc-nav">
+    <button class="inc-nav-tab active" data-tab="bonus"  onclick="switchIncTab('bonus')">Weekly Summer Bonus</button>
+    <button class="inc-nav-tab"        data-tab="tahiti" onclick="switchIncTab('tahiti')">Tahiti Trip Tracker</button>
+  </div>
+
+  <!-- Summer Bonus panel -->
+  <div id="inc-panel-bonus">
+    <div class="incentives-wrapper">
+      <div class="incentives-grid" id="incentivesGrid">
+        <div style="color:var(--muted);font-size:13px;padding:10px 0">Click Refresh to load…</div>
+      </div>
     </div>
   </div>
 
-  <!-- Revenue Competition -->
-  <div class="inc-section-label">Tahiti Trip Incentive Tracker — Apr 17 to Dec 31</div>
-  <div id="tahitiCountdown" class="tahiti-countdown"></div>
-  <div class="comp-wrapper">
-    <div id="compContainer">
-      <div style="color:var(--muted);font-size:13px;padding:10px 0">Click Refresh to load…</div>
+  <!-- Tahiti Trip panel -->
+  <div id="inc-panel-tahiti" style="display:none;">
+    <div id="tahitiCountdown" class="tahiti-countdown"></div>
+    <div class="comp-wrapper">
+      <div id="compContainer">
+        <div style="color:var(--muted);font-size:13px;padding:10px 0">Click Refresh to load…</div>
+      </div>
     </div>
   </div>
 
@@ -695,6 +712,17 @@ var SETTER_L1 = 640000,  SETTER_L2 = 800000;
 let sortState     = { closers: { col: 'date_closed', dir: -1 }, setters: { col: 'date_closed', dir: -1 } };
 let activeTab     = 'closers';
 let activeMainTab = 'revenue';
+let activeIncTab  = 'bonus';
+
+function switchIncTab(name) {
+  activeIncTab = name;
+  ['bonus','tahiti'].forEach(function(t) {
+    document.getElementById('inc-panel-' + t).style.display = t === name ? 'block' : 'none';
+  });
+  document.querySelectorAll('.inc-nav-tab').forEach(function(btn) {
+    btn.classList.toggle('active', btn.dataset.tab === name);
+  });
+}
 let curRange      = 'mtd';
 
 // ── Formatters ───────────────────────────────────────────────
@@ -1139,6 +1167,21 @@ async function loadData() {
 
 
 // ── Incentives Tracker ────────────────────────────────────────
+
+// Returns the Sun–Sat week boundaries for a YYYY-MM-DD date string
+function getSunSatWeek(dateStr) {
+  if (!dateStr) return null;
+  var p = dateStr.split('-');
+  var d = new Date(parseInt(p[0]), parseInt(p[1])-1, parseInt(p[2]));
+  var dow = d.getDay(); // 0=Sun
+  var sun = new Date(d); sun.setDate(d.getDate() - dow);
+  var sat = new Date(sun); sat.setDate(sun.getDate() + 6);
+  var pad = function(n){ return String(n).padStart(2,'0'); };
+  var fmt = function(dt){ return dt.getFullYear()+'-'+pad(dt.getMonth()+1)+'-'+pad(dt.getDate()); };
+  var lbl = function(dt){ return (dt.getMonth()+1)+'/'+dt.getDate(); };
+  return { key: fmt(sun), start: fmt(sun), end: fmt(sat), label: lbl(sun)+'–'+lbl(sat) };
+}
+
 function getMonthWeeks() {
   var now = new Date();
   var year = now.getFullYear(), month = now.getMonth();
@@ -1203,65 +1246,135 @@ function renderIncentivesTracker(deals) {
     document.getElementById('incentivesGrid').innerHTML = '<div style="color:var(--muted);font-size:13px;padding:10px 0">No setter deals found this month.</div>';
     return;
   }
-  var weeks = getMonthWeeks();
 
+  var BONUS_START = '2026-07-01';   // competition start — first week begins here
+
+  var now = new Date();
+  var pad = function(n){ return String(n).padStart(2,'0'); };
+  var daysInMonth = new Date(now.getFullYear(), now.getMonth()+1, 0).getDate();
+  var monthLast  = now.getFullYear()+'-'+pad(now.getMonth()+1)+'-'+pad(daysInMonth);
+  var todayStr   = now.getFullYear()+'-'+pad(now.getMonth()+1)+'-'+pad(now.getDate());
+
+  // Collect Sun-Sat weeks that overlap the bonus period, grouped by office → setter
+  var weekRegistry = {};  // weekKey → week object
   var byOffice = {};
+
   deals.forEach(function(d) {
     var setter = d.setter || '';
     if (!setter) return;
+    var dealDate = d.date_deadline || d.date_closed || '';
+    if (!dealDate || dealDate < BONUS_START) return;   // ignore pre-bonus deals
+    var week = getSunSatWeek(dealDate);
+    if (!week) return;
+    // Skip weeks entirely outside the bonus window
+    if (week.start > monthLast || week.end < BONUS_START) return;
+    weekRegistry[week.key] = week;
     var office = d.office || 'Unknown';
     if (!byOffice[office]) byOffice[office] = { name: office, reps: {} };
-    if (!byOffice[office].reps[setter]) {
-      var wc = {};
-      weeks.forEach(function(w){ wc[w.num] = 0; });
-      byOffice[office].reps[setter] = { name: setter, weekCounts: wc, selfGenTotal: 0 };
-    }
-    var dealDate = d.date_deadline || d.date_closed || '';
-    for (var i = 0; i < weeks.length; i++) {
-      if (dealDate >= weeks[i].start && dealDate <= weeks[i].end) {
-        byOffice[office].reps[setter].weekCounts[weeks[i].num]++;
-        break;
-      }
-    }
-    if (d.closer && d.setter === d.closer) byOffice[office].reps[setter].selfGenTotal++;
+    if (!byOffice[office].reps[setter]) byOffice[office].reps[setter] = { name: setter, weekMap: {}, sgCount: 0 };
+    if (!byOffice[office].reps[setter].weekMap[week.key]) byOffice[office].reps[setter].weekMap[week.key] = [];
+    byOffice[office].reps[setter].weekMap[week.key].push(d);
+    if (d.closer && d.closer === setter) byOffice[office].reps[setter].sgCount++;
   });
 
-  var officeOrder = ['Northern Utah','Southern Utah','Eastern Idaho','Northern California','Inside Sales'];
+  // Weeks sorted chronologically; mark current week; clamp display start/end to BONUS_START's week
+  var weeks = Object.values(weekRegistry).sort(function(a,b){ return a.start.localeCompare(b.start); });
+  weeks.forEach(function(w){
+    w.isCurrent = todayStr >= w.start && todayStr <= w.end;
+    var dispStart = w.start < BONUS_START ? BONUS_START : w.start;
+    // Recompute display end as the Saturday on/after dispStart (don't trust w.end for the clamped week)
+    var bsP = dispStart.split('-');
+    var bsDt = new Date(parseInt(bsP[0]), parseInt(bsP[1])-1, parseInt(bsP[2]));
+    var daysToSat = (6 - bsDt.getDay() + 7) % 7;  // 0 if already Saturday
+    var satDt = new Date(bsDt); satDt.setDate(bsDt.getDate() + daysToSat);
+    var sp = function(n){ return String(n).padStart(2,'0'); };
+    var satStr = satDt.getFullYear()+'-'+sp(satDt.getMonth()+1)+'-'+sp(satDt.getDate());
+    // Use whichever is earlier: computed Saturday or actual week end
+    var dispEnd = satStr <= w.end ? satStr : w.end;
+    var ds = dispStart.split('-'), de = dispEnd.split('-');
+    w.label = parseInt(ds[1])+'/'+parseInt(ds[2])+'–'+parseInt(de[1])+'/'+parseInt(de[2]);
+  });
+
+  var officeOrder = ['Southern Utah','Northern Utah','Eastern Idaho','Northern California'];
   var offices = Object.values(byOffice).sort(function(a,b){
     var ia=officeOrder.indexOf(a.name), ib=officeOrder.indexOf(b.name);
     if(ia>=0&&ib>=0) return ia-ib; if(ia>=0) return -1; if(ib>=0) return 1;
     return a.name.localeCompare(b.name);
   });
 
+  var TEAL = '#00c6a2', GOLD = '#f5c542';
+  var uid = 0;
+
   var html = offices.map(function(office) {
     var reps = Object.values(office.reps).sort(function(a,b){
-      var at=Object.values(a.weekCounts).reduce(function(s,v){return s+v;},0);
-      var bt=Object.values(b.weekCounts).reduce(function(s,v){return s+v;},0);
+      var at=Object.values(a.weekMap).reduce(function(s,ds){return s+ds.length;},0);
+      var bt=Object.values(b.weekMap).reduce(function(s,ds){return s+ds.length;},0);
       return bt-at;
     });
 
-    var thCells = '<th>Rep Name</th>' + weeks.map(function(w){
+    var thCells = '<th>Setter</th>' + weeks.map(function(w){
       var cls = w.isCurrent ? ' inc-wk-cur' : '';
-      var dates = w.start.slice(5)+(w.start!==w.end?'–'+w.end.slice(5):'');
-      return '<th class="'+cls+'">'+esc(w.label)+'<span class="inc-wk-dates">'+esc(dates)+'</span></th>';
+      return '<th class="'+cls+'">'+esc(w.label)+'</th>';
     }).join('');
 
+    var colspan = weeks.length + 1;
+
     var rows = reps.map(function(rep){
-      var selfLabel = rep.selfGenTotal > 0 ? '<span class="inc-self">('+rep.selfGenTotal+' SG)</span>' : '';
+      uid++;
+      var detailId = 'inc-d-'+uid;
+
+      // Count badge cells
       var tds = weeks.map(function(w){
-        var cnt = rep.weekCounts[w.num]||0;
+        var cnt = (rep.weekMap[w.key] || []).length;
         var tierCls = cnt>=3?'inc-tier-3':cnt>=2?'inc-tier-2':cnt>=1?'inc-tier-1':'inc-tier-0';
-        var cellCls = w.isCurrent?' inc-wk-cur-cell':'';
+        var cellCls = w.isCurrent ? ' inc-wk-cur-cell' : '';
         return '<td class="'+cellCls+'"><span class="inc-deal-badge '+tierCls+'">'+(cnt===0?'—':String(cnt))+'</span></td>';
       }).join('');
-      return '<tr><td><span class="inc-rep">'+esc(rep.name)+'</span>'+selfLabel+'</td>'+tds+'</tr>';
+
+      // Deal detail panel (hidden by default)
+      var detailRows = [];
+      weeks.forEach(function(w){
+        var ds = rep.weekMap[w.key] || [];
+        if (ds.length < 2) return;
+        var bonusPct   = ds.length >= 3 ? '4%' : '2%';
+        var bonusColor = ds.length >= 3 ? GOLD : TEAL;
+        ds.forEach(function(d){
+          var link = d.id ? 'https://myvivid.odoo.com/odoo/crm/'+d.id : '';
+          var nameHtml = link
+            ? '<a href="'+link+'" target="_blank" style="color:inherit;text-decoration:none;" onmouseover="this.style.textDecoration=\'underline\'" onmouseout="this.style.textDecoration=\'none\'">'+esc(d.name||'—')+'</a>'
+            : esc(d.name||'—');
+          detailRows.push(
+            '<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:.5px solid rgba(0,0,0,.18);">' +
+              '<span style="font-size:10px;font-weight:700;padding:2px 6px;border-radius:3px;background:'+bonusColor+'22;color:'+bonusColor+';border:.5px solid '+bonusColor+'55;white-space:nowrap;flex-shrink:0;">'+bonusPct+'</span>' +
+              '<span style="font-family:Inter,sans-serif;font-size:12px;color:#fff;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+nameHtml+'</span>' +
+              '<span style="font-size:10px;color:rgba(255,255,255,.45);white-space:nowrap;flex-shrink:0;">wk of '+esc(w.label)+'</span>' +
+            '</div>'
+          );
+        });
+      });
+
+      var detailContent = detailRows.length
+        ? detailRows.join('')
+        : '<div style="padding:10px 0;font-size:12px;color:rgba(255,255,255,.35);">No qualifying weeks yet.</div>';
+
+      var sgLabel = rep.sgCount > 0 ? ' <span class="inc-self">('+rep.sgCount+' SG)</span>' : '';
+      var nameCell = '<td><span class="inc-rep" style="cursor:pointer;border-bottom:1px dotted rgba(255,255,255,.35);padding-bottom:1px;" ' +
+        'onclick="var p=document.getElementById(\''+detailId+'\');p.style.display=p.style.display===\'none\'?\'table-row\':\'none\';">'+esc(rep.name)+'</span>'+sgLabel+'</td>';
+
+      var detailRow = '<tr id="'+detailId+'" style="display:none;">' +
+        '<td colspan="'+colspan+'" style="padding:10px 14px 8px;background:rgba(0,0,0,.22);">' +
+          detailContent +
+        '</td>' +
+      '</tr>';
+
+      return '<tr>'+nameCell+tds+'</tr>'+detailRow;
     }).join('');
 
     return '<div class="inc-board">' +
       '<div class="inc-board-header">' +
         '<div class="inc-board-left">' +
           '<div class="inc-board-office">'+esc(office.name)+'</div>' +
-          '<div class="inc-board-subtitle">Weekly setter deals — hit target each week to earn bonus</div>' +
+          '<div class="inc-board-subtitle">Click a setter name to see qualifying deals &nbsp;·&nbsp; Sun–Sat weeks</div>' +
         '</div>' +
         '<div class="inc-board-right">' +
           '<div class="inc-board-weekly">Weekly</div>' +
@@ -1273,14 +1386,14 @@ function renderIncentivesTracker(deals) {
         '<tbody>'+rows+'</tbody>' +
       '</table></div>' +
       '<div class="inc-footer">' +
-        '<div class="inc-footer-rule"><div class="inc-footer-num" style="color:rgba(255,255,255,.75)">1 DEAL</div><div class="inc-footer-label">Deal One</div></div>' +
-        '<div class="inc-footer-rule"><div class="inc-footer-num" style="color:#00c6a2">2 DEALS</div><div class="inc-footer-label">+2% bonus</div></div>' +
-        '<div class="inc-footer-rule"><div class="inc-footer-num" style="color:#f5c542">3 DEALS</div><div class="inc-footer-label">+4% bonus</div></div>' +
+        '<div class="inc-footer-rule"><div class="inc-footer-num" style="color:rgba(255,255,255,.35)">1 DEAL/WK</div><div class="inc-footer-label">No bonus</div></div>' +
+        '<div class="inc-footer-rule"><div class="inc-footer-num" style="color:'+TEAL+'">2 DEALS/WK</div><div class="inc-footer-label">+2% bonus</div></div>' +
+        '<div class="inc-footer-rule"><div class="inc-footer-num" style="color:'+GOLD+'">3+ DEALS/WK</div><div class="inc-footer-label">+4% bonus</div></div>' +
       '</div>' +
     '</div>';
   }).join('');
 
-  document.getElementById('incentivesGrid').innerHTML = html;
+  document.getElementById('incentivesGrid').innerHTML = html || '<div style="color:var(--muted);font-size:13px;padding:10px 0">No setter data found.</div>';
 }
 
 function renderCompetition(deals) {
