@@ -3,6 +3,7 @@ cd /d "C:\Users\aashi\Claude\Projects\terros-dashboard"
 echo.
 echo  Removing stale git lock if present...
 if exist ".git\index.lock" del ".git\index.lock"
+if exist ".git\HEAD.lock"  del ".git\HEAD.lock"
 echo.
 echo  Clearing unfinished merge state if present...
 if exist ".git\MERGE_HEAD" del ".git\MERGE_HEAD"
@@ -12,7 +13,7 @@ echo  Staging all files...
 git add -A
 echo.
 echo  Committing...
-git commit -m "Summer Bonus tracker: Sun-Sat weeks, click-to-expand deals, SG counts, office order, sub-nav tabs; inc layout desktop fix"
+git commit -m "Summer Bonus: smaller deal name font in expanded rows"
 echo.
 echo  Pushing to GitHub...
 git push origin main
