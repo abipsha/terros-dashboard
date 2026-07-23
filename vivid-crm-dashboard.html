@@ -956,7 +956,8 @@ function renderLevel1(deals) {
     byOffice[o].rev += d.rev||0; byOffice[o].wins++;
   });
   var offices = Object.values(byOffice).sort(function(a,b){return b.rev-a.rev;});
-  var maxRev  = offices.length ? offices[0].rev : 1;
+  var maxRev    = offices.length ? offices[0].rev : 1;
+  var totalRevAll = offices.reduce(function(s,o){return s+o.rev;}, 0) || 1;
 
   // Closers
   var byCloser = {};
@@ -982,7 +983,8 @@ function renderLevel1(deals) {
 
   // Office rows
   var officeHTML = offices.map(function(o,i) {
-    var pct = maxRev ? Math.round(o.rev/maxRev*100) : 0;
+    var barPct = maxRev ? Math.round(o.rev/maxRev*100) : 0;   // bar width relative to top office
+    var pct    = Math.round(o.rev/totalRevAll*100);            // displayed % of total revenue
     var col = officeColor(o.name);
     var sn  = "'" + o.name.replace(/\\/g,'\\\\').replace(/'/g,"\\'") + "'";
     var revK = o.rev >= 1000000
@@ -991,7 +993,7 @@ function renderLevel1(deals) {
     return '<div class="ov-office-row" onclick="revDrillOffice('+sn+')">' +
       '<div class="ov-office-dot" style="background:'+col+'"></div>' +
       '<div class="ov-office-name">'+esc(o.name)+'</div>' +
-      '<div class="ov-office-bar-wrap"><div class="ov-office-bar" style="width:'+pct+'%;background:'+col+'"></div></div>' +
+      '<div class="ov-office-bar-wrap"><div class="ov-office-bar" style="width:'+barPct+'%;background:'+col+'"></div></div>' +
       '<div class="ov-office-rev">'+revK+'</div>' +
       '<div class="ov-office-pct" style="color:'+col+'">'+pct+'%</div>' +
       '<div class="ov-office-deals">'+o.wins+' deal'+(o.wins!==1?'s':'')+'</div>' +
