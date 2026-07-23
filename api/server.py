@@ -78,7 +78,7 @@ def _verify_session_cookie(raw: str):
     except Exception:
         return None
 
-def _get_session(headers) -> dict | None:
+def _get_session(headers):
     for part in headers.get("Cookie", "").split(";"):
         k, _, v = part.strip().partition("=")
         if k == "vw_session":
