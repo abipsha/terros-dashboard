@@ -617,11 +617,9 @@ body {
 // ─────────────────────────────────────────────────────────
 // ── API URL config ────────────────────────────────────────
 // After deploying to Render, paste your Render URL below (keep the quotes, no trailing slash).
-// Example: const PROD_API = 'https://terros-dashboard.onrender.com';
-const PROD_API  = 'https://terros-dashboard.onrender.com'; // ← UPDATE AFTER RENDER DEPLOY
 const LOCAL_API = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
   ? 'http://localhost:8000'
-  : PROD_API;
+  : '';
 
 // When this file is exported as a standalone snapshot, the server
 // injects STATIC_DATA here and the dashboard skips all API calls.

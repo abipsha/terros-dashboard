@@ -34,9 +34,10 @@ import odoo
 
 PORT          = int(os.environ.get("PORT", 8000))  # Render sets PORT automatically
 ROOT_DIR      = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # terros-dashboard/
-HTML_FILE     = os.path.join(ROOT_DIR, "index.html")
-CRM_HTML_FILE = os.path.join(ROOT_DIR, "vivid-crm-dashboard.html")
-LOGIN_FILE    = os.path.join(ROOT_DIR, "login.html")
+HTML_FILE        = os.path.join(ROOT_DIR, "index.html")
+CRM_HTML_FILE    = os.path.join(ROOT_DIR, "vivid-crm-dashboard.html")
+TERROS_HTML_FILE = os.path.join(ROOT_DIR, "vivid-terros-dashboard.html")
+LOGIN_FILE       = os.path.join(ROOT_DIR, "login.html")
 
 # ── Google OAuth ──────────────────────────────────────────────
 GOOGLE_CLIENT_ID     = os.environ.get("GOOGLE_CLIENT_ID", "")
@@ -349,6 +350,16 @@ class Handler(http.server.BaseHTTPRequestHandler):
                         self.end_headers(); self.wfile.write(content)
                     else:
                         self._json({"error": "CRM dashboard HTML not found"}, status=404)
+
+                elif path == "/terros":
+                    if os.path.exists(TERROS_HTML_FILE):
+                        with open(TERROS_HTML_FILE, "rb") as f: content = f.read()
+                        self.send_response(200)
+                        self.send_header("Content-Type", "text/html; charset=utf-8")
+                        self.send_header("Content-Length", str(len(content)))
+                        self.end_headers(); self.wfile.write(content)
+                    else:
+                        self._json({"error": "Terros dashboard HTML not found"}, status=404)
 
                 elif path == "/" or path == "" or path == "/dashboard":
                     self._redirect("/crm")
