@@ -53,7 +53,7 @@ _oauth_states: dict = {}
 def _redirect_uri(host: str) -> str:
     if "localhost" in host or "127.0.0.1" in host:
         return f"http://{host}/oauth/callback"
-    return "https://terros-dashboard.onrender.com/oauth/callback"
+    return "https://vivid-dashboard.onrender.com/oauth/callback"
 
 def _make_session_cookie(email: str, name: str) -> str:
     exp     = int(time.time()) + SESSION_HOURS * 3600
@@ -351,14 +351,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
                         self._json({"error": "CRM dashboard HTML not found"}, status=404)
 
                 elif path == "/" or path == "" or path == "/dashboard":
-                    if os.path.exists(HTML_FILE):
-                        with open(HTML_FILE, "rb") as f: content = f.read()
-                        self.send_response(200)
-                        self.send_header("Content-Type", "text/html; charset=utf-8")
-                        self.send_header("Content-Length", str(len(content)))
-                        self.end_headers(); self.wfile.write(content)
-                    else:
-                        self._json({"error": "Dashboard HTML not found"}, status=404)
+                    self._redirect("/crm")
 
                 else:
                     self._json({"error": "Not found"}, status=404)
