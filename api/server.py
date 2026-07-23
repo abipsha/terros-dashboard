@@ -124,7 +124,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
         self.send_header("Location", location)
         self.end_headers()
 
-    def _require_auth(self) -> dict | None:
+    def _require_auth(self):
         """Return session dict if authenticated. If not, redirect to /login and return None."""
         if not AUTH_ENABLED:
             return {"e": "dev@vividwindows.com", "n": "Dev Mode"}
