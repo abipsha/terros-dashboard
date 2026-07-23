@@ -7,22 +7,22 @@
 <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;700;800;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
   :root {
-    --black:        #1A1A1A;
+    --black:        #0b0c14;
     --white:        #FFFFFF;
-    --ink:          #D9D9D9;
-    --muted:        #888888;
-    --border:       #333333;
-    --border-light: #2a2a2a;
-    --surface:      #1A1A1A;
-    --surface2:     #282828;
-    --green:        #237600;
-    --green-bg:     rgba(35,118,0,.15);
-    --amber:        #e0a030;
-    --amber-bg:     rgba(224,160,48,.12);
-    --red:          #A10000;
-    --red-bg:       rgba(161,0,0,.15);
-    --blue:         #004376;
-    --blue-bg:      rgba(0,67,118,.15);
+    --ink:          #e0e1ef;
+    --muted:        #6b7099;
+    --border:       #1e2030;
+    --border-light: #161828;
+    --surface:      #0f1020;
+    --surface2:     #13152a;
+    --green:        #00e5be;
+    --green-bg:     rgba(0,229,190,.12);
+    --amber:        #ffc947;
+    --amber-bg:     rgba(255,201,71,.12);
+    --red:          #ff5f6d;
+    --red-bg:       rgba(255,95,109,.15);
+    --blue:         #4d9fff;
+    --blue-bg:      rgba(77,159,255,.15);
     /* aliases */
     --bg:       var(--black);
     --text:     var(--ink);
@@ -35,14 +35,14 @@
 
   /* ── Header ── */
   .header {
-    background: #111111; border-bottom: 1px solid var(--border);
+    background: #090a14; border-bottom: 1px solid var(--border);
     padding: 16px 28px; display: flex; align-items: center; gap: 14px;
   }
   .logo { width: 40px; height: 40px; border-radius: 8px; object-fit: contain; flex-shrink: 0; background: #fff; padding: 4px; }
   .title { display: flex; align-items: baseline; gap: 0; flex-wrap: wrap; }
-  .title-brand { font-family: 'Roboto Condensed', sans-serif; font-size: 20px; font-weight: 800; color: var(--white); letter-spacing: -.3px; }
-  .title-divider { font-size: 14px; font-weight: 300; padding: 0 10px; color: #333; }
-  .title-leadership { font-family: 'Roboto Condensed', sans-serif; font-size: 14px; font-weight: 700; letter-spacing: .04em; color: var(--white); align-self: center; }
+  .title-brand { font-family: 'Roboto Condensed', sans-serif; font-size: 22px; font-weight: 800; color: var(--white); letter-spacing: -.3px; }
+  .title-divider { font-size: 16px; font-weight: 300; padding: 0 10px; color: #333; }
+  .title-leadership { font-family: 'Roboto Condensed', sans-serif; font-size: 16px; font-weight: 700; letter-spacing: .04em; color: var(--white); align-self: center; }
   .subtitle { font-family: 'Inter', sans-serif; font-size: 10px; color: #444; margin-top: 2px; letter-spacing: .06em; }
 
   /* ── Main Nav ── */
@@ -53,7 +53,7 @@
   }
   .main-nav::-webkit-scrollbar { display: none; }
   .main-tab {
-    font-family: 'Roboto Condensed', sans-serif; font-size: 14px; font-weight: 600; letter-spacing: -.1px;
+    font-family: 'Roboto Condensed', sans-serif; font-size: 16px; font-weight: 600; letter-spacing: -.1px;
     padding: 15px 22px; color: var(--muted); cursor: pointer; border: none; background: none;
     border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
     transition: color .15s, border-color .15s;
@@ -111,7 +111,7 @@
   .office-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
   .office-card:nth-child(1)::before { background: var(--blue); }
   .office-card:nth-child(2)::before { background: var(--green); }
-  .office-card:nth-child(3)::before { background: #d97706; }
+  .office-card:nth-child(3)::before { background: var(--amber); }
   .office-card:nth-child(4)::before { background: var(--red); }
   .office-card:nth-child(5)::before { background: #a07ef5; }
   .office-card-rank { font-family: 'Inter', sans-serif; font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 4px; }
@@ -119,7 +119,7 @@
   .office-card-rev { font-family: 'Roboto Condensed', sans-serif; font-size: 21px; font-weight: 700; line-height: 1; }
   .office-card:nth-child(1) .office-card-rev { color: var(--blue); }
   .office-card:nth-child(2) .office-card-rev { color: var(--green); }
-  .office-card:nth-child(3) .office-card-rev { color: #d97706; }
+  .office-card:nth-child(3) .office-card-rev { color: var(--amber); }
   .office-card:nth-child(4) .office-card-rev { color: var(--red); }
   .office-card:nth-child(5) .office-card-rev { color: #a07ef5; }
   .office-card-meta { font-size: 11px; color: var(--muted); margin-top: 4px; }
@@ -136,13 +136,13 @@
   /* ── Status bar ── */
   .status-bar { padding: 7px 28px; font-family: 'Inter', sans-serif; font-size: 10px; letter-spacing: .04em; color: var(--muted); background: var(--surface2); border-bottom: 1px solid var(--border-light); display: flex; align-items: center; gap: 8px; }
   .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); display: inline-block; flex-shrink: 0; }
-  .dot.loading { background: #d97706; animation: pulse 1s infinite; }
+  .dot.loading { background: var(--amber); animation: pulse 1s infinite; }
   .dot.error   { background: var(--red); }
   @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
 
   /* ── Sub-tabs ── */
   .tabs-bar { display: flex; background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 28px; }
-  .tab { font-family: 'Roboto Condensed', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: -.1px; padding: 13px 18px; color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: color .15s, border-color .15s; }
+  .tab { font-family: 'Roboto Condensed', sans-serif; font-size: 15px; font-weight: 600; letter-spacing: -.1px; padding: 13px 18px; color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: color .15s, border-color .15s; }
   .tab:hover { color: var(--ink); }
   .tab.active { color: var(--white); border-bottom-color: var(--white); font-weight: 700; }
   .tab-badge { display: inline-block; background: var(--surface2); border-radius: 8px; padding: 1px 7px; font-size: 10px; margin-left: 6px; color: var(--muted); }
@@ -200,7 +200,7 @@
     background: linear-gradient(180deg, var(--blue) 0%, var(--green) 100%);
   }
   .team-spread-label {
-    font-family: 'Roboto Condensed', sans-serif; font-size: 15px; font-weight: 700; color: var(--ink);
+    font-family: 'Roboto Condensed', sans-serif; font-size: 17px; font-weight: 700; color: var(--ink);
   }
   .team-spread-period {
     font-family: 'Inter', sans-serif; font-size: 10px; color: var(--muted); letter-spacing: .06em;
@@ -233,15 +233,15 @@
   .incentives-wrapper { padding: 16px 28px 28px; background: var(--black); max-width: 1200px; margin: 0 auto; }
   .incentives-grid { display: grid; grid-template-columns: 1fr; gap: 18px; }
   .inc-board { border-radius: 10px; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,.12); border: 1px solid rgba(0,0,0,.1); }
-  .inc-board-header { background: #185c4d; padding: 14px 18px 12px; display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+  .inc-board-header { background: #0d3d30; padding: 14px 18px 12px; display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
   .inc-board-left { min-width: 0; }
-  .inc-board-office { font-family: 'Roboto Condensed', sans-serif; font-size: 20px; font-weight: 800; letter-spacing: .6px; text-transform: uppercase; color: #fff; line-height: 1.2; }
+  .inc-board-office { font-family: 'Roboto Condensed', sans-serif; font-size: 22px; font-weight: 800; letter-spacing: .6px; text-transform: uppercase; color: #fff; line-height: 1.2; }
   .inc-board-subtitle { font-family: 'Inter', sans-serif; font-size: 9px; color: rgba(255,255,255,.6); margin-top: 3px; letter-spacing: .04em; }
   .inc-board-right { text-align: right; flex-shrink: 0; }
-  .inc-board-weekly { font-family: 'Roboto Condensed', sans-serif; font-size: 17px; font-weight: 800; color: #fff; font-style: italic; line-height: 1; }
+  .inc-board-weekly { font-family: 'Roboto Condensed', sans-serif; font-size: 19px; font-weight: 800; color: #fff; font-style: italic; line-height: 1; }
   .inc-board-period { font-family: 'Inter', sans-serif; font-size: 9px; color: rgba(255,255,255,.5); letter-spacing: .05em; text-transform: uppercase; margin-top: 2px; }
   .inc-table-wrap { overflow-x: auto; }
-  .inc-table { width: 100%; border-collapse: collapse; font-size: 13px; background: #1e7265; min-width: 300px; }
+  .inc-table { width: 100%; border-collapse: collapse; font-size: 13px; background: #0f4f3e; min-width: 300px; }
   .inc-table thead th { background: rgba(0,0,0,.3); color: rgba(255,255,255,.85); font-family: 'Inter', sans-serif; font-size: 10px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; padding: 10px 14px; text-align: center; border-bottom: 1px solid rgba(0,0,0,.25); white-space: nowrap; }
   .inc-table thead th:first-child { text-align: left; }
   .inc-table thead th.inc-wk-cur { background: rgba(255,255,255,.14) !important; }
@@ -257,8 +257,8 @@
   .inc-deal-badge { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 50%; font-weight: 800; font-size: 13px; }
   .inc-tier-0 { color: rgba(255,255,255,.2); }
   .inc-tier-1 { background: rgba(255,255,255,.2); color: #fff; }
-  .inc-tier-2 { background: rgba(0,198,162,.6); color: #fff; }
-  .inc-tier-3 { background: rgba(245,197,66,.75); color: #1a1400; }
+  .inc-tier-2 { background: rgba(0,229,190,.6); color: #fff; }
+  .inc-tier-3 { background: rgba(255,201,71,.8); color: #1a1400; }
   .inc-footer { background: rgba(0,0,0,.25); display: flex; border-top: 1px solid rgba(0,0,0,.2); }
   .inc-footer-rule { flex: 1; text-align: center; padding: 9px 8px; border-right: 1px solid rgba(255,255,255,.07); }
   .inc-footer-rule:last-child { border-right: none; }
@@ -268,9 +268,9 @@
   .inc-section-label { font-family: 'Roboto Condensed', sans-serif; font-size: 32px; font-weight: 900; letter-spacing: .04em; text-transform: uppercase; text-align: center; color: var(--white); padding: 28px 28px 14px; border-top: 1px solid var(--border); margin-top: 8px; }
   .inc-nav { display: flex; align-items: stretch; background: var(--surface2); border-bottom: 1px solid var(--border); padding: 0 28px; overflow-x: auto; scrollbar-width: none; }
   .inc-nav::-webkit-scrollbar { display: none; }
-  .inc-nav-tab { font-family: 'Roboto Condensed', sans-serif; font-size: 13px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; padding: 13px 22px; color: var(--muted); cursor: pointer; border: none; background: none; border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap; transition: color .15s, border-color .15s; }
+  .inc-nav-tab { font-family: 'Roboto Condensed', sans-serif; font-size: 15px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; padding: 13px 22px; color: var(--muted); cursor: pointer; border: none; background: none; border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap; transition: color .15s, border-color .15s; }
   .inc-nav-tab:hover { color: var(--ink); }
-  .inc-nav-tab.active { color: #00c6a2; border-bottom-color: #00c6a2; }
+  .inc-nav-tab.active { color: var(--green); border-bottom-color: var(--green); }
   .tahiti-countdown { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 20px; padding: 14px 28px; background: var(--surface); border-bottom: 1px solid var(--border); }
   .tahiti-days { text-align: center; }
   .tahiti-days-num { font-family: 'Roboto Condensed', sans-serif; font-size: 36px; font-weight: 800; color: var(--amber); line-height: 1; }
@@ -291,12 +291,12 @@
   .comp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
   .comp-section { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
   .comp-sec-header { padding: 14px 18px 12px; border-bottom: 1px solid var(--border); display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
-  .comp-sec-title { font-family: 'Roboto Condensed', sans-serif; font-size: 15px; font-weight: 800; color: var(--white); letter-spacing: -.2px; }
+  .comp-sec-title { font-family: 'Roboto Condensed', sans-serif; font-size: 17px; font-weight: 800; color: var(--white); letter-spacing: -.2px; }
   .comp-sec-period { font-family: 'Inter', sans-serif; font-size: 9px; color: var(--muted); letter-spacing: .06em; text-transform: uppercase; margin-top: 4px; }
   .comp-goals { display: flex; gap: 6px; flex-shrink: 0; align-items: flex-start; margin-top: 2px; }
   .comp-goal-badge { font-family: 'Inter', sans-serif; font-size: 9px; font-weight: 500; letter-spacing: .04em; padding: 3px 7px; border-radius: 4px; white-space: nowrap; }
-  .comp-goal-l1 { background: var(--amber-bg); color: var(--amber); border: 1px solid rgba(224,160,48,.25); }
-  .comp-goal-l2 { background: var(--green-bg); color: var(--green); border: 1px solid rgba(35,118,0,.3); }
+  .comp-goal-l1 { background: var(--amber-bg); color: var(--amber); border: 1px solid rgba(255,201,71,.25); }
+  .comp-goal-l2 { background: var(--green-bg); color: var(--green); border: 1px solid rgba(0,229,190,.3); }
   .comp-row { padding: 9px 18px; border-bottom: 1px solid var(--border-light); display: flex; align-items: center; gap: 10px; }
   .comp-row:last-child { border-bottom: none; }
   .comp-row:hover { background: var(--surface2); }
@@ -326,8 +326,8 @@
   .comp-modal-close:hover { color: var(--ink); background: var(--surface2); }
   .cm-rep-name { font-family: 'Roboto Condensed', sans-serif; font-size: 20px; font-weight: 800; color: var(--white); letter-spacing: -.3px; }
   .cm-role-badge { display: inline-block; font-family: 'Inter', sans-serif; font-size: 9px; letter-spacing: .1em; text-transform: uppercase; padding: 3px 8px; border-radius: 4px; margin-top: 4px; }
-  .cm-role-closer { background: var(--blue-bg); color: var(--blue); border: 1px solid rgba(0,67,118,.2); }
-  .cm-role-setter { background: var(--green-bg); color: var(--green); border: 1px solid rgba(35,118,0,.2); }
+  .cm-role-closer { background: var(--blue-bg); color: var(--blue); border: 1px solid rgba(77,159,255,.2); }
+  .cm-role-setter { background: var(--green-bg); color: var(--green); border: 1px solid rgba(0,229,190,.2); }
   .cm-divider { font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 600; letter-spacing: .10em; text-transform: uppercase; color: var(--white); margin: 20px 0 10px; padding-bottom: 8px; border-bottom: 1px solid var(--border-light); }
   .cm-total-num { font-family: 'Roboto Condensed', sans-serif; font-size: 32px; font-weight: 800; color: var(--white); line-height: 1; }
   .cm-total-label { font-family: 'Inter', sans-serif; font-size: 9px; color: var(--muted); letter-spacing: .06em; text-transform: uppercase; margin-top: 3px; }
@@ -346,9 +346,9 @@
   .cm-pathway-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
   .cm-pathway-goal { font-family: 'Roboto Condensed', sans-serif; font-size: 14px; font-weight: 700; color: var(--white); }
   .cm-status-chip { font-family: 'Inter', sans-serif; font-size: 9px; padding: 3px 8px; border-radius: 4px; white-space: nowrap; }
-  .cm-on-track { background: var(--green-bg); color: var(--green); border: 1px solid rgba(35,118,0,.2); }
-  .cm-behind { background: var(--amber-bg); color: var(--amber); border: 1px solid rgba(224,160,48,.2); }
-  .cm-achieved { background: var(--green-bg); color: var(--green); border: 1px solid rgba(35,118,0,.2); }
+  .cm-on-track { background: var(--green-bg); color: var(--green); border: 1px solid rgba(0,229,190,.2); }
+  .cm-behind { background: var(--amber-bg); color: var(--amber); border: 1px solid rgba(255,201,71,.2); }
+  .cm-achieved { background: var(--green-bg); color: var(--green); border: 1px solid rgba(0,229,190,.2); }
   .cm-pathway-stats { display: flex; gap: 16px; flex-wrap: wrap; }
   .cm-pathway-stat { }
   .cm-pathway-stat-val { font-family: 'Roboto Condensed', sans-serif; font-size: 13px; font-weight: 700; color: var(--ink); }
@@ -362,13 +362,13 @@
   .rev-kpi-bar { display: grid; grid-template-columns: repeat(4,1fr); border-bottom: 1px solid var(--border); background: var(--surface); }
   .rev-kpi { padding: 18px 28px; border-right: 1px solid var(--border-light); }
   .rev-kpi:last-child { border-right: none; }
-  .rev-kpi-label { font-family: 'Inter', sans-serif; font-size: 9px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: 7px; }
+  .rev-kpi-label { font-family: 'Inter', sans-serif; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: 7px; }
   .rev-kpi-val { font-family: 'Roboto Condensed', sans-serif; font-size: 30px; font-weight: 700; line-height: 1; color: var(--green); }
   .rev-kpi-val.kpi-blue { color: var(--blue); }
   .rev-kpi-val.kpi-gold { color: var(--amber); }
   .rev-kpi-val.kpi-white { color: var(--ink); }
   .rev-kpi-sub { font-size: 12px; color: var(--muted); margin-top: 5px; }
-  .rev-breadcrumb { background: var(--surface2); border-bottom: 1px solid var(--border); padding: 11px 28px; display: flex; align-items: center; gap: 8px; font-family: 'Roboto Condensed', sans-serif; font-size: 13px; font-weight: 600; }
+  .rev-breadcrumb { background: var(--surface2); border-bottom: 1px solid var(--border); padding: 11px 28px; display: flex; align-items: center; gap: 8px; font-family: 'Roboto Condensed', sans-serif; font-size: 15px; font-weight: 600; }
   .rev-bc-sep { color: var(--muted); font-weight: 400; }
   .rev-bc-link { color: var(--blue); cursor: pointer; font-weight: 600; }
   .rev-bc-link:hover { text-decoration: underline; }
@@ -411,8 +411,8 @@
   .rev-rep-row:hover .rev-rep-name { text-decoration: underline; }
   .rev-rep-deals { font-family: 'Inter', sans-serif; font-size: 10px; color: var(--muted); margin-top: 2px; }
   .rev-rep-rev { font-family: 'Roboto Condensed', sans-serif; font-weight: 700; color: var(--green); font-size: 12px; white-space: nowrap; flex-shrink: 0; }
-  .rev-role-closer { display: inline-block; font-family: 'Inter', sans-serif; font-size: 9px; letter-spacing: .08em; padding: 2px 7px; border-radius: 3px; background: var(--blue-bg); color: var(--blue); border: 1px solid rgba(0,67,118,.2); }
-  .rev-role-setter { display: inline-block; font-family: 'Inter', sans-serif; font-size: 9px; letter-spacing: .08em; padding: 2px 7px; border-radius: 3px; background: var(--green-bg); color: var(--green); border: 1px solid rgba(35,118,0,.2); }
+  .rev-role-closer { display: inline-block; font-family: 'Inter', sans-serif; font-size: 9px; letter-spacing: .08em; padding: 2px 7px; border-radius: 3px; background: var(--blue-bg); color: var(--blue); border: 1px solid rgba(77,159,255,.2); }
+  .rev-role-setter { display: inline-block; font-family: 'Inter', sans-serif; font-size: 9px; letter-spacing: .08em; padding: 2px 7px; border-radius: 3px; background: var(--green-bg); color: var(--green); border: 1px solid rgba(0,229,190,.2); }
   /* Deal list (Level 3) */
   .rev-deal-item { display: flex; align-items: flex-start; gap: 10px; padding: 11px 0; border-bottom: .5px solid var(--border-light); }
   .rev-deal-item:last-child { border-bottom: none; }
@@ -426,7 +426,7 @@
   .rev-deal-setter { font-family: 'Inter', sans-serif; font-size: 10px; color: var(--muted); }
   .rev-office-pill { font-family: 'Inter', sans-serif; font-size: 9px; padding: 2px 7px; border-radius: 3px; letter-spacing: .03em; white-space: nowrap; border: .5px solid; }
   /* ── Bold Level 2 office drill-down ── */
-  .bold-office-hero { margin: -22px -28px 0; background: #111111; border-bottom: 3px solid; padding: 20px 22px 14px; text-align: center; }
+  .bold-office-hero { margin: -22px -28px 0; background: #090a14; border-bottom: 3px solid; padding: 20px 22px 14px; text-align: center; }
   .bold-office-name { font-family: 'Roboto Condensed', sans-serif; font-size: 52px; line-height: .95; letter-spacing: 2px; }
   .bold-office-sub { font-family: 'Roboto Condensed', sans-serif; font-size: 17px; color: var(--white); letter-spacing: 4px; margin-top: 5px; }
   .bold-kpi-strip { margin: 0 -28px; display: grid; grid-template-columns: repeat(3,1fr); border-bottom: 1px solid var(--border); }
@@ -437,25 +437,92 @@
   .bold-cols { margin: 0 -28px -40px; display: grid; grid-template-columns: 1fr 1fr; }
   .bold-col { border-right: 1px solid var(--border-light); }
   .bold-col:last-child { border-right: none; }
-  .bold-col-head { padding: 10px 14px 8px; border-bottom: 2px solid #A10000; display: flex; justify-content: space-between; align-items: baseline; }
+  .bold-col-head { padding: 10px 14px 8px; border-bottom: 2px solid var(--red); display: flex; justify-content: space-between; align-items: baseline; }
   .bold-col-title { font-family: 'Roboto Condensed', sans-serif; font-size: 20px; color: var(--white); letter-spacing: 2px; }
-  .bold-col-money { font-family: 'Roboto Condensed', sans-serif; font-size: 15px; color: #A10000; letter-spacing: 1px; }
+  .bold-col-money { font-family: 'Roboto Condensed', sans-serif; font-size: 15px; color: var(--red); letter-spacing: 1px; }
   .bold-rep-row { display: flex; align-items: center; gap: 8px; padding: 9px 14px; border-bottom: 1px solid var(--border-light); cursor: pointer; transition: background .1s; }
   .bold-rep-row:last-child { border-bottom: none; }
   .bold-rep-row:hover { background: var(--surface2); }
-  .bold-rep-num { font-family: 'Roboto Condensed', sans-serif; font-size: 18px; color: #333333; width: 18px; flex-shrink: 0; text-align: center; }
+  .bold-rep-num { font-family: 'Roboto Condensed', sans-serif; font-size: 18px; color: var(--muted); width: 18px; flex-shrink: 0; text-align: center; }
   .bold-rep-num.r1 { color: #ffd700; }
   .bold-rep-num.r2 { color: #c0c0c0; }
   .bold-rep-num.r3 { color: #cd7f32; }
   .bold-rep-info { flex: 1; min-width: 0; }
   .bold-rep-name { font-family: 'Inter', sans-serif; font-size: 10px; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; }
   .bold-rep-row:hover .bold-rep-name { color: var(--white); }
-  .bold-rep-deals { font-family: 'Inter', sans-serif; font-size: 9px; color: #444; margin-top: 2px; letter-spacing: .04em; }
+  .bold-rep-deals { font-family: 'Inter', sans-serif; font-size: 9px; color: var(--muted); margin-top: 2px; letter-spacing: .04em; }
   .bold-rep-rev { font-family: 'Roboto Condensed', sans-serif; font-size: 15px; color: var(--white); white-space: nowrap; flex-shrink: 0; }
+
+  /* ── Header redesign ── */
+  .header { justify-content: space-between; }
+  .header-left { display: flex; align-items: center; gap: 14px; }
+  .header-right { font-family: 'Inter', sans-serif; font-size: 11px; color: var(--muted); text-align: right; white-space: nowrap; }
+  .title-brand-accent { color: var(--green); }
+  .title-sub { font-family: 'Inter', sans-serif; font-size: 10px; color: var(--muted); letter-spacing: .04em; margin-top: 2px; }
+
+  /* ── Controls bar redesign (slimmer) ── */
+  .controls-bar { padding: 7px 20px; }
+  .date-btn { font-size: 10px; padding: 5px 12px; }
+  .refresh-btn { display: none; } /* moved to footer */
+
+  /* ── KPI bar — bolder numbers ── */
+  .rev-kpi { padding: 16px 24px; }
+  .rev-kpi-val { font-size: 32px; font-weight: 900; }
+  .rev-kpi-label { font-size: 9px; letter-spacing: .12em; }
+
+  /* ── Overview two-panel layout ── */
+  .ov-grid { display: grid; grid-template-columns: 3fr 2fr; border-bottom: 1px solid var(--border); min-height: 280px; }
+  .ov-panel { border-right: 1px solid var(--border); overflow: hidden; }
+  .ov-panel:last-child { border-right: none; }
+  .ov-panel-header { display: flex; align-items: baseline; justify-content: space-between; padding: 12px 20px 8px; border-bottom: .5px solid var(--border); }
+  .ov-panel-title { font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 500; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+  .ov-panel-hint { font-family: 'Inter', sans-serif; font-size: 9px; color: rgba(255,255,255,.18); letter-spacing: .04em; }
+
+  /* Office list rows */
+  .ov-office-row { display: flex; align-items: center; gap: 12px; padding: 10px 20px; border-bottom: .5px solid var(--border); cursor: pointer; transition: background .1s; }
+  .ov-office-row:last-child { border-bottom: none; }
+  .ov-office-row:hover { background: var(--surface2); }
+  .ov-office-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .ov-office-name { font-family: 'Inter', sans-serif; font-size: 12px; color: rgba(255,255,255,.8); flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ov-office-bar-wrap { width: 90px; height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; flex-shrink: 0; }
+  .ov-office-bar { height: 3px; border-radius: 2px; }
+  .ov-office-rev { font-family: 'Roboto Condensed', sans-serif; font-size: 14px; font-weight: 700; color: var(--ink); min-width: 72px; text-align: right; flex-shrink: 0; }
+  .ov-office-pct { font-family: 'Inter', sans-serif; font-size: 10px; min-width: 36px; text-align: right; flex-shrink: 0; }
+  .ov-office-deals { font-family: 'Inter', sans-serif; font-size: 10px; color: var(--muted); min-width: 42px; text-align: right; flex-shrink: 0; }
+
+  /* Rep list rows */
+  .ov-reps-wrap { display: grid; grid-template-rows: auto auto; height: 100%; }
+  .ov-rep-section { border-bottom: 1px solid var(--border); }
+  .ov-rep-section:last-child { border-bottom: none; }
+  .ov-rep-row { display: flex; align-items: center; gap: 8px; padding: 8px 20px; border-bottom: .5px solid var(--border); cursor: pointer; transition: background .1s; }
+  .ov-rep-row:last-child { border-bottom: none; }
+  .ov-rep-row:hover { background: var(--surface2); }
+  .ov-rep-rank { font-family: 'Inter', sans-serif; font-size: 10px; color: var(--muted); min-width: 14px; text-align: center; flex-shrink: 0; }
+  .ov-rep-rank.r1 { color: #ffd700; }
+  .ov-rep-rank.r2 { color: #c0c0c0; }
+  .ov-rep-rank.r3 { color: #cd7f32; }
+  .ov-rep-name { font-family: 'Inter', sans-serif; font-size: 12px; color: rgba(255,255,255,.85); flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ov-rep-bar-wrap { width: 44px; height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; flex-shrink: 0; }
+  .ov-rep-bar { height: 3px; border-radius: 2px; }
+  .ov-rep-rev { font-family: 'Roboto Condensed', sans-serif; font-size: 13px; font-weight: 700; color: var(--ink); white-space: nowrap; flex-shrink: 0; }
+
+  /* ── Footer status bar ── */
+  .rev-footer { display: flex; align-items: center; justify-content: space-between; padding: 8px 20px; background: var(--surface); border-top: 1px solid var(--border); gap: 10px; }
+  .rev-footer-status { display: flex; align-items: center; gap: 7px; font-family: 'Inter', sans-serif; font-size: 10px; color: var(--muted); letter-spacing: .04em; }
+  .rev-footer-right { display: flex; align-items: center; gap: 8px; }
+  .footer-refresh-btn { font-family: 'Inter', sans-serif; font-size: 10px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; background: rgba(0,229,190,.1); border: .5px solid rgba(0,229,190,.3); color: var(--green); padding: 5px 14px; border-radius: 4px; cursor: pointer; transition: all .15s; }
+  .footer-refresh-btn:hover { background: rgba(0,229,190,.18); }
+  .footer-refresh-btn:disabled { opacity: .4; cursor: not-allowed; }
 
   /* ── Mobile (tablet / small screen) ── */
   @media (max-width: 680px) {
-    .header { padding: 12px 16px; }
+    .header { padding: 12px 16px; flex-wrap: wrap; gap: 8px; }
+    .header-right { font-size: 10px; }
+    .ov-grid { grid-template-columns: 1fr; }
+    .ov-panel { border-right: none; border-bottom: 1px solid var(--border); }
+    .ov-panel:last-child { border-bottom: none; }
+    .ov-office-bar-wrap { width: 50px; }
+    .ov-office-deals { display: none; }
     .logo { width: 36px; height: 36px; }
     .title-brand { font-size: 16px; }
     .title-divider, .title-leadership { display: none; }
@@ -556,15 +623,18 @@
 
 <!-- ── Header ── -->
 <div class="header">
-  <img class="logo" src="https://d3p2r6ofnvoe67.cloudfront.net/fit-in/208x208/filters:strip_exif()/filters:no_upscale()/filters:format(webp)/media/05b9636d-0180-45b6-ae67-dec9300e5a04.png" alt="Vivid Windows">
-  <div>
-    <div class="title">
-      <span class="title-brand">Vivid Windows</span>
-      <span class="title-divider">|</span>
-      <span class="title-leadership">Leadership Dashboard</span>
+  <div class="header-left">
+    <img class="logo" src="https://d3p2r6ofnvoe67.cloudfront.net/fit-in/208x208/filters:strip_exif()/filters:no_upscale()/filters:format(webp)/media/05b9636d-0180-45b6-ae67-dec9300e5a04.png" alt="Vivid Windows">
+    <div>
+      <div class="title">
+        <span class="title-brand">VIVID <span class="title-brand-accent">WINDOWS</span></span>
+        <span class="title-divider">|</span>
+        <span class="title-leadership">CRM Revenue Dashboard</span>
+      </div>
+      <div class="title-sub">Sales Analytics · Leadership View</div>
     </div>
-    <div class="subtitle">Sales Analytics</div>
   </div>
+  <div class="header-right" id="headerDateLabel"></div>
 </div>
 
 <!-- ── Main Navigation ── -->
@@ -580,6 +650,7 @@
 ═══════════════════════════════════════════════════════════ -->
 <div class="main-panel active" id="main-revenue">
 
+  <!-- Controls bar -->
   <div class="controls-bar">
     <button class="date-btn active" data-r="mtd"    onclick="setRange('mtd')">Month-to-Date</button>
     <button class="date-btn"        data-r="week"   onclick="setRange('week')">This Week</button>
@@ -591,7 +662,6 @@
       <input type="date" id="customEnd" min="2026-01-01">
       <button class="apply-btn" onclick="applyCustomRange()">Apply</button>
     </div>
-    <button class="refresh-btn" id="refreshBtn" onclick="loadData()">Refresh</button>
     <span class="range-label" id="rangeLabel"></span>
   </div>
 
@@ -624,16 +694,21 @@
     <span class="rev-bc-active">All Offices</span>
   </div>
 
-  <!-- Status bar -->
-  <div class="status-bar">
-    <span class="dot" id="statusDot"></span>
-    <span id="statusText">Connecting…</span>
-  </div>
-
   <!-- Drill-down content -->
   <div id="revContent" class="rev-content">
     <div style="text-align:center;padding:60px 0;color:var(--muted)">
       <div class="spinner"></div>
+    </div>
+  </div>
+
+  <!-- Footer status -->
+  <div class="rev-footer">
+    <div class="rev-footer-status">
+      <span class="dot" id="statusDot"></span>
+      <span id="statusText">Connecting…</span>
+    </div>
+    <div class="rev-footer-right">
+      <button class="footer-refresh-btn" id="refreshBtn" onclick="loadData()">Refresh</button>
     </div>
   </div>
 
@@ -652,16 +727,6 @@
      PANEL 3 — Incentives Tracker
 ═══════════════════════════════════════════════════════════ -->
 <div class="main-panel" id="main-incentives">
-
-  <div class="controls-bar">
-    <button class="refresh-btn" id="incRefreshBtn" onclick="loadIncentivesData()">Refresh</button>
-    <span class="range-label" id="incMonthLabel"></span>
-  </div>
-
-  <div class="status-bar">
-    <span class="dot" id="incStatusDot"></span>
-    <span id="incStatusText">Click Refresh to load</span>
-  </div>
 
   <!-- Sub-navigation -->
   <div class="inc-nav">
@@ -685,6 +750,18 @@
       <div id="compContainer">
         <div style="color:var(--muted);font-size:13px;padding:10px 0">Click Refresh to load…</div>
       </div>
+    </div>
+  </div>
+
+  <!-- Incentives footer -->
+  <div class="rev-footer">
+    <div class="rev-footer-status">
+      <span class="dot" id="incStatusDot"></span>
+      <span id="incStatusText">Click Refresh to load</span>
+    </div>
+    <div class="rev-footer-right">
+      <span class="range-label" id="incMonthLabel" style="font-size:10px;color:var(--muted);margin-right:6px;"></span>
+      <button class="footer-refresh-btn" id="incRefreshBtn" onclick="loadIncentivesData()">Refresh</button>
     </div>
   </div>
 
@@ -760,10 +837,10 @@ function countUp(el, target, prefix, duration) {
 }
 
 var OFFICE_COLORS = {
-  'northern utah':      '#004376',
-  'southern utah':      '#e0a030',
-  'eastern idaho':      '#237600',
-  'northern california':'#A10000',
+  'northern utah':      '#4d9fff',
+  'southern utah':      '#00e5be',
+  'eastern idaho':      '#ffc947',
+  'northern california':'#ff5f6d',
   'inside sales':       '#a07ef5'
 };
 function officeColor(name) {
@@ -871,6 +948,7 @@ function renderLevel1(deals) {
   setRevBreadcrumb([{label:'All Offices'}]);
   updateKPIs(deals, 'this period');
 
+  // Offices
   var byOffice = {};
   deals.forEach(function(d) {
     var o = d.office||'Unknown';
@@ -880,65 +958,86 @@ function renderLevel1(deals) {
   var offices = Object.values(byOffice).sort(function(a,b){return b.rev-a.rev;});
   var maxRev  = offices.length ? offices[0].rev : 1;
 
+  // Closers
   var byCloser = {};
   deals.forEach(function(d) {
     var c = d.closer||'Unknown';
     if (!byCloser[c]) byCloser[c] = {name:c, rev:0, wins:0, office:d.office||''};
     byCloser[c].rev += d.rev||0; byCloser[c].wins++;
   });
-  var top3c = Object.values(byCloser).sort(function(a,b){return b.rev-a.rev;}).slice(0,3);
+  var topClosers = Object.values(byCloser).sort(function(a,b){return b.rev-a.rev;}).slice(0,5);
+  var maxCRev = topClosers.length ? topClosers[0].rev : 1;
 
+  // Setters
   var bySetter = {};
   deals.filter(function(d){return d.setter && d.setter!==d.closer;}).forEach(function(d) {
     var s = d.setter;
     if (!bySetter[s]) bySetter[s] = {name:s, rev:0, wins:0, office:d.office||''};
     bySetter[s].rev += d.rev||0; bySetter[s].wins++;
   });
-  var top3s = Object.values(bySetter).sort(function(a,b){return b.rev-a.rev;}).slice(0,3);
+  var topSetters = Object.values(bySetter).sort(function(a,b){return b.rev-a.rev;}).slice(0,5);
+  var maxSRev = topSetters.length ? topSetters[0].rev : 1;
 
   var rankCls = ['r1','r2','r3'];
 
+  // Office rows
   var officeHTML = offices.map(function(o,i) {
     var pct = maxRev ? Math.round(o.rev/maxRev*100) : 0;
     var col = officeColor(o.name);
-    var safeName = "'" + o.name.replace(/\\/g,'\\\\').replace(/'/g,"\\'") + "'";
-    return '<div class="rev-ocard" style="--ocard-color:'+col+'" onclick="revDrillOffice('+safeName+')">' +
-      '<div class="rev-ocard-rank">#'+(i+1)+'</div>' +
-      '<div class="rev-ocard-name">'+esc(o.name)+'</div>' +
-      '<div class="rev-ocard-rev">$'+Math.round(o.rev).toLocaleString()+'</div>' +
-      '<div class="rev-ocard-meta">'+o.wins+' deal'+(o.wins!==1?'s':'')+'</div>' +
-      '<div class="rev-ocard-bar"><div class="rev-ocard-bar-fill" style="width:'+pct+'%;background:'+col+'"></div></div>' +
-      '</div>';
+    var sn  = "'" + o.name.replace(/\\/g,'\\\\').replace(/'/g,"\\'") + "'";
+    var revK = o.rev >= 1000000
+      ? '$' + (o.rev/1000000).toFixed(2) + 'M'
+      : '$' + Math.round(o.rev/1000) + 'K';
+    return '<div class="ov-office-row" onclick="revDrillOffice('+sn+')">' +
+      '<div class="ov-office-dot" style="background:'+col+'"></div>' +
+      '<div class="ov-office-name">'+esc(o.name)+'</div>' +
+      '<div class="ov-office-bar-wrap"><div class="ov-office-bar" style="width:'+pct+'%;background:'+col+'"></div></div>' +
+      '<div class="ov-office-rev">'+revK+'</div>' +
+      '<div class="ov-office-pct" style="color:'+col+'">'+pct+'%</div>' +
+      '<div class="ov-office-deals">'+o.wins+' deal'+(o.wins!==1?'s':'')+'</div>' +
+    '</div>';
   }).join('');
 
-  function mkTop3Rows(reps, role) {
-    if (!reps.length) return '<div style="padding:14px;color:var(--muted);font-size:12px;">No data</div>';
+  // Rep rows
+  function mkRepRows(reps, role, maxR) {
+    if (!reps.length) return '<div style="padding:12px 20px;color:var(--muted);font-size:12px;">No data</div>';
     return reps.map(function(r,i) {
-      var safeName = "'" + r.name.replace(/\\/g,'\\\\').replace(/'/g,"\\'") + "'";
-      var safeRole = "'" + role + "'";
-      return '<div class="rev-top3-row" onclick="revDrillRep('+safeName+','+safeRole+')">' +
-        '<span class="rev-top3-rank '+(rankCls[i]||'')+'">'+(i+1)+'</span>' +
-        '<div class="rev-top3-info">' +
-          '<div class="rev-top3-name">'+esc(r.name)+'</div>' +
-          '<div class="rev-top3-meta">'+esc(r.office)+' &nbsp;·&nbsp; '+r.wins+' deal'+(r.wins!==1?'s':'')+'</div>' +
-        '</div>' +
-        '<span class="rev-top3-rev">$'+Math.round(r.rev).toLocaleString()+'</span>' +
-        '</div>';
+      var sn = "'" + r.name.replace(/\\/g,'\\\\').replace(/'/g,"\\'") + "'";
+      var sr = "'" + role + "'";
+      var pct = maxR ? Math.round(r.rev/maxR*100) : 0;
+      var col = officeColor(r.office);
+      var revK = r.rev >= 1000000
+        ? '$' + (r.rev/1000000).toFixed(2) + 'M'
+        : '$' + Math.round(r.rev/1000) + 'K';
+      return '<div class="ov-rep-row" onclick="revDrillRep('+sn+','+sr+')">' +
+        '<span class="ov-rep-rank '+(rankCls[i]||'rn')+'">'+(i+1)+'</span>' +
+        '<div class="ov-rep-name">'+esc(r.name)+'</div>' +
+        '<div class="ov-rep-bar-wrap"><div class="ov-rep-bar" style="width:'+pct+'%;background:'+col+'"></div></div>' +
+        '<div class="ov-rep-rev">'+revK+'</div>' +
+      '</div>';
     }).join('');
   }
 
   document.getElementById('revContent').innerHTML =
-    '<div class="rev-sec-label">Revenue by office — click to drill in</div>' +
-    '<div class="rev-office-grid">'+officeHTML+'</div>' +
-    '<div class="rev-sec-label" style="margin-top:4px;">Top performers — all offices combined</div>' +
-    '<div class="rev-top3-grid">' +
-      '<div class="rev-top3-block">' +
-        '<div class="rev-top3-head">Top 3 Closers</div>' +
-        mkTop3Rows(top3c,'Closer') +
+    '<div class="ov-grid">' +
+      '<div class="ov-panel">' +
+        '<div class="ov-panel-header">' +
+          '<span class="ov-panel-title">Revenue by Office</span>' +
+          '<span class="ov-panel-hint">click to drill in</span>' +
+        '</div>' +
+        officeHTML +
       '</div>' +
-      '<div class="rev-top3-block">' +
-        '<div class="rev-top3-head">Top 3 Setters</div>' +
-        mkTop3Rows(top3s,'Setter') +
+      '<div class="ov-panel">' +
+        '<div class="ov-reps-wrap">' +
+          '<div class="ov-rep-section">' +
+            '<div class="ov-panel-header"><span class="ov-panel-title">Top Closers</span></div>' +
+            mkRepRows(topClosers, 'Closer', maxCRev) +
+          '</div>' +
+          '<div class="ov-rep-section">' +
+            '<div class="ov-panel-header"><span class="ov-panel-title">Top Setters</span></div>' +
+            mkRepRows(topSetters, 'Setter', maxSRev) +
+          '</div>' +
+        '</div>' +
       '</div>' +
     '</div>';
 }
@@ -986,8 +1085,8 @@ function revDrillOffice(officeName) {
       var sgRate = isCloserRole && r.wins > 0 ? Math.round(r.selfGen / r.wins * 100) : 0;
       var sgTag = isCloserRole
         ? '<span style="font-family:Inter, sans-serif;font-size:8px;padding:1px 4px;border-radius:2px;margin-left:5px;background:' +
-          (sgRate >= 50 ? 'rgba(224,160,48,.15);color:#e0a030;border:.5px solid rgba(224,160,48,.3)' :
-           sgRate >  0  ? 'rgba(0,67,118,.15);color:#004376;border:.5px solid rgba(0,67,118,.3)' :
+          (sgRate >= 50 ? 'rgba(255,201,71,.15);color:#ffc947;border:.5px solid rgba(255,201,71,.3)' :
+           sgRate >  0  ? 'rgba(77,159,255,.15);color:#4d9fff;border:.5px solid rgba(77,159,255,.3)' :
                           'rgba(102,99,112,.1);color:#666370;border:.5px solid rgba(102,99,112,.2)') +
           '">' + sgRate + '% SG</span>'
         : '';
@@ -1017,7 +1116,7 @@ function revDrillOffice(officeName) {
         '<div class="bold-kpi-lbl">Deals</div>' +
       '</div>' +
       '<div class="bold-kpi-cell">' +
-        '<div class="bold-kpi-num" style="color:#e0a030">$' + avgRev.toLocaleString() + '</div>' +
+        '<div class="bold-kpi-num" style="color:#ffc947">$' + avgRev.toLocaleString() + '</div>' +
         '<div class="bold-kpi-lbl">Avg Deal</div>' +
       '</div>' +
     '</div>' +
@@ -1097,7 +1196,7 @@ function revDrillRep(repName, role) {
       '<span class="rev-deal-index">'+(i+1)+'</span>' +
       '<div class="rev-deal-info">' +
         '<div class="rev-deal-top">' +
-          '<div class="rev-deal-name">'+(d.id ? '<a href="https://myvivid.odoo.com/odoo/crm/'+d.id+'" target="_blank" style="color:inherit;text-decoration:none;" onmouseover="this.style.textDecoration=\'underline\'" onmouseout="this.style.textDecoration=\'none\'">'+esc(d.name||'—')+'</a>' : esc(d.name||'—'))+(isCloser && d.setter && d.setter === d.closer ? '<span style="display:inline-flex;align-items:center;font-size:9px;font-weight:600;padding:1px 5px;border-radius:3px;background:rgba(224,160,48,.15);color:#e0a030;border:.5px solid rgba(224,160,48,.35);letter-spacing:.06em;margin-left:7px;vertical-align:middle;">SG</span>' : '')+'</div>' +
+          '<div class="rev-deal-name">'+(d.id ? '<a href="https://myvivid.odoo.com/odoo/crm/'+d.id+'" target="_blank" style="color:inherit;text-decoration:none;" onmouseover="this.style.textDecoration=\'underline\'" onmouseout="this.style.textDecoration=\'none\'">'+esc(d.name||'—')+'</a>' : esc(d.name||'—'))+(isCloser && d.setter && d.setter === d.closer ? '<span style="display:inline-flex;align-items:center;font-size:9px;font-weight:600;padding:1px 5px;border-radius:3px;background:rgba(255,201,71,.15);color:#ffc947;border:.5px solid rgba(255,201,71,.35);letter-spacing:.06em;margin-left:7px;vertical-align:middle;">SG</span>' : '')+'</div>' +
           '<div class="rev-deal-rev">$'+Math.round(d.rev||0).toLocaleString()+'</div>' +
         '</div>' +
         (addr ? '<div class="rev-deal-addr">'+esc(addr)+'</div>' : '') +
@@ -1148,6 +1247,11 @@ async function loadData() {
 
   const { start, end } = getRange(curRange);
   document.getElementById('rangeLabel').textContent = start + ' → ' + end;
+  // Update header date label
+  var now = new Date();
+  var monthLabel = now.toLocaleString('en-US', {month:'long'}) + ' ' + now.getFullYear();
+  var rangeTag = curRange === 'mtd' ? 'MTD' : curRange === 'week' ? 'This Week' : start + ' – ' + end;
+  document.getElementById('headerDateLabel').textContent = monthLabel + ' · ' + rangeTag;
 
   try {
     const res = await fetch(LOCAL_API + '/api/odoo/deals?start='+start+'&end='+end);
@@ -1164,6 +1268,14 @@ async function loadData() {
   }
   btn.disabled = false; btn.textContent = 'Refresh';
 }
+
+// Initialize header date label on load
+(function() {
+  var now = new Date();
+  var ml = now.toLocaleString('en-US', {month:'long'}) + ' ' + now.getFullYear();
+  var el = document.getElementById('headerDateLabel');
+  if (el) el.textContent = ml + ' · MTD';
+})();
 
 
 // ── Incentives Tracker ────────────────────────────────────────
@@ -1302,7 +1414,7 @@ function renderIncentivesTracker(deals) {
     return a.name.localeCompare(b.name);
   });
 
-  var TEAL = '#00c6a2', GOLD = '#f5c542';
+  var TEAL = '#00e5be', GOLD = '#ffc947';
   var uid = 0;
 
   var html = offices.map(function(office) {
