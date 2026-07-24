@@ -1811,7 +1811,6 @@ function revDrillOffice(officeName) {
     {label:'All Offices', onclick:'revGoHome()'},
     {label:officeName}
   ]);
-  setMobileBackBar(officeName, 'revGoHome()');
   updateKPIs(deals, officeName);
 
   // Closers — every deal contributes to its closer; track self-gen separately
@@ -1906,6 +1905,7 @@ function revDrillOffice(officeName) {
         mkBoldRepRows(closers, 'Closer') +
       '</div>' +
     '</div>';
+  setMobileBackBar(officeName, 'revGoHome()');
 }
 
 function revDrillRep(repName, role) {
@@ -1921,13 +1921,6 @@ function revDrillRep(repName, role) {
   if (revOffice) { var safeOff = "'" + revOffice.replace(/\\/g,'\\\\').replace(/'/g,"\\'") + "'"; crumbs.push({label:revOffice, onclick:'revDrillOffice('+safeOff+')'}); }
   crumbs.push({label:repName});
   setRevBreadcrumb(crumbs);
-  // Mobile back bar — go back to office if we came from one, else home
-  if (revOffice) {
-    var safeOffBack = "'" + revOffice.replace(/\\/g,'\\\\').replace(/'/g,"\\'") + "'";
-    setMobileBackBar(repName, 'revDrillOffice(' + safeOffBack + ')');
-  } else {
-    setMobileBackBar(repName, 'revGoHome()');
-  }
   updateKPIs(deals, repName);
 
   // Rank within office team
@@ -2008,6 +2001,13 @@ function revDrillRep(repName, role) {
       '</div>' +
     '</div>' +
     '<div>'+dealItems+'</div>';
+  // Mobile back bar — must be set AFTER innerHTML so it isn't wiped
+  if (revOffice) {
+    var safeOffBack = "'" + revOffice.replace(/\\/g,'\\\\').replace(/'/g,"\\'") + "'";
+    setMobileBackBar(repName, 'revDrillOffice(' + safeOffBack + ')');
+  } else {
+    setMobileBackBar(repName, 'revGoHome()');
+  }
 }
 
 function revGoHome() {
