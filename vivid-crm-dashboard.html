@@ -1084,6 +1084,30 @@
   .mobile-tab.active { color: var(--amber); }
   .mobile-tab:hover { color: var(--white); }
 
+  /* ── Mobile back bar ── */
+  .mobile-back-bar {
+    display: none;
+    align-items: center; gap: 10px;
+    padding: 10px 16px; background: #0d0f1f;
+    border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; z-index: 100;
+  }
+  .mobile-back-btn {
+    display: flex; align-items: center; gap: 6px;
+    background: rgba(255,201,71,.1); border: 1px solid rgba(255,201,71,.25);
+    border-radius: 7px; padding: 6px 12px;
+    font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 600;
+    color: var(--amber); cursor: pointer; transition: background .15s; flex-shrink: 0;
+  }
+  .mobile-back-btn:hover { background: rgba(255,201,71,.18); }
+  .mobile-back-bar-title {
+    font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 700;
+    color: var(--white); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  @media (max-width: 768px) {
+    .mobile-back-bar { display: flex; }
+  }
+
   /* ── Mobile ≤ 768px ── */
   @media (max-width: 768px) {
     .sidebar { display: none; }
@@ -1126,11 +1150,22 @@
     .rev-content { padding: 14px 16px 28px; }
     .rev-kpi-bar { border-bottom: 1px solid var(--border); }
 
-    /* Bold drill-down */
-    .bold-office-hero { margin: -14px -16px 0; }
-    .bold-office-name { font-size: 36px; }
+    /* Bold drill-down — stack columns, compact hero */
+    .bold-office-hero { margin: 0 -16px; padding: 14px 16px 10px; text-align: left; }
+    .bold-office-name { font-size: 28px; }
+    .bold-office-sub { font-size: 14px; letter-spacing: 2px; margin-top: 2px; }
     .bold-kpi-strip { margin: 0 -16px; }
-    .bold-cols { margin: 0 -16px -28px; }
+    .bold-kpi-cell { padding: 8px 10px; }
+    .bold-kpi-num { font-size: 20px; }
+    .bold-kpi-lbl { font-size: 10px; }
+    .bold-cols { margin: 0 -16px -28px; grid-template-columns: 1fr; }
+    .bold-col { border-right: none; border-bottom: 1px solid var(--border); }
+    .bold-col:last-child { border-bottom: none; }
+    .bold-col-head { padding: 10px 16px 8px; }
+    .bold-col-title { font-size: 18px; }
+    .bold-rep-row { padding: 10px 16px; }
+    .bold-rep-name { font-size: 13px; }
+    .bold-rep-rev { font-size: 15px; }
   }
 
   /* ── Small phones ≤ 430px ── */
@@ -1631,6 +1666,27 @@ function updateKPIs(deals, sublabel) {
 
 function setRevBreadcrumb(parts) { /* breadcrumb removed */ }
 
+function setMobileBackBar(label, backFn) {
+  // Inject or update the mobile back bar at the top of revContent
+  var existing = document.getElementById('mobileBackBar');
+  if (existing) existing.remove();
+  var bar = document.createElement('div');
+  bar.id = 'mobileBackBar';
+  bar.className = 'mobile-back-bar';
+  bar.innerHTML =
+    '<button class="mobile-back-btn" onclick="' + backFn + '">' +
+      '<i class="ti ti-arrow-left"></i> Back' +
+    '</button>' +
+    '<span class="mobile-back-bar-title">' + esc(label) + '</span>';
+  var content = document.getElementById('revContent');
+  if (content) content.insertBefore(bar, content.firstChild);
+}
+
+function clearMobileBackBar() {
+  var el = document.getElementById('mobileBackBar');
+  if (el) el.remove();
+}
+
 function mkEmptyState(msg) {
   var activeFilters = (_filterCloser ? 1 : 0) + (_filterSetter ? 1 : 0) + (_filterSelfGen ? 1 : 0);
   return '<div style="text-align:center;padding:60px 24px;">' +
@@ -1647,6 +1703,7 @@ function mkEmptyState(msg) {
 function renderLevel1(deals) {
   revLevel = 'home'; revOffice = null; revRep = null;
   setRevBreadcrumb([{label:'All Offices'}]);
+  clearMobileBackBar();
   updateKPIs(deals, 'this period');
   if (!deals.length) {
     document.getElementById('revContent').innerHTML = mkEmptyState('No deals found');
@@ -1754,6 +1811,7 @@ function revDrillOffice(officeName) {
     {label:'All Offices', onclick:'revGoHome()'},
     {label:officeName}
   ]);
+  setMobileBackBar(officeName, 'revGoHome()');
   updateKPIs(deals, officeName);
 
   // Closers — every deal contributes to its closer; track self-gen separately
@@ -1863,6 +1921,13 @@ function revDrillRep(repName, role) {
   if (revOffice) { var safeOff = "'" + revOffice.replace(/\\/g,'\\\\').replace(/'/g,"\\'") + "'"; crumbs.push({label:revOffice, onclick:'revDrillOffice('+safeOff+')'}); }
   crumbs.push({label:repName});
   setRevBreadcrumb(crumbs);
+  // Mobile back bar — go back to office if we came from one, else home
+  if (revOffice) {
+    var safeOffBack = "'" + revOffice.replace(/\\/g,'\\\\').replace(/'/g,"\\'") + "'";
+    setMobileBackBar(repName, 'revDrillOffice(' + safeOffBack + ')');
+  } else {
+    setMobileBackBar(repName, 'revGoHome()');
+  }
   updateKPIs(deals, repName);
 
   // Rank within office team
