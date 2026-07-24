@@ -233,45 +233,92 @@
   /* ── Summer Bonus Tracker ── */
   .incentives-wrapper { padding: 16px 28px 28px; background: var(--black); max-width: 1200px; margin: 0 auto; }
   .incentives-grid { display: grid; grid-template-columns: 1fr; gap: 18px; }
-  .inc-board { border-radius: 10px; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,.12); border: 1px solid rgba(0,0,0,.1); }
-  .inc-board-header { background: #0d3d30; padding: 14px 18px 12px; display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+  .inc-board { border-radius: 10px; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,.18); border: 1px solid var(--border); }
+  .inc-board-header { background: var(--surface2); padding: 14px 18px 12px; display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; border-bottom: 2px solid var(--amber); }
   .inc-board-left { min-width: 0; }
-  .inc-board-office { font-family: 'Roboto Condensed', sans-serif; font-size: 22px; font-weight: 800; letter-spacing: .6px; text-transform: uppercase; color: #fff; line-height: 1.2; }
-  .inc-board-subtitle { font-family: 'Inter', sans-serif; font-size: 9px; color: rgba(255,255,255,.6); margin-top: 3px; letter-spacing: .04em; }
+  .inc-board-office { font-family: 'Roboto Condensed', sans-serif; font-size: 25px; font-weight: 800; letter-spacing: .6px; text-transform: uppercase; color: var(--amber); line-height: 1.2; }
+  .inc-board-subtitle { font-family: 'Inter', sans-serif; font-size: 12px; color: rgba(255,255,255,.45); margin-top: 3px; letter-spacing: .04em; }
   .inc-board-right { text-align: right; flex-shrink: 0; }
-  .inc-board-weekly { font-family: 'Roboto Condensed', sans-serif; font-size: 19px; font-weight: 800; color: #fff; font-style: italic; line-height: 1; }
-  .inc-board-period { font-family: 'Inter', sans-serif; font-size: 9px; color: rgba(255,255,255,.5); letter-spacing: .05em; text-transform: uppercase; margin-top: 2px; }
+  .inc-board-weekly { font-family: 'Roboto Condensed', sans-serif; font-size: 22px; font-weight: 800; color: var(--white); font-style: italic; line-height: 1; }
+  .inc-board-period { font-family: 'Inter', sans-serif; font-size: 12px; color: rgba(255,255,255,.4); letter-spacing: .05em; text-transform: uppercase; margin-top: 2px; }
   .inc-table-wrap { overflow-x: auto; }
-  .inc-table { width: 100%; border-collapse: collapse; font-size: 13px; background: #0f4f3e; min-width: 300px; }
-  .inc-table thead th { background: rgba(0,0,0,.3); color: rgba(255,255,255,.85); font-family: 'Inter', sans-serif; font-size: 10px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; padding: 10px 14px; text-align: center; border-bottom: 1px solid rgba(0,0,0,.25); white-space: nowrap; }
+  .inc-table { width: 100%; border-collapse: collapse; font-size: 16px; background: var(--surface); min-width: 300px; }
+  .inc-table thead th { background: var(--surface2); color: var(--muted); font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; padding: 10px 14px; text-align: center; border-bottom: 1px solid var(--border); white-space: nowrap; }
   .inc-table thead th:first-child { text-align: left; }
-  .inc-table thead th.inc-wk-cur { background: rgba(255,255,255,.14) !important; }
-  .inc-table tbody tr { border-bottom: 1px solid rgba(0,0,0,.18); }
+  .inc-table thead th.inc-wk-cur { background: rgba(255,201,71,.12) !important; color: var(--amber) !important; }
+  .inc-table tbody tr { border-bottom: 1px solid var(--border-light); }
   .inc-table tbody tr:last-child { border-bottom: none; }
-  .inc-table tbody tr:hover { background: rgba(255,255,255,.07); }
+  .inc-table tbody tr:hover { background: rgba(255,255,255,.04); }
   .inc-table tbody td { padding: 11px 14px; color: #fff; }
   .inc-table tbody td:not(:first-child) { text-align: center; }
-  .inc-table tbody td.inc-wk-cur-cell { background: rgba(255,255,255,.06); }
-  .inc-wk-dates { display: block; font-size: 8px; opacity: .55; margin-top: 1px; letter-spacing: 0; text-transform: none; font-weight: 400; }
-  .inc-rep { font-family: 'Inter', sans-serif; font-weight: 500; font-size: 13px; }
-  .inc-self { font-family: 'Inter', sans-serif; font-size: 10px; color: rgba(255,255,255,.5); margin-left: 4px; }
-  .inc-deal-badge { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 50%; font-weight: 800; font-size: 13px; }
+  .inc-table tbody td.inc-wk-cur-cell { background: rgba(255,201,71,.05); }
+  .inc-wk-dates { display: block; font-size: 11px; opacity: .55; margin-top: 1px; letter-spacing: 0; text-transform: none; font-weight: 400; }
+  .inc-rep { font-family: 'Inter', sans-serif; font-weight: 500; font-size: 16px; }
+  .inc-self { font-family: 'Inter', sans-serif; font-size: 13px; color: rgba(255,255,255,.5); margin-left: 4px; }
+  .inc-deal-badge { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%; font-weight: 800; font-size: 16px; }
   .inc-tier-0 { color: rgba(255,255,255,.2); }
-  .inc-tier-1 { background: rgba(255,255,255,.2); color: #fff; }
-  .inc-tier-2 { background: rgba(0,229,190,.6); color: #fff; }
-  .inc-tier-3 { background: rgba(255,201,71,.8); color: #1a1400; }
-  .inc-footer { background: rgba(0,0,0,.25); display: flex; border-top: 1px solid rgba(0,0,0,.2); }
-  .inc-footer-rule { flex: 1; text-align: center; padding: 9px 8px; border-right: 1px solid rgba(255,255,255,.07); }
+  .inc-tier-1 { background: rgba(255,255,255,.15); color: rgba(255,255,255,.7); border: 1px solid rgba(255,255,255,.2); }
+  .inc-tier-2 { background: rgba(0,229,190,.2); color: #00e5be; border: 1px solid rgba(0,229,190,.4); }
+  .inc-tier-3 { background: rgba(255,201,71,.25); color: var(--amber); border: 1px solid rgba(255,201,71,.5); }
+  .inc-footer { background: var(--surface2); display: flex; border-top: 1px solid var(--border); }
+  .inc-footer-rule { flex: 1; text-align: center; padding: 9px 8px; border-right: 1px solid var(--border); }
   .inc-footer-rule:last-child { border-right: none; }
-  .inc-footer-num { font-family: 'Roboto Condensed', sans-serif; font-size: 11px; font-weight: 800; color: #fff; }
-  .inc-footer-label { font-family: 'Inter', sans-serif; font-size: 9px; color: rgba(255,255,255,.5); letter-spacing: .05em; text-transform: uppercase; margin-top: 1px; }
+  .inc-footer-num { font-family: 'Roboto Condensed', sans-serif; font-size: 14px; font-weight: 800; color: #fff; }
+  .inc-footer-label { font-family: 'Inter', sans-serif; font-size: 12px; color: rgba(255,255,255,.4); letter-spacing: .05em; text-transform: uppercase; margin-top: 1px; }
+  /* Mobile card view for bonus table */
+  .inc-mobile-cards { display: none; }
+  .inc-card { border-bottom: 1px solid var(--border-light); }
+  .inc-card-row { display: flex; align-items: center; gap: 10px; padding: 11px 14px; cursor: pointer; }
+  .inc-card-row:active { background: rgba(255,255,255,.04); }
+  .inc-card-name { flex: 1; min-width: 0; }
+  .inc-card-rep { font-family: 'Inter', sans-serif; font-size: 16px; font-weight: 500; color: #fff; }
+  .inc-card-dots { display: flex; gap: 5px; flex-wrap: wrap; justify-content: flex-end; }
+  .inc-card-dot { display: inline-flex; align-items: center; justify-content: center; width: 29px; height: 29px; border-radius: 50%; font-weight: 800; font-size: 14px; flex-shrink: 0; }
+  .inc-card-chevron { color: rgba(255,201,71,.4); font-size: 17px; flex-shrink: 0; transition: transform .2s; }
+  .inc-card-chevron.open { transform: rotate(180deg); }
+  .inc-card-detail { display: none; padding: 0 14px 10px; background: rgba(0,0,0,.15); }
+  @media (max-width: 768px) {
+    .inc-table-wrap { display: none; }
+    .inc-mobile-cards { display: block; }
+    .incentives-wrapper { padding: 12px 0 20px; }
+    .inc-board { border-radius: 0; border-left: none; border-right: none; }
+    .inc-board-header { padding: 12px 14px 10px; }
+    .inc-board-office { font-size: 21px; }
+    .inc-footer { flex-wrap: wrap; }
+    .inc-footer-rule { min-width: 33%; }
+  }
+  /* Inc Level 1 — office card grid */
+  .inc-office-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; padding: 16px 28px 20px; }
+  .inc-office-card { background: var(--surface); border: 1px solid rgba(255,201,71,.25); border-radius: 10px; overflow: hidden; cursor: pointer; transition: border-color .15s; }
+  .inc-office-card:hover { border-color: rgba(255,201,71,.6); }
+  .inc-oc-header { background: var(--surface2); border-bottom: 2px solid var(--amber); padding: 12px 14px 10px; display: flex; align-items: flex-start; justify-content: space-between; }
+  .inc-oc-header-text { flex: 1; min-width: 0; }
+  .inc-oc-icon { font-size: 28px; color: var(--amber); opacity: .8; line-height: 1; flex-shrink: 0; margin-left: 8px; }
+  .inc-oc-name { font-family: 'Roboto Condensed', sans-serif; font-size: 19px; font-weight: 800; color: #fff; letter-spacing: .5px; }
+  .inc-oc-summary { font-size: 12px; color: rgba(255,255,255,.4); margin-top: 3px; }
+  .inc-oc-stats { display: flex; }
+  .inc-oc-stat { flex: 1; text-align: center; padding: 10px 6px; border-right: 1px solid var(--border); }
+  .inc-oc-stat:last-child { border-right: none; }
+  .inc-oc-num { font-family: 'Roboto Condensed', sans-serif; font-size: 20px; font-weight: 800; line-height: 1; }
+  .inc-oc-lbl { font-size: 9px; letter-spacing: .08em; text-transform: uppercase; color: rgba(255,255,255,.3); margin-top: 3px; }
+  .inc-oc-footer { padding: 8px 14px; border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+  .inc-oc-top { font-size: 12px; color: rgba(255,255,255,.45); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .inc-oc-top strong { color: var(--white); font-weight: 500; }
+  /* Inc Level 2 — back bar */
+  .inc-back-bar { background: var(--surface2); border-bottom: 1px solid var(--border); padding: 10px 16px; display: flex; align-items: center; gap: 10px; }
+  .inc-back-btn { display: flex; align-items: center; gap: 5px; background: rgba(255,201,71,.1); border: 1px solid rgba(255,201,71,.25); border-radius: 7px; padding: 5px 10px; color: var(--amber); font-size: 12px; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif; }
+  .inc-back-title { font-size: 13px; font-weight: 700; color: var(--white); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  @media (max-width: 768px) {
+    .inc-office-grid { grid-template-columns: 1fr; padding: 12px 14px 16px; }
+    .inc-oc-name { font-size: 16px; }
+  }
   /* Section divider */
   .inc-section-label { font-family: 'Roboto Condensed', sans-serif; font-size: 32px; font-weight: 900; letter-spacing: .04em; text-transform: uppercase; text-align: center; color: var(--white); padding: 28px 28px 14px; border-top: 1px solid var(--border); margin-top: 8px; }
   .inc-nav { display: flex; align-items: stretch; background: var(--surface2); border-bottom: 1px solid var(--border); padding: 0 28px; overflow-x: auto; scrollbar-width: none; }
   .inc-nav::-webkit-scrollbar { display: none; }
   .inc-nav-tab { font-family: 'Roboto Condensed', sans-serif; font-size: 15px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; padding: 13px 22px; color: var(--muted); cursor: pointer; border: none; background: none; border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap; transition: color .15s, border-color .15s; }
   .inc-nav-tab:hover { color: var(--ink); }
-  .inc-nav-tab.active { color: var(--green); border-bottom-color: var(--green); }
+  .inc-nav-tab.active { color: var(--amber); border-bottom-color: var(--amber); }
   .tahiti-countdown { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 20px; padding: 14px 28px; background: var(--surface); border-bottom: 1px solid var(--border); }
   .tahiti-days { text-align: center; }
   .tahiti-days-num { font-family: 'Roboto Condensed', sans-serif; font-size: 36px; font-weight: 800; color: var(--amber); line-height: 1; }
@@ -574,11 +621,11 @@
     /* Incentives */
     .incentives-wrapper { padding: 12px 14px 20px; }
     .incentives-grid { grid-template-columns: 1fr; gap: 14px; }
-    .inc-table { font-size: 11px; }
-    .inc-table thead th { font-size: 9px; padding: 8px 8px; }
+    .inc-table { font-size: 14px; }
+    .inc-table thead th { font-size: 12px; padding: 8px 8px; }
     .inc-table tbody td { padding: 8px 8px; }
-    .inc-rep { font-size: 11px; }
-    .inc-deal-badge { width: 22px; height: 22px; font-size: 11px; }
+    .inc-rep { font-size: 14px; }
+    .inc-deal-badge { width: 25px; height: 25px; font-size: 14px; }
     .comp-wrapper { padding: 12px 14px 20px; }
     .comp-grid { grid-template-columns: 1fr; gap: 14px; }
     /* Tahiti countdown */
@@ -1370,7 +1417,7 @@
   <div id="inc-panel-bonus">
     <div class="incentives-wrapper">
       <div class="incentives-grid" id="incentivesGrid">
-        <div style="color:var(--muted);font-size:13px;padding:10px 0">Click Refresh to load…</div>
+        <div style="color:var(--muted);font-size:13px;padding:10px 0"><div class="spinner" style="margin-bottom:8px;"></div>Loading…</div>
       </div>
     </div>
   </div>
@@ -1393,7 +1440,7 @@
     </div>
     <div class="rev-footer-right">
       <span class="range-label" id="incMonthLabel" style="font-size:10px;color:var(--muted);margin-right:6px;"></span>
-      <button class="footer-refresh-btn" id="incRefreshBtn" onclick="loadIncentivesData()">Refresh</button>
+      <button class="footer-refresh-btn" id="incRefreshBtn" onclick="loadIncentivesData(true)">Refresh</button>
     </div>
   </div>
 
@@ -1505,8 +1552,13 @@ var CLOSER_L1 = 1600000, CLOSER_L2 = 1800000;
 var SETTER_L1 = 640000,  SETTER_L2 = 800000;
 let sortState     = { closers: { col: 'date_closed', dir: -1 }, setters: { col: 'date_closed', dir: -1 } };
 let activeTab     = 'closers';
-let activeMainTab = 'revenue';
-let activeIncTab  = 'bonus';
+let activeMainTab   = 'revenue';
+let activeIncTab    = 'bonus';
+let _incLastLoaded      = 0;   // timestamp of last successful incentives load
+let _incLevel           = 'home';
+let _incCurrentOffice   = null;
+let _incComputedOffices = [];
+let _incComputedWeeks   = [];
 
 function switchIncTab(name) {
   activeIncTab = name;
@@ -2124,7 +2176,9 @@ function getMonthWeeks() {
   return weeks;
 }
 
-async function loadIncentivesData() {
+async function loadIncentivesData(force) {
+  // Skip if data is fresh (< 5 min old) unless forced by Refresh button
+  if (!force && _incLastLoaded && (Date.now() - _incLastLoaded < 300000)) return;
   var btn = document.getElementById('incRefreshBtn');
   btn.disabled = true; btn.textContent = 'Loading…';
   document.getElementById('incStatusDot').className   = 'dot loading';
@@ -2149,6 +2203,7 @@ async function loadIncentivesData() {
     var compDeals  = results[1].deals || [];
     renderIncentivesTracker(monthDeals);
     renderCompetition(compDeals);
+    _incLastLoaded = Date.now();
     document.getElementById('incStatusDot').className   = 'dot';
     document.getElementById('incStatusText').textContent = monthDeals.length+' deals this month · '+compDeals.length+' in competition · updated '+new Date().toLocaleTimeString();
   } catch(err) {
@@ -2187,7 +2242,9 @@ function renderIncentivesTracker(deals) {
     if (week.start > monthLast || week.end < BONUS_START) return;
     weekRegistry[week.key] = week;
     var office = d.office || 'Unknown';
-    if (!byOffice[office]) byOffice[office] = { name: office, reps: {} };
+    if (!byOffice[office]) byOffice[office] = { name: office, reps: {}, totalRev: 0, totalDeals: 0 };
+    byOffice[office].totalRev += d.rev || 0;
+    byOffice[office].totalDeals++;
     if (!byOffice[office].reps[setter]) byOffice[office].reps[setter] = { name: setter, weekMap: {}, sgCount: 0 };
     if (!byOffice[office].reps[setter].weekMap[week.key]) byOffice[office].reps[setter].weekMap[week.key] = [];
     byOffice[office].reps[setter].weekMap[week.key].push(d);
@@ -2219,15 +2276,118 @@ function renderIncentivesTracker(deals) {
     return a.name.localeCompare(b.name);
   });
 
-  var TEAL = '#00e5be', GOLD = '#ffc947';
-  var uid = 0;
+  // Store for drill-down navigation
+  _incComputedOffices = offices;
+  _incComputedWeeks   = weeks;
 
-  var html = offices.map(function(office) {
-    var reps = Object.values(office.reps).sort(function(a,b){
-      var at=Object.values(a.weekMap).reduce(function(s,ds){return s+ds.length;},0);
-      var bt=Object.values(b.weekMap).reduce(function(s,ds){return s+ds.length;},0);
-      return bt-at;
+  // Go to Level 1 (or stay on current office if already drilled in)
+  if (_incLevel === 'office' && _incCurrentOffice && _incComputedOffices.find(function(o){ return o.name === _incCurrentOffice; })) {
+    incDrillOffice(_incCurrentOffice);
+  } else {
+    renderIncLevel1();
+  }
+}
+
+function _incFmtRev(n) {
+  if (!n) return '$0';
+  if (n >= 1000000) return '$' + (n / 1000000).toFixed(1) + 'M';
+  return '$' + Math.round(n / 1000) + 'K';
+}
+
+var _INC_OFFICE_ICONS = {
+  'Southern Utah':       'ARCH',
+  'Northern Utah':       'ti-mountain',
+  'Eastern Idaho':       'ti-trees',
+  'Northern California': 'ti-building-bridge',
+  'Inside Sales':        'ti-headset'
+};
+
+function _incOfficeIconHtml(officeName) {
+  var v = _INC_OFFICE_ICONS[officeName] || 'ti-building';
+  if (v === 'ARCH') {
+    return '<svg viewBox="0 0 24 24" width="28" height="28" fill="var(--amber)" style="opacity:.8;flex-shrink:0;margin-left:8px;" aria-hidden="true"><path d="M 2 22 C 2 15.5 4.5 8.5 8 5.5 Q 10 3.5 12 2.5 Q 14 3.5 16 5.5 C 19.5 8.5 22 15.5 22 22 L 18.5 22 C 18.5 17 17 11.5 14.5 8.5 Q 13 6.5 12 6 Q 11 6.5 9.5 8.5 C 7 11.5 5.5 17 5.5 22 Z"/></svg>';
+  }
+  return '<i class="ti ' + v + ' inc-oc-icon" aria-hidden="true"></i>';
+}
+
+function renderIncLevel1() {
+  _incLevel = 'home';
+  _incCurrentOffice = null;
+  var cards = _incComputedOffices.map(function(office) {
+    var reps = Object.values(office.reps);
+    var qualifying = reps.filter(function(r){
+      return Object.values(r.weekMap).some(function(ds){ return ds.length >= 2; });
+    }).length;
+    // Top setter = one with most qualifying weeks (then total deals)
+    var sorted = reps.slice().sort(function(a,b){
+      var aQ = Object.values(a.weekMap).filter(function(ds){ return ds.length >= 2; }).length;
+      var bQ = Object.values(b.weekMap).filter(function(ds){ return ds.length >= 2; }).length;
+      if (bQ !== aQ) return bQ - aQ;
+      return Object.values(b.weekMap).reduce(function(s,ds){return s+ds.length;},0) -
+             Object.values(a.weekMap).reduce(function(s,ds){return s+ds.length;},0);
     });
+    var top = sorted[0];
+    var safe = "'" + office.name.replace(/\\/g,'\\\\').replace(/'/g,"\\'") + "'";
+    return '<div class="inc-office-card" onclick="incDrillOffice('+safe+')">' +
+      '<div class="inc-oc-header">' +
+        '<div class="inc-oc-header-text">' +
+          '<div class="inc-oc-name">'+esc(office.name)+'</div>' +
+          '<div class="inc-oc-summary">'+qualifying+' of '+reps.length+' setter'+(reps.length!==1?'s':'')+' have qualifying weeks</div>' +
+        '</div>' +
+        _incOfficeIconHtml(office.name) +
+      '</div>' +
+      '<div class="inc-oc-stats">' +
+        '<div class="inc-oc-stat"><div class="inc-oc-num" style="color:var(--amber)">'+qualifying+'</div><div class="inc-oc-lbl">Qualifying</div></div>' +
+        '<div class="inc-oc-stat"><div class="inc-oc-num" style="color:var(--white)">'+reps.length+'</div><div class="inc-oc-lbl">Setters</div></div>' +
+        '<div class="inc-oc-stat"><div class="inc-oc-num" style="color:var(--amber)">'+_incFmtRev(office.totalRev)+'</div><div class="inc-oc-lbl">Revenue</div></div>' +
+      '</div>' +
+      '<div class="inc-oc-footer">' +
+        (top ? '<span class="inc-oc-top">Top setter: <strong>'+esc(top.name)+'</strong></span>' : '<span></span>') +
+        '<i class="ti ti-chevron-right" style="color:rgba(255,201,71,.4);font-size:15px;" aria-hidden="true"></i>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+
+  document.getElementById('incentivesGrid').innerHTML =
+    '<div class="inc-office-grid">' + cards + '</div>';
+}
+
+function incDrillOffice(officeName) {
+  var office = _incComputedOffices.find(function(o){ return o.name === officeName; });
+  if (!office) return;
+  _incLevel = 'office';
+  _incCurrentOffice = officeName;
+  var boardHTML = _buildOfficeBoardHTML(office, _incComputedWeeks);
+  document.getElementById('incentivesGrid').innerHTML =
+    '<div class="inc-back-bar">' +
+      '<button class="inc-back-btn" onclick="renderIncLevel1()">' +
+        '<i class="ti ti-arrow-left" aria-hidden="true"></i> All Offices' +
+      '</button>' +
+      '<span class="inc-back-title">'+esc(officeName)+'</span>' +
+    '</div>' + boardHTML;
+}
+
+function _buildOfficeBoardHTML(office, weeks) {
+  var TEAL = '#00e5be', GOLD = '#ffc947';
+  var uid = Math.floor(Math.random() * 100000);  // unique prefix per render
+
+  // Build board HTML for a single office (no map needed)
+  var html = (function(office) {
+    // #3 — Sort by qualifying weeks (2+ deals), then total deals as tiebreaker
+    var reps = Object.values(office.reps).sort(function(a,b){
+      var aQ = Object.values(a.weekMap).filter(function(ds){ return ds.length >= 2; }).length;
+      var bQ = Object.values(b.weekMap).filter(function(ds){ return ds.length >= 2; }).length;
+      if (bQ !== aQ) return bQ - aQ;
+      var at = Object.values(a.weekMap).reduce(function(s,ds){ return s+ds.length; }, 0);
+      var bt = Object.values(b.weekMap).reduce(function(s,ds){ return s+ds.length; }, 0);
+      return bt - at;
+    });
+
+    // #7 — Office summary: how many setters have at least one qualifying week
+    var qualifyingReps = reps.filter(function(r){
+      return Object.values(r.weekMap).some(function(ds){ return ds.length >= 2; });
+    }).length;
+    var offSummary = qualifyingReps + ' of ' + reps.length + ' setter' + (reps.length !== 1 ? 's' : '') + ' have qualifying weeks';
 
     var thCells = '<th>Setter</th>' + weeks.map(function(w){
       var cls = w.isCurrent ? ' inc-wk-cur' : '';
@@ -2236,35 +2396,67 @@ function renderIncentivesTracker(deals) {
 
     var colspan = weeks.length + 1;
 
+    // Helper: toggle expand for a rep row
+    // (used in both table and mobile card)
+    function toggleDetail(detailId, chvId) {
+      return 'var p=document.getElementById(\'' + detailId + '\');' +
+             'var c=document.getElementById(\'' + chvId + '\');' +
+             'var open=p.style.display===\'none\';' +
+             'p.style.display=open?\'table-row\':\'none\';' +
+             'if(c){c.classList.toggle(\'open\',open);}';
+    }
+    function toggleCardDetail(detailId, chvId) {
+      return 'var p=document.getElementById(\'' + detailId + '\');' +
+             'var c=document.getElementById(\'' + chvId + '\');' +
+             'var open=p.style.display===\'none\';' +
+             'p.style.display=open?\'block\':\'none\';' +
+             'if(c){c.classList.toggle(\'open\',open);}';
+    }
+
     var rows = reps.map(function(rep){
       uid++;
-      var detailId = 'inc-d-'+uid;
+      var detailId  = 'inc-d-'  + uid;
+      var chvId     = 'inc-chv-' + uid;
+      var cardDetId = 'inc-cd-'  + uid;
+      var cardChvId = 'inc-cchv-'+ uid;
 
-      // Count badge cells
+      // #9 — Current-week badge cells with progress nudge
       var tds = weeks.map(function(w){
         var cnt = (rep.weekMap[w.key] || []).length;
         var tierCls = cnt>=3?'inc-tier-3':cnt>=2?'inc-tier-2':cnt>=1?'inc-tier-1':'inc-tier-0';
         var cellCls = w.isCurrent ? ' inc-wk-cur-cell' : '';
-        return '<td class="'+cellCls+'"><span class="inc-deal-badge '+tierCls+'">'+(cnt===0?'—':String(cnt))+'</span></td>';
+        var nudge = '';
+        if (w.isCurrent) {
+          if      (cnt === 0) nudge = '<div style="font-size:11px;color:rgba(255,255,255,.35);margin-top:3px;white-space:nowrap;">need 2 for +2%</div>';
+          else if (cnt === 1) nudge = '<div style="font-size:11px;color:'+TEAL+';margin-top:3px;white-space:nowrap;">need 1 for +2%</div>';
+          else if (cnt === 2) nudge = '<div style="font-size:11px;color:'+GOLD+';margin-top:3px;white-space:nowrap;">need 1 for +4%</div>';
+          else                nudge = '<div style="font-size:11px;color:'+GOLD+';margin-top:3px;white-space:nowrap;">+4% bonus!</div>';
+        }
+        return '<td class="'+cellCls+'" style="vertical-align:middle;"><span class="inc-deal-badge '+tierCls+'">'+(cnt===0?'—':String(cnt))+'</span>'+nudge+'</td>';
       }).join('');
 
-      // Deal detail panel (hidden by default)
+      // #6 — Detail panel: show only qualifying weeks (2+ deals)
       var detailRows = [];
       weeks.forEach(function(w){
         var ds = rep.weekMap[w.key] || [];
-        if (ds.length < 2) return;
+        if (ds.length < 2) return;  // hide non-qualifying weeks
         var bonusPct   = ds.length >= 3 ? '4%' : '2%';
         var bonusColor = ds.length >= 3 ? GOLD : TEAL;
+        detailRows.push(
+          '<div style="display:flex;align-items:center;gap:6px;padding:6px 0 3px;border-top:.5px solid rgba(255,255,255,.07);">' +
+            '<span style="font-size:12px;font-weight:700;padding:1px 5px;border-radius:3px;background:'+bonusColor+'22;color:'+bonusColor+';border:.5px solid '+bonusColor+'55;white-space:nowrap;flex-shrink:0;">wk ' + esc(w.label) + ' · +'+bonusPct+'</span>' +
+          '</div>'
+        );
         ds.forEach(function(d){
           var link = d.id ? 'https://myvivid.odoo.com/odoo/crm/'+d.id : '';
           var nameHtml = link
             ? '<a href="'+link+'" target="_blank" style="color:inherit;text-decoration:none;" onmouseover="this.style.textDecoration=\'underline\'" onmouseout="this.style.textDecoration=\'none\'">'+esc(d.name||'—')+'</a>'
             : esc(d.name||'—');
           detailRows.push(
-            '<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:.5px solid rgba(0,0,0,.18);">' +
-              '<span style="font-size:9px;font-weight:700;padding:1px 5px;border-radius:3px;background:'+bonusColor+'22;color:'+bonusColor+';border:.5px solid '+bonusColor+'55;white-space:nowrap;flex-shrink:0;">'+bonusPct+'</span>' +
-              '<span style="font-family:Inter,sans-serif;font-size:10px;color:#fff;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+nameHtml+'</span>' +
-              '<span style="font-size:9px;color:rgba(255,255,255,.45);white-space:nowrap;flex-shrink:0;">wk of '+esc(w.label)+'</span>' +
+            '<div style="display:flex;align-items:center;gap:8px;padding:4px 0 4px 10px;border-bottom:.5px solid rgba(0,0,0,.12);">' +
+              '<span style="font-size:13px;color:rgba(255,255,255,.25);flex-shrink:0;">›</span>' +
+              '<span style="font-family:Inter,sans-serif;font-size:14px;color:#fff;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+nameHtml+'</span>' +
+              (d.rev ? '<span style="font-size:13px;color:'+GOLD+';white-space:nowrap;flex-shrink:0;">$' + Math.round(d.rev).toLocaleString() + '</span>' : '') +
             '</div>'
           );
         });
@@ -2272,26 +2464,66 @@ function renderIncentivesTracker(deals) {
 
       var detailContent = detailRows.length
         ? detailRows.join('')
-        : '<div style="padding:10px 0;font-size:12px;color:rgba(255,255,255,.35);">No qualifying weeks yet.</div>';
+        : '<div style="padding:10px 0;font-size:15px;color:rgba(255,255,255,.35);">No deals yet.</div>';
 
       var sgLabel = rep.sgCount > 0 ? ' <span class="inc-self">('+rep.sgCount+' SG)</span>' : '';
-      var nameCell = '<td><span class="inc-rep" style="cursor:pointer;border-bottom:1px dotted rgba(255,255,255,.35);padding-bottom:1px;" ' +
-        'onclick="var p=document.getElementById(\''+detailId+'\');p.style.display=p.style.display===\'none\'?\'table-row\':\'none\';">'+esc(rep.name)+'</span>'+sgLabel+'</td>';
+
+      // #5 — Chevron affordance in table name cell
+      var nameCell = '<td>' +
+        '<div style="display:flex;align-items:center;gap:8px;cursor:pointer;" onclick="'+toggleDetail(detailId, chvId)+'">' +
+          '<div>' +
+            '<span class="inc-rep">'+esc(rep.name)+'</span>'+sgLabel +
+          '</div>' +
+          '<i class="ti ti-chevron-down" id="'+chvId+'" style="color:var(--amber);font-size:16px;transition:transform .2s;margin-left:auto;flex-shrink:0;"></i>' +
+        '</div>' +
+        '</td>';
 
       var detailRow = '<tr id="'+detailId+'" style="display:none;">' +
-        '<td colspan="'+colspan+'" style="padding:10px 14px 8px;background:rgba(0,0,0,.22);">' +
+        '<td colspan="'+colspan+'" style="padding:8px 14px 10px;background:rgba(0,0,0,.18);">' +
           detailContent +
         '</td>' +
       '</tr>';
 
-      return '<tr>'+nameCell+tds+'</tr>'+detailRow;
-    }).join('');
+      // #8 — Mobile card for this rep
+      var curWk = weeks.find(function(w){ return w.isCurrent; });
+      var curCnt = curWk ? (rep.weekMap[curWk.key] || []).length : 0;
+      var cardNudge = '';
+      if (curWk) {
+        if      (curCnt === 0) cardNudge = '<span style="font-size:12px;color:rgba(255,255,255,.3);">need 2 for +2%</span>';
+        else if (curCnt === 1) cardNudge = '<span style="font-size:12px;color:'+TEAL+';">need 1 for +2%</span>';
+        else if (curCnt === 2) cardNudge = '<span style="font-size:12px;color:'+GOLD+';">need 1 for +4%</span>';
+        else                   cardNudge = '<span style="font-size:12px;color:'+GOLD+';font-weight:700;">+4% bonus!</span>';
+      }
+      var cardDots = weeks.map(function(w){
+        var cnt = (rep.weekMap[w.key] || []).length;
+        var tierCls = cnt>=3?'inc-tier-3':cnt>=2?'inc-tier-2':cnt>=1?'inc-tier-1':'inc-tier-0';
+        var curStyle = w.isCurrent ? 'box-shadow:0 0 0 2px var(--amber);' : '';
+        return '<span class="inc-card-dot '+tierCls+'" style="'+curStyle+'" title="wk '+esc(w.label)+'">'+(cnt===0?'·':String(cnt))+'</span>';
+      }).join('');
+      var cardHtml =
+        '<div class="inc-card">' +
+          '<div class="inc-card-row" onclick="'+toggleCardDetail(cardDetId, cardChvId)+'">' +
+            '<div class="inc-card-name">' +
+              '<div class="inc-card-rep">'+esc(rep.name)+sgLabel+'</div>' +
+              (curWk ? '<div style="margin-top:3px;">'+cardNudge+'</div>' : '') +
+            '</div>' +
+            '<div class="inc-card-dots">'+cardDots+'</div>' +
+            '<i class="ti ti-chevron-down inc-card-chevron" id="'+cardChvId+'"></i>' +
+          '</div>' +
+          '<div class="inc-card-detail" id="'+cardDetId+'">'+detailContent+'</div>' +
+        '</div>';
+
+      return { tableRow: '<tr>'+nameCell+tds+'</tr>'+detailRow, cardHtml: cardHtml };
+    });
+
+    var tableRows = rows.map(function(r){ return r.tableRow; }).join('');
+    var cardRows  = rows.map(function(r){ return r.cardHtml; }).join('');
 
     return '<div class="inc-board">' +
       '<div class="inc-board-header">' +
         '<div class="inc-board-left">' +
           '<div class="inc-board-office">'+esc(office.name)+'</div>' +
-          '<div class="inc-board-subtitle">Click a setter name to see qualifying deals &nbsp;·&nbsp; Sun–Sat weeks</div>' +
+          '<div class="inc-board-subtitle">'+esc(offSummary)+' &nbsp;·&nbsp; Sun–Sat &nbsp;·&nbsp; Tap name to expand</div>' +
         '</div>' +
         '<div class="inc-board-right">' +
           '<div class="inc-board-weekly">Weekly</div>' +
@@ -2300,17 +2532,18 @@ function renderIncentivesTracker(deals) {
       '</div>' +
       '<div class="inc-table-wrap"><table class="inc-table">' +
         '<thead><tr>'+thCells+'</tr></thead>' +
-        '<tbody>'+rows+'</tbody>' +
+        '<tbody>'+tableRows+'</tbody>' +
       '</table></div>' +
+      '<div class="inc-mobile-cards">'+cardRows+'</div>' +
       '<div class="inc-footer">' +
         '<div class="inc-footer-rule"><div class="inc-footer-num" style="color:rgba(255,255,255,.35)">1 DEAL/WK</div><div class="inc-footer-label">No bonus</div></div>' +
         '<div class="inc-footer-rule"><div class="inc-footer-num" style="color:'+TEAL+'">2 DEALS/WK</div><div class="inc-footer-label">+2% bonus</div></div>' +
         '<div class="inc-footer-rule"><div class="inc-footer-num" style="color:'+GOLD+'">3+ DEALS/WK</div><div class="inc-footer-label">+4% bonus</div></div>' +
       '</div>' +
     '</div>';
-  }).join('');
+  })(office);
 
-  document.getElementById('incentivesGrid').innerHTML = html || '<div style="color:var(--muted);font-size:13px;padding:10px 0">No setter data found.</div>';
+  return html;
 }
 
 function renderCompetition(deals) {
@@ -2602,6 +2835,8 @@ function closeCompDrilldown() {
 // ── Init ──────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', function() {
   setRange('mtd');
+  // Auto-load incentives in background after page settles
+  setTimeout(function() { loadIncentivesData(); }, 1500);
   setInterval(function() {
     var btn = document.getElementById('refreshBtn');
     if (!btn.disabled && activeMainTab === 'revenue') loadData();
