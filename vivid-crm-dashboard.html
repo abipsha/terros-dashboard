@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Vivid Windows - Leadership Dashboard</title>
 <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;700;800;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" rel="stylesheet">
 <style>
   :root {
     --black:        #0b0c14;
@@ -168,7 +169,7 @@
   .office-NC { background: var(--red-bg); color: var(--red); }
   .office-IS { background: rgba(140,100,255,.15); color: #a07ef5; }
   .office-XX { background: var(--surface2); color: var(--muted); }
-  .rev-val { font-family: 'Roboto Condensed', sans-serif; font-weight: 700; color: var(--green); white-space: nowrap; }
+  .rev-val { font-family: 'Roboto Condensed', sans-serif; font-weight: 700; color: var(--amber); white-space: nowrap; }
   .rev-zero { color: var(--muted); }
   .tag { display: inline-block; background: var(--surface2); border: 1px solid var(--border-light); border-radius: 3px; padding: 1px 6px; font-family: 'Inter', sans-serif; font-size: 10px; margin: 1px; white-space: nowrap; color: var(--muted); }
   .date-val { color: var(--muted); white-space: nowrap; font-family: 'Inter', sans-serif; font-size: 11px; }
@@ -394,25 +395,25 @@
   .rev-top3-row:last-child { border-bottom: none; }
   .rev-top3-row:hover { background: var(--surface2); }
   .rev-top3-rank { font-family: 'Roboto Condensed', sans-serif; font-size: 16px; font-weight: 800; width: 22px; text-align: center; flex-shrink: 0; }
-  .rev-top3-rank.r1 { color: #ffd700; }
-  .rev-top3-rank.r2 { color: #c0c0c0; }
-  .rev-top3-rank.r3 { color: #cd7f32; }
+  .rev-top3-rank.r1 { color: var(--amber); }
+  .rev-top3-rank.r2 { color: rgba(255,201,71,.65); }
+  .rev-top3-rank.r3 { color: rgba(255,201,71,.45); }
   .rev-top3-info { flex: 1; min-width: 0; }
-  .rev-top3-name { font-size: 16px; font-weight: 500; color: var(--blue); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .rev-top3-row:hover .rev-top3-name { text-decoration: underline; }
+  .rev-top3-name { font-size: 16px; font-weight: 500; color: var(--white); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .rev-top3-row:hover .rev-top3-name { color: var(--amber); text-decoration: underline; }
   .rev-top3-meta { font-family: 'Inter', sans-serif; font-size: 12px; color: var(--muted); margin-top: 2px; }
-  .rev-top3-rev { font-family: 'Roboto Condensed', sans-serif; font-size: 16px; font-weight: 700; color: var(--green); white-space: nowrap; flex-shrink: 0; }
+  .rev-top3-rev { font-family: 'Roboto Condensed', sans-serif; font-size: 16px; font-weight: 700; color: var(--amber); white-space: nowrap; flex-shrink: 0; }
   /* Rep table (Level 2) */
   .rev-rep-row { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-bottom: .5px solid var(--border-light); cursor: pointer; transition: background .1s; }
   .rev-rep-row:last-child { border-bottom: none; }
   .rev-rep-row:hover { background: var(--surface2); }
   .rev-rep-left { flex: 1; min-width: 0; overflow: hidden; }
-  .rev-rep-name { font-family: 'Roboto Condensed', sans-serif; font-weight: 700; color: var(--blue); font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .rev-rep-row:hover .rev-rep-name { text-decoration: underline; }
+  .rev-rep-name { font-family: 'Roboto Condensed', sans-serif; font-weight: 700; color: var(--white); font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .rev-rep-row:hover .rev-rep-name { color: var(--amber); text-decoration: underline; }
   .rev-rep-deals { font-family: 'Inter', sans-serif; font-size: 13px; color: var(--muted); margin-top: 2px; }
-  .rev-rep-rev { font-family: 'Roboto Condensed', sans-serif; font-weight: 700; color: var(--green); font-size: 15px; white-space: nowrap; flex-shrink: 0; }
-  .rev-role-closer { display: inline-block; font-family: 'Inter', sans-serif; font-size: 12px; letter-spacing: .08em; padding: 2px 7px; border-radius: 3px; background: var(--blue-bg); color: var(--blue); border: 1px solid rgba(77,159,255,.2); }
-  .rev-role-setter { display: inline-block; font-family: 'Inter', sans-serif; font-size: 12px; letter-spacing: .08em; padding: 2px 7px; border-radius: 3px; background: var(--green-bg); color: var(--green); border: 1px solid rgba(0,229,190,.2); }
+  .rev-rep-rev { font-family: 'Roboto Condensed', sans-serif; font-weight: 700; color: var(--amber); font-size: 15px; white-space: nowrap; flex-shrink: 0; }
+  .rev-role-closer { display: inline-block; font-family: 'Inter', sans-serif; font-size: 12px; letter-spacing: .08em; padding: 2px 7px; border-radius: 3px; background: rgba(255,201,71,.12); color: var(--amber); border: 1px solid rgba(255,201,71,.3); }
+  .rev-role-setter { display: inline-block; font-family: 'Inter', sans-serif; font-size: 12px; letter-spacing: .08em; padding: 2px 7px; border-radius: 3px; background: rgba(255,255,255,.07); color: var(--white); border: 1px solid rgba(255,255,255,.15); }
   /* Deal list (Level 3) */
   .rev-deal-item { display: flex; align-items: flex-start; gap: 10px; padding: 11px 0; border-bottom: .5px solid var(--border-light); }
   .rev-deal-item:last-child { border-bottom: none; }
@@ -420,7 +421,7 @@
   .rev-deal-info { flex: 1; min-width: 0; }
   .rev-deal-top { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 3px; }
   .rev-deal-name { font-weight: 500; color: var(--ink); font-size: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .rev-deal-rev { font-family: 'Roboto Condensed', sans-serif; font-size: 16px; font-weight: 700; color: var(--green); white-space: nowrap; flex-shrink: 0; }
+  .rev-deal-rev { font-family: 'Roboto Condensed', sans-serif; font-size: 16px; font-weight: 700; color: var(--amber); white-space: nowrap; flex-shrink: 0; }
   .rev-deal-addr { font-family: 'Inter', sans-serif; font-size: 13px; color: var(--muted); margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .rev-deal-footer { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
   .rev-deal-setter { font-family: 'Inter', sans-serif; font-size: 13px; color: var(--muted); }
@@ -437,19 +438,19 @@
   .bold-cols { margin: 0 -28px -40px; display: grid; grid-template-columns: 1fr 1fr; }
   .bold-col { border-right: 1px solid var(--border-light); }
   .bold-col:last-child { border-right: none; }
-  .bold-col-head { padding: 10px 14px 8px; border-bottom: 2px solid var(--red); display: flex; justify-content: space-between; align-items: baseline; }
+  .bold-col-head { padding: 10px 14px 8px; border-bottom: 2px solid var(--amber); display: flex; justify-content: space-between; align-items: baseline; }
   .bold-col-title { font-family: 'Roboto Condensed', sans-serif; font-size: 23px; color: var(--white); letter-spacing: 2px; }
-  .bold-col-money { font-family: 'Roboto Condensed', sans-serif; font-size: 18px; color: var(--red); letter-spacing: 1px; }
+  .bold-col-money { font-family: 'Roboto Condensed', sans-serif; font-size: 18px; color: var(--amber); letter-spacing: 1px; }
   .bold-rep-row { display: flex; align-items: center; gap: 8px; padding: 9px 14px; border-bottom: 1px solid var(--border-light); cursor: pointer; transition: background .1s; }
   .bold-rep-row:last-child { border-bottom: none; }
-  .bold-rep-row:hover { background: var(--surface2); }
+  .bold-rep-row:hover { background: rgba(255,201,71,.05); }
   .bold-rep-num { font-family: 'Roboto Condensed', sans-serif; font-size: 21px; color: var(--muted); width: 18px; flex-shrink: 0; text-align: center; }
-  .bold-rep-num.r1 { color: #ffd700; }
-  .bold-rep-num.r2 { color: #c0c0c0; }
-  .bold-rep-num.r3 { color: #cd7f32; }
+  .bold-rep-num.r1 { color: var(--amber); }
+  .bold-rep-num.r2 { color: rgba(255,201,71,.65); }
+  .bold-rep-num.r3 { color: rgba(255,201,71,.45); }
   .bold-rep-info { flex: 1; min-width: 0; }
-  .bold-rep-name { font-family: 'Inter', sans-serif; font-size: 13px; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; }
-  .bold-rep-row:hover .bold-rep-name { color: var(--white); }
+  .bold-rep-name { font-family: 'Inter', sans-serif; font-size: 13px; color: var(--white); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; }
+  .bold-rep-row:hover .bold-rep-name { color: var(--amber); }
   .bold-rep-deals { font-family: 'Inter', sans-serif; font-size: 12px; color: var(--muted); margin-top: 2px; letter-spacing: .04em; }
   .bold-rep-rev { font-family: 'Roboto Condensed', sans-serif; font-size: 18px; color: var(--white); white-space: nowrap; flex-shrink: 0; }
 
@@ -697,9 +698,425 @@
   .pb-player-notes { font-size: 12px; color: var(--muted); margin-top: 12px; line-height: 1.6; }
   @media (max-width: 700px) { .pb-grid { grid-template-columns: 1fr 1fr; } .pb-wrap { padding: 14px; } }
   @media (max-width: 480px) { .pb-grid { grid-template-columns: 1fr; } }
+
+  /* ── SIDEBAR LAYOUT ────────────────────────────────────────── */
+  body { display: flex; overflow-x: hidden; }
+  .header, .main-nav { display: none; }
+
+  /* ── Sidebar ── */
+  .sidebar {
+    width: 220px; min-height: 100vh; background: #060710;
+    border-right: 1px solid var(--border);
+    display: flex; flex-direction: column; flex-shrink: 0;
+    position: fixed; top: 0; left: 0; bottom: 0; z-index: 200;
+  }
+  .sb-logo-wrap { padding: 24px 22px 18px; border-bottom: 1px solid var(--border); }
+  .sb-logo-vivid {
+    font-family: 'Roboto Condensed', sans-serif;
+    font-size: 26px; font-weight: 900; color: var(--amber); letter-spacing: 2px; line-height: 1;
+  }
+  .sb-logo-windows {
+    font-family: 'Roboto Condensed', sans-serif;
+    font-size: 13px; font-weight: 400; color: var(--muted);
+    letter-spacing: 4px; text-transform: uppercase; margin-top: 3px;
+  }
+  .sb-nav { flex: 1; padding: 10px 0; overflow-y: auto; }
+  .sb-nav-item {
+    display: flex; align-items: center; gap: 11px;
+    width: 100%; padding: 11px 22px;
+    font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 500;
+    color: var(--muted); background: none; border: none; cursor: pointer;
+    text-align: left; border-left: 3px solid transparent;
+    transition: color .15s, background .15s, border-color .15s;
+  }
+  .sb-nav-item:hover:not(.sb-nav-disabled) { color: var(--ink); background: rgba(255,255,255,.04); }
+  .sb-nav-item.active {
+    color: var(--amber); background: rgba(255,201,71,.07);
+    border-left-color: var(--amber); font-weight: 600;
+  }
+  .sb-nav-item i { font-size: 16px; flex-shrink: 0; opacity: .7; }
+  .sb-nav-item.active i { opacity: 1; color: var(--amber); }
+  .sb-nav-disabled { opacity: .35; cursor: default; }
+  .sb-divider { height: 1px; background: var(--border); margin: 8px 14px; }
+  .sb-footer {
+    padding: 14px 22px; border-top: 1px solid var(--border);
+    display: flex; align-items: center; gap: 8px;
+    font-family: 'Inter', sans-serif; font-size: 10px; color: var(--muted); letter-spacing: .04em;
+  }
+  .sb-footer i { font-size: 14px; opacity: .45; flex-shrink: 0; }
+
+  /* ── Main content ── */
+  .main-content {
+    flex: 1; margin-left: 220px; display: flex; flex-direction: column;
+    min-height: 100vh; min-width: 0;
+  }
+
+  /* ── Revenue page header ── */
+  .rev-page-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 20px 28px 14px; background: var(--black);
+    border-bottom: 1px solid var(--border);
+  }
+  .rev-page-title {
+    font-family: 'Roboto Condensed', sans-serif;
+    font-size: 28px; font-weight: 800; color: var(--white); letter-spacing: -.3px;
+  }
+  .rev-header-controls { display: flex; align-items: center; gap: 10px; }
+
+  /* All Offices button — gold outline */
+  .rev-office-selector { position: relative; }
+  .rev-office-btn {
+    display: flex; align-items: center; gap: 8px; padding: 9px 16px;
+    background: transparent; border: 1.5px solid var(--amber); border-radius: 8px;
+    font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 500;
+    color: var(--amber); cursor: pointer; transition: background .15s;
+    white-space: nowrap;
+  }
+  .rev-office-btn:hover { background: rgba(255,201,71,.08); }
+  .rev-office-btn i.ti-chevron-down { font-size: 13px; opacity: .8; transition: transform .2s; }
+  .rev-office-btn.open i.ti-chevron-down { transform: rotate(180deg); }
+  .rev-office-btn i.ti-building { font-size: 14px; opacity: .9; }
+  .rev-filter-btn {
+    position: relative; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;
+    background: transparent; border: 1.5px solid rgba(255,255,255,.15); border-radius: 8px;
+    color: var(--muted); cursor: pointer; font-size: 16px; transition: all .15s;
+  }
+  .rev-filter-btn:hover { border-color: var(--amber); color: var(--amber); }
+  .rev-office-dropdown {
+    display: none; position: absolute; top: calc(100% + 8px); right: 0;
+    background: #0d0f1f; border: 1px solid var(--border); border-radius: 10px;
+    min-width: 210px; z-index: 500; box-shadow: 0 10px 32px rgba(0,0,0,.6); overflow: hidden;
+  }
+  .rev-office-dropdown.open { display: block; }
+  .rev-office-opt {
+    display: flex; align-items: center; gap: 9px; padding: 11px 16px;
+    font-family: 'Inter', sans-serif; font-size: 13px; color: var(--white);
+    cursor: pointer; transition: background .1s; border-bottom: 1px solid rgba(255,255,255,.05);
+  }
+  .rev-office-opt:last-child { border-bottom: none; }
+  .rev-office-opt:hover { background: rgba(255,201,71,.07); color: var(--amber); }
+  .rev-office-opt.selected { color: var(--amber); font-weight: 600; background: rgba(255,201,71,.06); }
+  .rev-office-opt-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; background: var(--amber); flex-shrink: 0; }
+  .rev-office-opt:first-child .rev-office-opt-dot { display: none; }
+
+  /* ── Date tab controls ── */
+  .controls-bar {
+    padding: 0 28px !important; border-top: none !important;
+    background: var(--black); border-bottom: 1px solid var(--border);
+    display: flex; align-items: stretch;
+  }
+  .date-btn {
+    font-family: 'Inter', sans-serif; font-size: 11px; letter-spacing: .1em;
+    text-transform: uppercase; font-weight: 600;
+    background: none; border: none; border-bottom: 2px solid transparent;
+    color: var(--muted); padding: 13px 20px; border-radius: 0; cursor: pointer;
+    transition: color .15s, border-color .15s; white-space: nowrap;
+  }
+  .date-btn:hover { color: var(--ink); }
+  .date-btn.active { color: var(--white); border-bottom-color: var(--amber); }
+  .custom-dates { padding: 8px 0; }
+
+  /* ── KPI Cards ── */
+  .rev-kpi-bar {
+    display: grid; grid-template-columns: repeat(4,1fr);
+    gap: 14px; padding: 20px 28px;
+    background: var(--black); border-bottom: 1px solid var(--border);
+  }
+  .rev-kpi {
+    background: var(--surface); border: 1px solid rgba(255,255,255,.07);
+    border-radius: 12px; padding: 20px 22px 16px;
+    display: flex; flex-direction: column; min-height: 148px;
+    position: relative; overflow: hidden;
+  }
+  .rev-kpi-label {
+    font-family: 'Inter', sans-serif; font-size: 10px; font-weight: 600;
+    letter-spacing: .14em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px;
+  }
+  .rev-kpi-val {
+    font-family: 'Roboto Condensed', sans-serif; font-size: 36px; font-weight: 800;
+    color: var(--white); line-height: 1; margin-bottom: 4px;
+  }
+  #kpiRev { color: var(--white); }
+  .rev-kpi-sub { font-family: 'Inter', sans-serif; font-size: 11px; color: var(--muted); }
+
+  /* Sparkline (Total Revenue card) */
+  .kpi-sparkline-wrap { margin-top: auto; padding-top: 10px; height: 52px; }
+  .kpi-sparkline { width: 100%; height: 100%; }
+
+  /* Icon circle (other 3 cards) */
+  .kpi-icon-wrap { margin-top: auto; display: flex; justify-content: flex-end; padding-top: 10px; }
+  .kpi-icon-circle {
+    width: 42px; height: 42px;
+    border: 1.5px solid rgba(255,201,71,.5); border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--amber); font-size: 20px;
+    background: rgba(255,201,71,.06);
+  }
+
+  /* ── 3-panel overview grid ── */
+  .ov-grid { grid-template-columns: 5fr 3fr 3fr !important; }
+  .ov-panel-title {
+    font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 700;
+    letter-spacing: .14em; text-transform: uppercase; color: var(--white) !important;
+  }
+  .ov-panel-hint { font-size: 10px; color: var(--muted) !important; }
+
+  /* Office rows — all gold */
+  .ov-office-dot { background: var(--amber) !important; }
+  .ov-office-bar { background: var(--amber) !important; }
+  .ov-office-pct { color: var(--amber) !important; font-weight: 600; }
+  .ov-office-rev { color: var(--white) !important; }
+  .ov-office-bar-wrap { width: 120px !important; }
+
+  /* Rep rows — mini bar below name */
+  .ov-rep-row { padding: 10px 20px !important; gap: 10px !important; align-items: center !important; }
+  .ov-rep-rank { font-size: 13px !important; color: var(--muted) !important; font-weight: 600; min-width: 18px; }
+  .ov-rep-rank.r1, .ov-rep-rank.r2, .ov-rep-rank.r3 { color: var(--white) !important; }
+  .ov-rep-info { flex: 1; min-width: 0; }
+  .ov-rep-name { font-size: 13px !important; color: var(--white) !important; }
+  .ov-rep-mini-bar { height: 2px; background: rgba(255,255,255,.1); border-radius: 1px; margin-top: 5px; }
+  .ov-rep-mini-fill { height: 100%; background: var(--amber); border-radius: 1px; }
+  .ov-rep-bar-wrap { display: none !important; }
+  .ov-rep-rev { font-size: 14px !important; font-weight: 700 !important; color: var(--white) !important; }
+
+  /* ── Refresh + Incentives gold ── */
+  .footer-refresh-btn {
+    background: rgba(255,201,71,.1); border-color: rgba(255,201,71,.3); color: var(--amber);
+  }
+  .footer-refresh-btn:hover { background: rgba(255,201,71,.18); }
+  .inc-nav-tab.active { color: var(--amber); border-bottom-color: var(--amber); }
+
+  /* ── Filter button active state ── */
+  .rev-filter-btn.active { background: var(--amber); border-color: var(--amber); color: #000; }
+  .rev-filter-btn.active:hover { background: #ffd966; border-color: #ffd966; color: #000; }
+  .rev-filter-btn .filter-dot {
+    display: none; position: absolute; top: -4px; right: -4px;
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--amber); border: 1.5px solid #060710;
+  }
+  .rev-filter-btn.active .filter-dot { display: block; background: #000; border-color: var(--amber); }
+
+  /* ── Filter Popover ── */
+  .filter-drawer {
+    display: none; position: absolute; top: calc(100% + 8px); right: 0;
+    background: #0d0f1f; border: 1px solid var(--border);
+    border-radius: 12px; z-index: 600;
+    box-shadow: 0 16px 48px rgba(0,0,0,.7);
+    min-width: 580px; overflow: hidden;
+  }
+  .filter-drawer.open { display: block; }
+  .filter-drawer-inner {
+    display: flex; gap: 0;
+    padding: 0;
+  }
+  .filter-section {
+    flex: 1; min-width: 160px; padding: 18px 20px;
+    border-right: 1px solid var(--border);
+  }
+  .filter-section:last-of-type { border-right: none; }
+  @media (max-width: 768px) {
+    .filter-drawer {
+      position: fixed; top: auto; bottom: 0; left: 0; right: 0;
+      min-width: unset; width: 100%; border-radius: 16px 16px 0 0;
+      max-height: 80vh; overflow-y: auto;
+    }
+    .filter-drawer-inner { flex-direction: column; }
+    .filter-section { border-right: none; border-bottom: 1px solid var(--border); padding: 16px; }
+    .filter-section:last-of-type { border-bottom: none; }
+    .filter-rep-list { max-height: 120px; }
+  }
+  .filter-section-label {
+    font-family: 'Inter', sans-serif; font-size: 9px; font-weight: 700;
+    letter-spacing: .14em; text-transform: uppercase; color: var(--muted);
+    margin-bottom: 10px;
+  }
+  .filter-search-wrap {
+    position: relative; margin-bottom: 8px;
+  }
+  .filter-search-icon {
+    position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
+    color: var(--muted); font-size: 14px; pointer-events: none;
+  }
+  .filter-search {
+    width: 100%; box-sizing: border-box;
+    background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.1);
+    border-radius: 7px; padding: 8px 32px 8px 32px;
+    font-family: 'Inter', sans-serif; font-size: 12px; color: var(--white);
+    outline: none; transition: border-color .15s;
+  }
+  .filter-search::placeholder { color: var(--muted); }
+  .filter-search:focus { border-color: rgba(255,201,71,.45); }
+  .filter-clear-x {
+    position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+    background: none; border: none; color: var(--muted); cursor: pointer;
+    padding: 2px; font-size: 13px; line-height: 1;
+  }
+  .filter-clear-x:hover { color: var(--white); }
+  .filter-rep-list {
+    max-height: 160px; overflow-y: auto; scrollbar-width: thin;
+    scrollbar-color: rgba(255,201,71,.2) transparent;
+  }
+  .filter-rep-list::-webkit-scrollbar { width: 4px; }
+  .filter-rep-list::-webkit-scrollbar-thumb { background: rgba(255,201,71,.2); border-radius: 2px; }
+  .filter-rep-opt {
+    display: flex; align-items: center; gap: 8px;
+    padding: 7px 8px; border-radius: 6px; cursor: pointer;
+    font-family: 'Inter', sans-serif; font-size: 12px; color: rgba(255,255,255,.7);
+    transition: background .1s;
+  }
+  .filter-rep-opt:hover { background: rgba(255,201,71,.07); color: var(--white); }
+  .filter-rep-opt.selected { background: rgba(255,201,71,.12); color: var(--amber); font-weight: 600; }
+  .filter-rep-opt-check {
+    width: 14px; height: 14px; border: 1.5px solid rgba(255,255,255,.2);
+    border-radius: 3px; flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+    font-size: 9px;
+  }
+  .filter-rep-opt.selected .filter-rep-opt-check {
+    background: var(--amber); border-color: var(--amber); color: #000;
+  }
+  /* Self-gen toggle */
+  .filter-toggle-row {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 12px; cursor: pointer;
+  }
+  .filter-toggle-label {
+    font-family: 'Inter', sans-serif; font-size: 12px; color: rgba(255,255,255,.7);
+  }
+  .filter-toggle {
+    position: relative; width: 40px; height: 22px; flex-shrink: 0;
+    background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.15);
+    border-radius: 11px; cursor: pointer; transition: background .2s, border-color .2s;
+    padding: 0;
+  }
+  .filter-toggle.on { background: rgba(255,201,71,.3); border-color: rgba(255,201,71,.6); }
+  .filter-toggle-knob {
+    position: absolute; top: 2px; left: 2px;
+    width: 16px; height: 16px; border-radius: 50%;
+    background: rgba(255,255,255,.4); transition: transform .2s, background .2s;
+  }
+  .filter-toggle.on .filter-toggle-knob { transform: translateX(18px); background: var(--amber); }
+  /* Filter actions row */
+  .filter-actions {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 20px; border-top: 1px solid var(--border);
+    background: rgba(0,0,0,.25);
+  }
+  .filter-reset-btn {
+    font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 600;
+    letter-spacing: .06em; text-transform: uppercase;
+    background: transparent; border: 1px solid rgba(255,255,255,.12);
+    color: var(--muted); border-radius: 5px; padding: 6px 14px; cursor: pointer;
+    transition: all .15s;
+  }
+  .filter-reset-btn:hover { border-color: rgba(255,201,71,.4); color: var(--amber); }
+  .filter-active-count {
+    font-family: 'Inter', sans-serif; font-size: 11px; color: var(--amber);
+    font-weight: 600;
+  }
+
+  /* ── Mobile ≤ 768px ── */
+  @media (max-width: 768px) {
+    .sidebar { display: none; }
+    .main-content { margin-left: 0; }
+
+    /* Page header */
+    .rev-page-header { padding: 14px 16px 10px; }
+    .rev-page-title { font-size: 20px; }
+    .rev-header-controls { gap: 7px; }
+    .rev-office-btn { font-size: 12px; padding: 7px 11px; gap: 6px; }
+    .rev-filter-btn { width: 34px; height: 34px; font-size: 15px; }
+
+    /* Date tabs — scrollable */
+    .controls-bar { padding: 0 12px !important; overflow-x: auto; scrollbar-width: none; flex-wrap: nowrap; }
+    .controls-bar::-webkit-scrollbar { display: none; }
+    .date-btn { padding: 11px 14px; font-size: 10px; white-space: nowrap; flex-shrink: 0; }
+
+    /* KPI: 2 × 2 grid */
+    .rev-kpi-bar { grid-template-columns: 1fr 1fr; gap: 10px; padding: 14px 16px; }
+    .rev-kpi { padding: 16px 14px 12px; min-height: 120px; }
+    .rev-kpi-val { font-size: 26px !important; }
+    .rev-kpi-label { font-size: 9px; }
+    .rev-kpi-sub { font-size: 10px; }
+    .kpi-sparkline-wrap { height: 38px; }
+    .kpi-icon-circle { width: 34px; height: 34px; font-size: 17px; border-radius: 8px; }
+
+    /* Overview: single column */
+    .ov-grid { grid-template-columns: 1fr !important; }
+    .ov-panel { border-right: none !important; border-bottom: 1px solid var(--border); }
+    .ov-panel:last-child { border-bottom: none; }
+    .ov-office-bar-wrap { width: 80px !important; }
+    .ov-office-name { font-size: 13px; }
+    .ov-office-rev { font-size: 14px !important; }
+    .ov-rep-row { padding: 10px 16px !important; }
+    .ov-rep-name { font-size: 13px !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .ov-rep-rev { font-size: 13px !important; }
+
+    /* Drill-down content */
+    .rev-content { padding: 14px 16px 28px; }
+    .rev-kpi-bar { border-bottom: 1px solid var(--border); }
+
+    /* Bold drill-down */
+    .bold-office-hero { margin: -14px -16px 0; }
+    .bold-office-name { font-size: 36px; }
+    .bold-kpi-strip { margin: 0 -16px; }
+    .bold-cols { margin: 0 -16px -28px; }
+  }
+
+  /* ── Small phones ≤ 430px ── */
+  @media (max-width: 430px) {
+    .rev-page-title { font-size: 18px; }
+    .rev-kpi-val { font-size: 22px !important; }
+    .rev-kpi { padding: 14px 12px 10px; min-height: 108px; }
+    .kpi-sparkline-wrap { height: 32px; }
+    .rev-office-btn { font-size: 11px; padding: 6px 10px; }
+    .rev-page-header { padding: 12px 14px 8px; }
+    .rev-kpi-bar { padding: 12px 14px; gap: 8px; }
+  }
 </style>
 </head>
 <body>
+
+<!-- ── Sidebar ── -->
+<div class="sidebar">
+  <div class="sb-logo-wrap">
+    <div class="sb-logo-vivid">VIVID</div>
+    <div class="sb-logo-windows">WINDOWS</div>
+  </div>
+  <nav class="sb-nav">
+    <button class="sb-nav-item active" data-tab="revenue" onclick="switchMainTab('revenue')" style="display:none">
+      <i class="ti ti-home"></i> Dashboard
+    </button>
+    <button class="sb-nav-item" data-tab="revenue" onclick="switchMainTab('revenue'); revGoHome();">
+      <i class="ti ti-chart-bar"></i> Revenue Tracker
+    </button>
+    <button class="sb-nav-item" data-tab="terros" onclick="switchMainTab('terros')">
+      <i class="ti ti-map-pin-2"></i> Terros Board
+    </button>
+    <button class="sb-nav-item" data-tab="incentives" onclick="switchMainTab('incentives')">
+      <i class="ti ti-trophy"></i> Incentives Tracker
+    </button>
+    <div class="sb-divider"></div>
+    <button class="sb-nav-item sb-nav-disabled">
+      <i class="ti ti-report-analytics"></i> Reports
+    </button>
+    <button class="sb-nav-item sb-nav-disabled">
+      <i class="ti ti-crown"></i> Leaders
+    </button>
+    <button class="sb-nav-item sb-nav-disabled">
+      <i class="ti ti-settings"></i> Settings
+    </button>
+    <button class="sb-nav-item" data-tab="playbook" onclick="switchMainTab('playbook')" style="display:none">
+      <i class="ti ti-book-2"></i> Playbook
+    </button>
+  </nav>
+  <div class="sb-footer">
+    <span id="sbFooterDate">Loading…</span>
+    <i class="ti ti-calendar"></i>
+  </div>
+</div>
+
+<!-- ── Main Content ── -->
+<div class="main-content">
 
 <!-- ── Header ── -->
 <div class="header">
@@ -731,11 +1148,31 @@
 ═══════════════════════════════════════════════════════════ -->
 <div class="main-panel active" id="main-revenue">
 
-  <!-- Controls bar -->
+  <!-- Page header: title + office selector + filter -->
+  <div class="rev-page-header">
+    <h2 class="rev-page-title">Revenue Tracker</h2>
+    <div class="rev-header-controls">
+      <div class="rev-office-selector">
+        <button class="rev-office-btn" id="officeDropBtn" onclick="toggleOfficeDropdown(event)">
+          <i class="ti ti-building"></i>
+          <span id="officeDropLabel">All Offices</span>
+          <i class="ti ti-chevron-down"></i>
+        </button>
+        <div class="rev-office-dropdown" id="officeDropdown"></div>
+      </div>
+      <div style="position:relative">
+        <button class="rev-filter-btn" id="filterToggleBtn" title="Filter options" onclick="toggleFilterDrawer()"><i class="ti ti-adjustments-horizontal"></i><span class="filter-dot"></span></button>
+        <div class="filter-drawer" id="filterDrawer"><!-- populated below --></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Date tab controls -->
   <div class="controls-bar">
-    <button class="date-btn active" data-r="mtd"    onclick="setRange('mtd')">Month-to-Date</button>
-    <button class="date-btn"        data-r="week"   onclick="setRange('week')">This Week</button>
-    <button class="date-btn"        data-r="custom" onclick="setRange('custom')">Custom</button>
+    <button class="date-btn active" data-r="mtd"       onclick="setRange('mtd')">Month-to-Date</button>
+    <button class="date-btn"        data-r="week"      onclick="setRange('week')">This Week</button>
+    <button class="date-btn"        data-r="lastmonth" onclick="setRange('lastmonth')">Last Month</button>
+    <button class="date-btn"        data-r="custom"    onclick="setRange('custom')">Custom</button>
     <div class="custom-dates" id="customDates">
       <label>From</label>
       <input type="date" id="customStart" min="2026-01-01" value="2026-01-01">
@@ -743,36 +1180,35 @@
       <input type="date" id="customEnd" min="2026-01-01">
       <button class="apply-btn" onclick="applyCustomRange()">Apply</button>
     </div>
-    <span class="range-label" id="rangeLabel"></span>
+    <span class="range-label" id="rangeLabel" style="margin-left:auto;padding:0 8px;"></span>
   </div>
 
-  <!-- KPI Bar -->
+  <!-- KPI Cards -->
   <div class="rev-kpi-bar">
     <div class="rev-kpi">
       <div class="rev-kpi-label">Total Revenue</div>
       <div class="rev-kpi-val" id="kpiRev">—</div>
       <div class="rev-kpi-sub" id="kpiRevSub">loading…</div>
+      <div class="kpi-sparkline-wrap"><div class="kpi-sparkline" id="kpiSparkline"></div></div>
     </div>
     <div class="rev-kpi">
       <div class="rev-kpi-label">Deals Closed</div>
-      <div class="rev-kpi-val kpi-blue" id="kpiDeals">—</div>
+      <div class="rev-kpi-val" id="kpiDeals">—</div>
       <div class="rev-kpi-sub" id="kpiDealsSub">this period</div>
+      <div class="kpi-icon-wrap"><div class="kpi-icon-circle"><i class="ti ti-layout-grid"></i></div></div>
     </div>
     <div class="rev-kpi">
       <div class="rev-kpi-label">Avg Deal Size</div>
-      <div class="rev-kpi-val kpi-gold" id="kpiAvg">—</div>
+      <div class="rev-kpi-val" id="kpiAvg">—</div>
       <div class="rev-kpi-sub">per deal</div>
+      <div class="kpi-icon-wrap"><div class="kpi-icon-circle"><i class="ti ti-currency-dollar"></i></div></div>
     </div>
     <div class="rev-kpi">
       <div class="rev-kpi-label">Active Reps</div>
-      <div class="rev-kpi-val kpi-white" id="kpiReps">—</div>
+      <div class="rev-kpi-val" id="kpiReps">—</div>
       <div class="rev-kpi-sub" id="kpiRepsSub">with closed deals</div>
+      <div class="kpi-icon-wrap"><div class="kpi-icon-circle"><i class="ti ti-users"></i></div></div>
     </div>
-  </div>
-
-  <!-- Breadcrumb -->
-  <div class="rev-breadcrumb" id="revBreadcrumb">
-    <span class="rev-bc-active">All Offices</span>
   </div>
 
   <!-- Drill-down content -->
@@ -799,7 +1235,7 @@
 <!-- ═══════════════════════════════════════════════════════════
      PANEL 2 — Terros Board (iframe)
 ═══════════════════════════════════════════════════════════ -->
-<div class="main-panel" id="main-terros" style="height:calc(100vh - 104px);">
+<div class="main-panel" id="main-terros" style="height:100vh;">
   <iframe id="terrosFrame" src="/terros" style="width:100%;height:100%;border:none;display:block;"></iframe>
 </div><!-- /main-terros -->
 
@@ -1019,6 +1455,7 @@ function officeColor(name) {
 function switchMainTab(tab) {
   activeMainTab = tab;
   document.querySelectorAll('.main-tab').forEach(function(t) { t.classList.toggle('active', t.dataset.tab === tab); });
+  document.querySelectorAll('.sb-nav-item').forEach(function(t) { t.classList.toggle('active', t.dataset.tab === tab); });
   document.querySelectorAll('.main-panel').forEach(function(p) { p.classList.toggle('active', p.id === 'main-' + tab); });
   if (tab === 'incentives') loadIncentivesData();
   if (tab === 'playbook') pbInit();
@@ -1035,6 +1472,15 @@ function getRange(r) {
     const mon = new Date(now); mon.setDate(now.getDate()-dow);
     const ms = mon.getFullYear()+'-'+String(mon.getMonth()+1).padStart(2,'0')+'-'+String(mon.getDate()).padStart(2,'0');
     return { start: ms, end: today };
+  }
+  if (r === 'lastmonth') {
+    const lm = new Date(now.getFullYear(), now.getMonth()-1, 1);
+    const lmEnd = new Date(now.getFullYear(), now.getMonth(), 0);
+    const pad2 = function(n){ return String(n).padStart(2,'0'); };
+    return {
+      start: lm.getFullYear()+'-'+pad2(lm.getMonth()+1)+'-01',
+      end:   lmEnd.getFullYear()+'-'+pad2(lmEnd.getMonth()+1)+'-'+pad2(lmEnd.getDate())
+    };
   }
   if (r === 'custom') {
     var s = document.getElementById('customStart').value;
@@ -1102,13 +1548,7 @@ function updateKPIs(deals, sublabel) {
   }
 }
 
-function setRevBreadcrumb(parts) {
-  document.getElementById('revBreadcrumb').innerHTML = parts.map(function(p, i) {
-    if (i === parts.length-1) return '<span class="rev-bc-active">'+esc(p.label)+'</span>';
-    return '<span class="rev-bc-link" onclick="'+p.onclick+'">'+esc(p.label)+'</span>' +
-           '<span class="rev-bc-sep"> › </span>';
-  }).join('');
-}
+function setRevBreadcrumb(parts) { /* breadcrumb removed */ }
 
 function renderLevel1(deals) {
   revLevel = 'home'; revOffice = null; revRep = null;
@@ -1146,42 +1586,40 @@ function renderLevel1(deals) {
   var topSetters = Object.values(bySetter).sort(function(a,b){return b.rev-a.rev;}).slice(0,5);
   var maxSRev = topSetters.length ? topSetters[0].rev : 1;
 
-  var rankCls = ['r1','r2','r3'];
-
-  // Office rows
+  // Office rows — all gold
   var officeHTML = offices.map(function(o,i) {
-    var barPct = maxRev ? Math.round(o.rev/maxRev*100) : 0;   // bar width relative to top office
-    var pct    = Math.round(o.rev/totalRevAll*100);            // displayed % of total revenue
-    var col = officeColor(o.name);
+    var barPct = maxRev ? Math.round(o.rev/maxRev*100) : 0;
+    var pct    = Math.round(o.rev/totalRevAll*100);
     var sn  = "'" + o.name.replace(/\\/g,'\\\\').replace(/'/g,"\\'") + "'";
     var revK = o.rev >= 1000000
       ? '$' + (o.rev/1000000).toFixed(2) + 'M'
       : '$' + Math.round(o.rev/1000) + 'K';
     return '<div class="ov-office-row" onclick="revDrillOffice('+sn+')">' +
-      '<div class="ov-office-dot" style="background:'+col+'"></div>' +
+      '<div class="ov-office-dot"></div>' +
       '<div class="ov-office-name">'+esc(o.name)+'</div>' +
-      '<div class="ov-office-bar-wrap"><div class="ov-office-bar" style="width:'+barPct+'%;background:'+col+'"></div></div>' +
+      '<div class="ov-office-bar-wrap"><div class="ov-office-bar" style="width:'+barPct+'%"></div></div>' +
       '<div class="ov-office-rev">'+revK+'</div>' +
-      '<div class="ov-office-pct" style="color:'+col+'">'+pct+'%</div>' +
-      '<div class="ov-office-deals">'+o.wins+' deal'+(o.wins!==1?'s':'')+'</div>' +
+      '<div class="ov-office-pct">'+pct+'%</div>' +
     '</div>';
   }).join('');
 
-  // Rep rows
+  // Rep rows — mini gold bar under name
   function mkRepRows(reps, role, maxR) {
     if (!reps.length) return '<div style="padding:12px 20px;color:var(--muted);font-size:12px;">No data</div>';
     return reps.map(function(r,i) {
       var sn = "'" + r.name.replace(/\\/g,'\\\\').replace(/'/g,"\\'") + "'";
       var sr = "'" + role + "'";
       var pct = maxR ? Math.round(r.rev/maxR*100) : 0;
-      var col = officeColor(r.office);
       var revK = r.rev >= 1000000
         ? '$' + (r.rev/1000000).toFixed(2) + 'M'
         : '$' + Math.round(r.rev/1000) + 'K';
+      var rnk = i===0?'r1':i===1?'r2':i===2?'r3':'rn';
       return '<div class="ov-rep-row" onclick="revDrillRep('+sn+','+sr+')">' +
-        '<span class="ov-rep-rank '+(rankCls[i]||'rn')+'">'+(i+1)+'</span>' +
-        '<div class="ov-rep-name">'+esc(r.name)+'</div>' +
-        '<div class="ov-rep-bar-wrap"><div class="ov-rep-bar" style="width:'+pct+'%;background:'+col+'"></div></div>' +
+        '<span class="ov-rep-rank '+rnk+'">'+(i+1)+'</span>' +
+        '<div class="ov-rep-info">' +
+          '<div class="ov-rep-name">'+esc(r.name)+'</div>' +
+          '<div class="ov-rep-mini-bar"><div class="ov-rep-mini-fill" style="width:'+pct+'%"></div></div>' +
+        '</div>' +
         '<div class="ov-rep-rev">'+revK+'</div>' +
       '</div>';
     }).join('');
@@ -1197,23 +1635,22 @@ function renderLevel1(deals) {
         officeHTML +
       '</div>' +
       '<div class="ov-panel">' +
-        '<div class="ov-reps-wrap">' +
-          '<div class="ov-rep-section">' +
-            '<div class="ov-panel-header"><span class="ov-panel-title">Top Closers</span></div>' +
-            mkRepRows(topClosers, 'Closer', maxCRev) +
-          '</div>' +
-          '<div class="ov-rep-section">' +
-            '<div class="ov-panel-header"><span class="ov-panel-title">Top Setters</span></div>' +
-            mkRepRows(topSetters, 'Setter', maxSRev) +
-          '</div>' +
-        '</div>' +
+        '<div class="ov-panel-header"><span class="ov-panel-title">Top Closers</span></div>' +
+        mkRepRows(topClosers, 'Closer', maxCRev) +
+      '</div>' +
+      '<div class="ov-panel">' +
+        '<div class="ov-panel-header"><span class="ov-panel-title">Top Setters</span></div>' +
+        mkRepRows(topSetters, 'Setter', maxSRev) +
       '</div>' +
     '</div>';
+
+  populateOfficeDropdown();
+  drawSparkline(deals);
 }
 
 function revDrillOffice(officeName) {
   revLevel = 'office'; revOffice = officeName; revRep = null;
-  var deals = allDeals.filter(function(d){ return (d.office||'Unknown') === officeName; });
+  var deals = getFilteredDeals().filter(function(d){ return (d.office||'Unknown') === officeName; });
   setRevBreadcrumb([
     {label:'All Offices', onclick:'revGoHome()'},
     {label:officeName}
@@ -1271,21 +1708,21 @@ function revDrillOffice(officeName) {
   }
 
   document.getElementById('revContent').innerHTML =
-    '<div class="bold-office-hero" style="border-bottom-color:' + heroCol + '">' +
-      '<div class="bold-office-name" style="color:' + heroCol + '">' + esc(officeName) + '</div>' +
+    '<div class="bold-office-hero" style="border-bottom-color:var(--amber)">' +
+      '<div class="bold-office-name" style="color:var(--amber)">' + esc(officeName) + '</div>' +
       '<div class="bold-office-sub">Revenue Tracker</div>' +
     '</div>' +
     '<div class="bold-kpi-strip">' +
       '<div class="bold-kpi-cell">' +
-        '<div class="bold-kpi-num" style="color:' + heroCol + '">$' + Math.round(totalRev).toLocaleString() + '</div>' +
+        '<div class="bold-kpi-num" style="color:var(--amber)">$' + Math.round(totalRev).toLocaleString() + '</div>' +
         '<div class="bold-kpi-lbl">Total Revenue</div>' +
       '</div>' +
       '<div class="bold-kpi-cell">' +
-        '<div class="bold-kpi-num">' + deals.length + '</div>' +
+        '<div class="bold-kpi-num" style="color:var(--white)">' + deals.length + '</div>' +
         '<div class="bold-kpi-lbl">Deals</div>' +
       '</div>' +
       '<div class="bold-kpi-cell">' +
-        '<div class="bold-kpi-num" style="color:#ffc947">$' + avgRev.toLocaleString() + '</div>' +
+        '<div class="bold-kpi-num" style="color:var(--amber)">$' + avgRev.toLocaleString() + '</div>' +
         '<div class="bold-kpi-lbl">Avg Deal</div>' +
       '</div>' +
     '</div>' +
@@ -1310,7 +1747,7 @@ function revDrillOffice(officeName) {
 function revDrillRep(repName, role) {
   revLevel = 'rep'; revRep = repName;
   var isCloser = role === 'Closer';
-  var deals = allDeals.filter(function(d) {
+  var deals = getFilteredDeals().filter(function(d) {
     return isCloser
       ? (d.closer||'Unknown') === repName
       : (d.setter||'') === repName && d.setter !== d.closer;
@@ -1357,9 +1794,8 @@ function revDrillRep(repName, role) {
     var setter = isCloser
       ? (d.setter ? 'Set by ' + esc(d.setter) : '')
       : ('Closed by ' + esc(d.closer||'—'));
-    var oc = officeColor(d.office||'');
     var pillHtml = d.office
-      ? '<span class="rev-office-pill" style="color:'+oc+';background:'+oc+'18;border-color:'+oc+'44;">' + esc(d.office) + '</span>'
+      ? '<span class="rev-office-pill" style="color:var(--amber);background:rgba(255,201,71,.1);border-color:rgba(255,201,71,.3);">' + esc(d.office) + '</span>'
       : '';
     return '<div class="rev-deal-item">' +
       '<span class="rev-deal-index">'+(i+1)+'</span>' +
@@ -1387,15 +1823,15 @@ function revDrillRep(repName, role) {
       (rankStr ? '<div style="font-family:Inter, sans-serif;font-size:10px;color:var(--amber);letter-spacing:.04em;">'+esc(rankStr)+'</div>' : '') +
     '</div>' +
     '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:24px;">' +
-      '<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 14px;">' +
+      '<div style="background:var(--surface);border:1px solid rgba(255,201,71,.15);border-radius:8px;padding:12px 14px;">' +
         '<div style="font-family:Inter, sans-serif;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">'+(isCloser?'Total Revenue':'Revenue Generated')+'</div>' +
-        '<div style="font-family:\'Roboto Condensed\',sans-serif;font-size:22px;font-weight:800;color:var(--green);line-height:1;">$'+Math.round(totalRev).toLocaleString()+'</div>' +
+        '<div style="font-family:\'Roboto Condensed\',sans-serif;font-size:22px;font-weight:800;color:var(--amber);line-height:1;">$'+Math.round(totalRev).toLocaleString()+'</div>' +
       '</div>' +
-      '<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 14px;">' +
+      '<div style="background:var(--surface);border:1px solid rgba(255,201,71,.15);border-radius:8px;padding:12px 14px;">' +
         '<div style="font-family:Inter, sans-serif;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">'+(isCloser?'Deals Closed':'Deals Set')+'</div>' +
-        '<div style="font-family:\'Roboto Condensed\',sans-serif;font-size:22px;font-weight:800;color:var(--blue);line-height:1;">'+deals.length+'</div>' +
+        '<div style="font-family:\'Roboto Condensed\',sans-serif;font-size:22px;font-weight:800;color:var(--white);line-height:1;">'+deals.length+'</div>' +
       '</div>' +
-      '<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 14px;">' +
+      '<div style="background:var(--surface);border:1px solid rgba(255,201,71,.15);border-radius:8px;padding:12px 14px;">' +
         '<div style="font-family:Inter, sans-serif;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">'+(isCloser?'Avg Deal':'Avg Deal Set')+'</div>' +
         '<div style="font-family:\'Roboto Condensed\',sans-serif;font-size:22px;font-weight:800;color:var(--amber);line-height:1;">'+(deals.length?'$'+avgDeal.toLocaleString():'—')+'</div>' +
       '</div>' +
@@ -1403,7 +1839,13 @@ function revDrillRep(repName, role) {
     '<div>'+dealItems+'</div>';
 }
 
-function revGoHome() { renderLevel1(allDeals); }
+function revGoHome() {
+  _officeFilter = null;
+  revLevel = 'home'; revOffice = null;
+  var lbl = document.getElementById('officeDropLabel');
+  if (lbl) lbl.textContent = 'All Offices';
+  renderLevel1(getFilteredDeals());
+}
 
 // ── (legacy stubs kept for compat) ────────────────────────────
 // ── Revenue data load ─────────────────────────────────────────
@@ -1416,18 +1858,22 @@ async function loadData() {
 
   const { start, end } = getRange(curRange);
   document.getElementById('rangeLabel').textContent = start + ' → ' + end;
-  // Update header date label
+  // Update header + sidebar date labels
   var now = new Date();
   var monthLabel = now.toLocaleString('en-US', {month:'long'}) + ' ' + now.getFullYear();
-  var rangeTag = curRange === 'mtd' ? 'MTD' : curRange === 'week' ? 'This Week' : start + ' – ' + end;
-  document.getElementById('headerDateLabel').textContent = monthLabel + ' · ' + rangeTag;
+  var rangeTag = curRange === 'mtd' ? 'MTD' : curRange === 'week' ? 'This Week' : curRange === 'lastmonth' ? 'Last Month' : start + ' – ' + end;
+  var dateStr = monthLabel + ' · ' + rangeTag;
+  document.getElementById('headerDateLabel').textContent = dateStr;
+  var sbEl = document.getElementById('sbFooterDate');
+  if (sbEl) sbEl.textContent = dateStr;
 
   try {
     const res = await fetch(LOCAL_API + '/api/odoo/deals?start='+start+'&end='+end);
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const data = await res.json();
     allDeals = data.deals || [];
-    renderLevel1(allDeals);
+    revLevel = 'home';
+    renderLevel1(getFilteredDeals());
     const gen = data.generated_at ? new Date(data.generated_at).toLocaleTimeString() : '';
     setStatus('ok', data.total_deals+' deals · $'+Math.round(data.total_rev).toLocaleString()+' revenue · refreshed '+gen);
   } catch(err) {
@@ -1438,12 +1884,14 @@ async function loadData() {
   btn.disabled = false; btn.textContent = 'Refresh';
 }
 
-// Initialize header date label on load
+// Initialize header + sidebar date labels on load
 (function() {
   var now = new Date();
   var ml = now.toLocaleString('en-US', {month:'long'}) + ' ' + now.getFullYear();
   var el = document.getElementById('headerDateLabel');
   if (el) el.textContent = ml + ' · MTD';
+  var sb = document.getElementById('sbFooterDate');
+  if (sb) sb.textContent = ml + ' · MTD';
 })();
 
 
@@ -2283,6 +2731,308 @@ function pbDeleteAdmin(email) {
     .then(function(r){ return r.json(); })
     .then(function(d){ _pb = d.data; pbRenderAdmins(); });
 }
+
+// ── Sparkline (Total Revenue card) ───────────────────────────
+function drawSparkline(deals) {
+  var el = document.getElementById('kpiSparkline');
+  if (!el) return;
+
+  // Accumulate revenue by calendar day
+  var dailyRev = {};
+  deals.forEach(function(d) {
+    var date = d.date_closed || '';
+    if (!date) return;
+    var day = parseInt(date.substring(8, 10), 10);
+    dailyRev[day] = (dailyRev[day] || 0) + (d.rev || 0);
+  });
+
+  var dayKeys = Object.keys(dailyRev).map(Number).sort(function(a,b){return a-b;});
+  if (!dayKeys.length) { el.innerHTML = ''; return; }
+
+  // Cumulative per day
+  var pts = [];
+  var running = 0;
+  dayKeys.forEach(function(day) {
+    running += dailyRev[day];
+    pts.push({ x: day, y: running });
+  });
+
+  var W = 300, H = 52;
+  var xMin = pts[0].x, xMax = pts[pts.length-1].x;
+  var yMax = pts[pts.length-1].y || 1;
+  var xRange = Math.max(xMax - xMin, 1);
+
+  var coords = pts.map(function(p) {
+    var cx = ((p.x - xMin) / xRange) * (W - 8) + 4;
+    var cy = H - 4 - (p.y / yMax) * (H - 10);
+    return cx + ',' + cy;
+  });
+
+  // Close area path for gradient fill
+  var first = coords[0].split(',');
+  var last  = coords[coords.length-1].split(',');
+  var area  = 'M' + coords.join(' L') + ' L' + last[0] + ',' + H + ' L' + first[0] + ',' + H + ' Z';
+
+  el.innerHTML =
+    '<svg viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none" ' +
+    'style="width:100%;height:100%;display:block">' +
+    '<defs>' +
+    '<linearGradient id="spkFill" x1="0" y1="0" x2="0" y2="1">' +
+    '<stop offset="0%" stop-color="#ffc947" stop-opacity="0.25"/>' +
+    '<stop offset="100%" stop-color="#ffc947" stop-opacity="0"/>' +
+    '</linearGradient>' +
+    '</defs>' +
+    '<path d="' + area + '" fill="url(#spkFill)"/>' +
+    '<polyline points="' + coords.join(' ') + '" fill="none" ' +
+    'stroke="#ffc947" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>' +
+    '</svg>';
+}
+
+// ── Office Selector Dropdown ─────────────────────────────────
+var _officeFilter = null;
+
+// ── Filter state ──────────────────────────────────────────────
+var _filterCloser  = null;   // selected closer name or null
+var _filterSetter  = null;   // selected setter name or null
+var _filterSelfGen = false;  // self-gen toggle
+
+function getFilteredDeals() {
+  return allDeals.filter(function(d) {
+    if (_filterCloser  && (d.closer||'Unknown') !== _filterCloser) return false;
+    if (_filterSetter  && (d.setter||'') !== _filterSetter) return false;
+    if (_filterSelfGen && !(d.setter && d.setter === d.closer)) return false;
+    return true;
+  });
+}
+
+function updateFilterBadge() {
+  var count = (_filterCloser ? 1 : 0) + (_filterSetter ? 1 : 0) + (_filterSelfGen ? 1 : 0);
+  var btn = document.getElementById('filterToggleBtn');
+  var badge = document.getElementById('filterActiveCount');
+  if (btn) btn.classList.toggle('active', count > 0);
+  if (badge) {
+    if (count > 0) { badge.textContent = count + ' filter' + (count > 1 ? 's' : '') + ' active'; badge.style.display = ''; }
+    else { badge.style.display = 'none'; }
+  }
+}
+
+function applyFiltersAndRender() {
+  updateFilterBadge();
+  var deals = getFilteredDeals();
+  // Re-render current level with filtered deals
+  if (revLevel === 'home') {
+    renderLevel1(deals);
+  } else if (revLevel === 'office' && revOffice) {
+    var offDeals = deals.filter(function(d){ return (d.office||'Unknown') === revOffice; });
+    renderLevel2(revOffice, offDeals.length ? offDeals : deals);
+  }
+}
+
+function toggleFilterDrawer() {
+  var drawer = document.getElementById('filterDrawer');
+  var isOpen = drawer.classList.contains('open');
+  if (isOpen) {
+    drawer.classList.remove('open');
+    return;
+  }
+  // Inject content if empty
+  if (!drawer.querySelector('.filter-drawer-inner')) {
+    drawer.innerHTML =
+      '<div class="filter-drawer-inner">' +
+        '<div class="filter-section">' +
+          '<div class="filter-section-label">Closer</div>' +
+          '<div class="filter-search-wrap">' +
+            '<i class="ti ti-search filter-search-icon"></i>' +
+            '<input class="filter-search" id="filterCloserInput" type="text" placeholder="Search closers…" oninput="filterRepSearch(\'closer\')">' +
+            '<button class="filter-clear-x" id="filterCloserClear" onclick="clearRepFilter(\'closer\')" style="display:none"><i class="ti ti-x"></i></button>' +
+          '</div>' +
+          '<div class="filter-rep-list" id="filterCloserList"></div>' +
+        '</div>' +
+        '<div class="filter-section">' +
+          '<div class="filter-section-label">Setter</div>' +
+          '<div class="filter-search-wrap">' +
+            '<i class="ti ti-search filter-search-icon"></i>' +
+            '<input class="filter-search" id="filterSetterInput" type="text" placeholder="Search setters…" oninput="filterRepSearch(\'setter\')">' +
+            '<button class="filter-clear-x" id="filterSetterClear" onclick="clearRepFilter(\'setter\')" style="display:none"><i class="ti ti-x"></i></button>' +
+          '</div>' +
+          '<div class="filter-rep-list" id="filterSetterList"></div>' +
+        '</div>' +
+        '<div class="filter-section">' +
+          '<div class="filter-section-label">Self-Gen Only</div>' +
+          '<label class="filter-toggle-row">' +
+            '<span class="filter-toggle-label">Show only self-generated deals</span>' +
+            '<button class="filter-toggle" id="selfGenToggle" onclick="toggleSelfGen()"><span class="filter-toggle-knob"></span></button>' +
+          '</label>' +
+        '</div>' +
+      '</div>' +
+      '<div class="filter-actions">' +
+        '<button class="filter-reset-btn" onclick="resetAllFilters()">Reset All</button>' +
+        '<span class="filter-active-count" id="filterActiveCount" style="display:none"></span>' +
+      '</div>';
+    // Restore toggle state
+    if (_filterSelfGen) { var t = document.getElementById('selfGenToggle'); if (t) t.classList.add('on'); }
+  }
+  populateFilterLists();
+  drawer.classList.add('open');
+}
+
+// Close filter drawer on outside click
+document.addEventListener('click', function(e) {
+  var drawer = document.getElementById('filterDrawer');
+  var btn    = document.getElementById('filterToggleBtn');
+  if (!drawer || !btn) return;
+  if (!drawer.contains(e.target) && !btn.contains(e.target)) {
+    drawer.classList.remove('open');
+  }
+});
+
+function populateFilterLists() {
+  var closers = {}, setters = {};
+  allDeals.forEach(function(d) {
+    if (d.closer) closers[d.closer] = (closers[d.closer]||0) + 1;
+    if (d.setter && d.setter !== d.closer) setters[d.setter] = (setters[d.setter]||0) + 1;
+  });
+  renderRepList('closer', Object.keys(closers).sort(), document.getElementById('filterCloserInput').value);
+  renderRepList('setter', Object.keys(setters).sort(), document.getElementById('filterSetterInput').value);
+}
+
+function renderRepList(role, names, query) {
+  var listId = role === 'closer' ? 'filterCloserList' : 'filterSetterList';
+  var selected = role === 'closer' ? _filterCloser : _filterSetter;
+  var q = (query||'').toLowerCase();
+  var filtered = q ? names.filter(function(n){ return n.toLowerCase().indexOf(q) >= 0; }) : names;
+  var html = filtered.map(function(n) {
+    var isSel = n === selected;
+    var safe = n.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    return '<div class="filter-rep-opt' + (isSel ? ' selected' : '') + '" onclick="selectRepFilter(\'' + role + '\',\'' + safe + '\')">' +
+      '<span class="filter-rep-opt-check">' + (isSel ? '✓' : '') + '</span>' +
+      esc(n) +
+      '</div>';
+  }).join('') || '<div style="padding:8px;font-size:11px;color:var(--muted)">No results</div>';
+  document.getElementById(listId).innerHTML = html;
+}
+
+function filterRepSearch(role) {
+  var inputId  = role === 'closer' ? 'filterCloserInput' : 'filterSetterInput';
+  var clearId  = role === 'closer' ? 'filterCloserClear' : 'filterSetterClear';
+  var q = document.getElementById(inputId).value;
+  document.getElementById(clearId).style.display = q ? '' : 'none';
+  var allNames = {};
+  allDeals.forEach(function(d) {
+    if (role === 'closer' && d.closer) allNames[d.closer] = true;
+    if (role === 'setter' && d.setter && d.setter !== d.closer) allNames[d.setter] = true;
+  });
+  renderRepList(role, Object.keys(allNames).sort(), q);
+}
+
+function selectRepFilter(role, name) {
+  var current = role === 'closer' ? _filterCloser : _filterSetter;
+  var newVal  = (current === name) ? null : name;  // click again to deselect
+  if (role === 'closer') _filterCloser = newVal;
+  else                   _filterSetter = newVal;
+  var clearId = role === 'closer' ? 'filterCloserClear' : 'filterSetterClear';
+  var inputId = role === 'closer' ? 'filterCloserInput' : 'filterSetterInput';
+  // Don't clear search text when selecting
+  var allNames = {};
+  allDeals.forEach(function(d) {
+    if (role === 'closer' && d.closer) allNames[d.closer] = true;
+    if (role === 'setter' && d.setter && d.setter !== d.closer) allNames[d.setter] = true;
+  });
+  renderRepList(role, Object.keys(allNames).sort(), document.getElementById(inputId).value);
+  applyFiltersAndRender();
+}
+
+function clearRepFilter(role) {
+  if (role === 'closer') { _filterCloser = null; document.getElementById('filterCloserInput').value = ''; }
+  else { _filterSetter = null; document.getElementById('filterSetterInput').value = ''; }
+  document.getElementById(role === 'closer' ? 'filterCloserClear' : 'filterSetterClear').style.display = 'none';
+  populateFilterLists();
+  applyFiltersAndRender();
+}
+
+function toggleSelfGen() {
+  _filterSelfGen = !_filterSelfGen;
+  var btn = document.getElementById('selfGenToggle');
+  if (btn) btn.classList.toggle('on', _filterSelfGen);
+  applyFiltersAndRender();
+}
+
+function resetAllFilters() {
+  _filterCloser = null; _filterSetter = null; _filterSelfGen = false;
+  document.getElementById('filterCloserInput').value = '';
+  document.getElementById('filterSetterInput').value = '';
+  document.getElementById('filterCloserClear').style.display = 'none';
+  document.getElementById('filterSetterClear').style.display = 'none';
+  var tog = document.getElementById('selfGenToggle');
+  if (tog) tog.classList.remove('on');
+  populateFilterLists();
+  applyFiltersAndRender();
+}
+
+function toggleOfficeDropdown(e) {
+  if (e) e.stopPropagation();
+  var btn = document.getElementById('officeDropBtn');
+  var dd  = document.getElementById('officeDropdown');
+  var isOpen = dd.classList.contains('open');
+  if (isOpen) {
+    dd.classList.remove('open');
+    btn.classList.remove('open');
+  } else {
+    populateOfficeDropdown();
+    dd.classList.add('open');
+    btn.classList.add('open');
+  }
+}
+
+function populateOfficeDropdown() {
+  var seen = {};
+  allDeals.forEach(function(d) { var o = d.office || 'Unknown'; seen[o] = true; });
+
+  // Fixed display order; any unlisted offices appended alphabetically at end
+  var priority = ['Southern Utah','Northern Utah','Eastern Idaho','Northern California'];
+  var offices = [];
+  priority.forEach(function(o) { if (seen[o]) offices.push(o); });
+  Object.keys(seen).sort().forEach(function(o) {
+    if (priority.indexOf(o) === -1) offices.push(o);
+  });
+
+  var html = '<div class="rev-office-opt' + (_officeFilter === null ? ' selected' : '') + '" onclick="selectOfficeFilter(null)">' +
+    'All Offices</div>';
+  offices.forEach(function(o) {
+    var safe = o.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    html += '<div class="rev-office-opt' + (_officeFilter === o ? ' selected' : '') + '" onclick="selectOfficeFilter(\'' + safe + '\')">' +
+      '<span class="rev-office-opt-dot"></span>' +
+      esc(o) + '</div>';
+  });
+  document.getElementById('officeDropdown').innerHTML = html;
+}
+
+function selectOfficeFilter(office) {
+  _officeFilter = office;
+  var btn = document.getElementById('officeDropBtn');
+  var dd  = document.getElementById('officeDropdown');
+  document.getElementById('officeDropLabel').textContent = office || 'All Offices';
+  dd.classList.remove('open');
+  btn.classList.remove('open');
+  if (office) {
+    revDrillOffice(office);
+  } else {
+    renderLevel1(allDeals);
+  }
+}
+
+// Close dropdown on outside click
+document.addEventListener('click', function(e) {
+  var btn = document.getElementById('officeDropBtn');
+  var dd  = document.getElementById('officeDropdown');
+  if (!btn || !dd) return;
+  if (!btn.contains(e.target) && !dd.contains(e.target)) {
+    dd.classList.remove('open');
+    btn.classList.remove('open');
+  }
+});
 </script>
+
+</div><!-- /main-content -->
 </body>
 </html>
