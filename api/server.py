@@ -38,6 +38,7 @@ HTML_FILE        = os.path.join(ROOT_DIR, "index.html")
 CRM_HTML_FILE    = os.path.join(ROOT_DIR, "vivid-crm-dashboard.html")
 TERROS_HTML_FILE = os.path.join(ROOT_DIR, "vivid-terros-dashboard.html")
 LOGIN_FILE       = os.path.join(ROOT_DIR, "login.html")
+PLAYBOOK_FILE    = os.path.join(ROOT_DIR, "playbook.json")
 
 # ── Google OAuth ──────────────────────────────────────────────
 GOOGLE_CLIENT_ID     = os.environ.get("GOOGLE_CLIENT_ID", "")
@@ -90,6 +91,26 @@ def _clean_states():
     now = time.time()
     for s in [k for k, v in _oauth_states.items() if v < now]:
         del _oauth_states[s]
+
+# ── Playbook helpers ─────────────────────────────────────────
+import threading as _threading
+_playbook_lock = _threading.Lock()
+
+def _read_playbook():
+    if not os.path.exists(PLAYBOOK_FILE):
+        return {"videos": [], "faqs": [], "admins": []}
+    with open(PLAYBOOK_FILE, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+def _write_playbook(data):
+    with open(PLAYBOOK_FILE, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2, ensure_ascii=False)
+
+def _is_playbook_admin(session):
+    if not session:
+        return False
+    pb = _read_playbook()
+    return session.get("e", "").lower() in [a.lower() for a in pb.get("admins", [])]
 
 # Terros uses Central Daylight Time (CDT = UTC-5) for all date boundaries.
 # Confirmed: stats URL start=1780290000000 = Jun 1, 2026 00:00 CDT exactly.
@@ -341,6 +362,13 @@ class Handler(http.server.BaseHTTPRequestHandler):
                     force   = (qs.get("force")  or [None])[0] == "1"
                     self._json(odoo.build_report(start_s, end_s, force=force))
 
+                elif path == "/api/me":
+                    session = _get_session(self.headers) or {"e": "dev@vividwindows.com", "n": "Dev Mode"}
+                    self._json({"email": session.get("e"), "name": session.get("n"), "isAdmin": _is_playbook_admin(session)})
+
+                elif path == "/api/playbook":
+                    self._json(_read_playbook())
+
                 elif path == "/crm":
                     if os.path.exists(CRM_HTML_FILE):
                         with open(CRM_HTML_FILE, "rb") as f: content = f.read()
@@ -372,32 +400,103 @@ class Handler(http.server.BaseHTTPRequestHandler):
             traceback.print_exc()
             self._json({"error": str(e)}, status=500)
 
+    def _read_body(self):
+        length = int(self.headers.get("Content-Length", 0))
+        return json.loads(self.rfile.read(length)) if length else {}
+
     def do_POST(self):
-        """Raw proxy: POST /api/raw/<terros-path> → https://api.terros.com/<terros-path>"""
         parsed = urllib.parse.urlparse(self.path)
         path   = parsed.path
 
-        if path.startswith("/api/raw/"):
-            terros_path = "/" + path[len("/api/raw/"):]
-            length = int(self.headers.get("Content-Length", 0))
-            body   = self.rfile.read(length)
+        try:
+            # ── Raw Terros proxy ──────────────────────────────────
+            if path.startswith("/api/raw/"):
+                terros_path = "/" + path[len("/api/raw/"):]
+                length = int(self.headers.get("Content-Length", 0))
+                body   = self.rfile.read(length)
+                req = urllib.request.Request(
+                    terros.API_BASE + terros_path, data=body, method="POST",
+                    headers={"Content-Type": "application/json", "Authorization": f"ApiKey {terros.API_KEY}"},
+                )
+                try:
+                    with urllib.request.urlopen(req, timeout=30) as r:
+                        self._raw(r.read(), 200)
+                except urllib.error.HTTPError as e:
+                    self._raw(e.read(), e.code)
 
-            import urllib.request, urllib.error
-            req = urllib.request.Request(
-                terros.API_BASE + terros_path,
-                data=body, method="POST",
-                headers={
-                    "Content-Type":  "application/json",
-                    "Authorization": f"ApiKey {terros.API_KEY}",
-                },
-            )
-            try:
-                with urllib.request.urlopen(req, timeout=30) as r:
-                    self._raw(r.read(), 200)
-            except urllib.error.HTTPError as e:
-                self._raw(e.read(), e.code)
-        else:
-            self._json({"error": "Not found"}, status=404)
+            # ── Playbook CRUD (admin only) ────────────────────────
+            elif path in ("/api/playbook/video", "/api/playbook/faq", "/api/playbook/admin"):
+                session = _get_session(self.headers) or ({"e": "dev@vividwindows.com"} if not AUTH_ENABLED else None)
+                if not _is_playbook_admin(session):
+                    self._json({"error": "Admin only"}, status=403); return
+                body = self._read_body()
+                with _playbook_lock:
+                    pb = _read_playbook()
+                    if path == "/api/playbook/video":
+                        body["id"] = "v" + str(int(time.time() * 1000))
+                        body.setdefault("status", "live")
+                        pb["videos"].append(body)
+                    elif path == "/api/playbook/faq":
+                        body["id"] = "f" + str(int(time.time() * 1000))
+                        body.setdefault("relatedVideoIds", [])
+                        pb["faqs"].append(body)
+                    elif path == "/api/playbook/admin":
+                        email = (body.get("email") or "").lower()
+                        if email and email not in [a.lower() for a in pb["admins"]]:
+                            pb["admins"].append(email)
+                    _write_playbook(pb)
+                self._json({"ok": True, "data": pb})
+
+            else:
+                self._json({"error": "Not found"}, status=404)
+
+        except Exception as e:
+            import traceback; traceback.print_exc()
+            self._json({"error": str(e)}, status=500)
+
+    def do_PUT(self):
+        parsed = urllib.parse.urlparse(self.path)
+        path   = parsed.path
+        try:
+            session = _get_session(self.headers) or ({"e": "dev@vividwindows.com"} if not AUTH_ENABLED else None)
+            if not _is_playbook_admin(session):
+                self._json({"error": "Admin only"}, status=403); return
+            body = self._read_body()
+            with _playbook_lock:
+                pb = _read_playbook()
+                if path.startswith("/api/playbook/video/"):
+                    vid_id = path.split("/")[-1]
+                    pb["videos"] = [dict(v, **body) if v["id"] == vid_id else v for v in pb["videos"]]
+                elif path.startswith("/api/playbook/faq/"):
+                    faq_id = path.split("/")[-1]
+                    pb["faqs"] = [dict(f, **body) if f["id"] == faq_id else f for f in pb["faqs"]]
+                _write_playbook(pb)
+            self._json({"ok": True, "data": pb})
+        except Exception as e:
+            self._json({"error": str(e)}, status=500)
+
+    def do_DELETE(self):
+        parsed = urllib.parse.urlparse(self.path)
+        path   = parsed.path
+        try:
+            session = _get_session(self.headers) or ({"e": "dev@vividwindows.com"} if not AUTH_ENABLED else None)
+            if not _is_playbook_admin(session):
+                self._json({"error": "Admin only"}, status=403); return
+            with _playbook_lock:
+                pb = _read_playbook()
+                if path.startswith("/api/playbook/video/"):
+                    vid_id = path.split("/")[-1]
+                    pb["videos"] = [v for v in pb["videos"] if v["id"] != vid_id]
+                elif path.startswith("/api/playbook/faq/"):
+                    faq_id = path.split("/")[-1]
+                    pb["faqs"] = [f for f in pb["faqs"] if f["id"] != faq_id]
+                elif path.startswith("/api/playbook/admin/"):
+                    email = urllib.parse.unquote(path.split("/")[-1]).lower()
+                    pb["admins"] = [a for a in pb["admins"] if a.lower() != email]
+                _write_playbook(pb)
+            self._json({"ok": True, "data": pb})
+        except Exception as e:
+            self._json({"error": str(e)}, status=500)
 
     def do_HEAD(self):
         """HEAD /health — used by uptime monitors (UptimeRobot, etc.)"""

@@ -1,0 +1,90 @@
+{
+  "videos": [
+    {
+      "id": "v1",
+      "title": "The full pitch walkthrough",
+      "category": "Sales Process",
+      "audience": "Closer",
+      "url": "",
+      "duration": "8:24",
+      "notes": "Cover this in your first week. Walk through each step of the pitch from intro to close.",
+      "status": "live"
+    },
+    {
+      "id": "v2",
+      "title": "Setting the appointment",
+      "category": "Setter Training",
+      "audience": "Setter",
+      "url": "",
+      "duration": "5:10",
+      "notes": "Door approach, how to qualify the homeowner, and setting a solid appointment time.",
+      "status": "live"
+    },
+    {
+      "id": "v3",
+      "title": "Full demo run-through",
+      "category": "Sales Process",
+      "audience": "Closer",
+      "url": "",
+      "duration": "12:03",
+      "notes": "End-to-end demo of the product presentation.",
+      "status": "live"
+    },
+    {
+      "id": "v4",
+      "title": "\"I need to talk to my spouse\"",
+      "category": "Objection Handling",
+      "audience": "All reps",
+      "url": "",
+      "duration": "6:45",
+      "notes": "How to isolate and address the real concern behind this objection.",
+      "status": "live"
+    },
+    {
+      "id": "v5",
+      "title": "\"It's too expensive\"",
+      "category": "Objection Handling",
+      "audience": "All reps",
+      "url": "",
+      "duration": "4:30",
+      "notes": "Price objection rebuttals and value framing.",
+      "status": "live"
+    },
+    {
+      "id": "v6",
+      "title": "Welcome to Vivid — day 1",
+      "category": "Onboarding",
+      "audience": "All reps",
+      "url": "",
+      "duration": "15:00",
+      "notes": "Company culture, expectations, and how your first 30 days look.",
+      "status": "live"
+    }
+  ],
+  "faqs": [
+    {
+      "id": "f1",
+      "question": "How do I handle a \"I need to think about it\" objection?",
+      "answer": "Acknowledge it first — \"Totally fair, this is a big decision.\" Then isolate the real objection: \"What part would you want to think through?\" Most of the time they'll tell you exactly what's holding them back — price, timing, or spouse approval — and you can address it directly. Avoid restating your pitch; ask questions instead.",
+      "category": "Objection Handling",
+      "relatedVideoIds": ["v4", "v5"]
+    },
+    {
+      "id": "f2",
+      "question": "What's the best way to open at the door?",
+      "answer": "Lead with curiosity, not a pitch. A simple \"Hey, I'm working with a few of your neighbors and wanted to swing by\" lowers the guard. Make eye contact, smile, and let them speak first after your opener. Don't launch into the product in the first 10 seconds.",
+      "category": "Setter Training",
+      "relatedVideoIds": ["v2"]
+    },
+    {
+      "id": "f3",
+      "question": "How long should the average pitch take?",
+      "answer": "Target 45–60 minutes for a full presentation. Under 30 means you're rushing and likely skipping value-building steps. Over 90 means you've lost control of the conversation. Use checkpoints — \"Does that make sense so far?\" — to keep them engaged.",
+      "category": "Sales Process",
+      "relatedVideoIds": ["v1", "v3"]
+    }
+  ],
+  "admins": [
+    "abipsha.joshi@vividwindows.com"
+  ]
+}
