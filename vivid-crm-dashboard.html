@@ -284,6 +284,9 @@
     .inc-mobile-cards { display: none; }
     .inc-scroll-hint { display: flex; }
     .inc-detail-td { position: sticky; left: 0; max-width: 100vw; box-sizing: border-box; }
+    .inc-deal-row { flex-wrap: wrap; align-items: flex-start !important; }
+    .inc-deal-name { white-space: normal !important; }
+    .inc-deal-rev { margin-left: auto; padding-left: 19px; }
     .inc-table-wrap { overflow-y: auto; max-height: 62vh; scrollbar-width: thin; scrollbar-color: rgba(255,255,255,.15) transparent; }
     .inc-table-wrap::-webkit-scrollbar { width: 3px; height: 3px; }
     .inc-table-wrap::-webkit-scrollbar-track { background: transparent; }
@@ -2461,10 +2464,10 @@ function _buildOfficeBoardHTML(office, weeks) {
             ? '<a href="'+link+'" target="_blank" style="color:inherit;text-decoration:none;" onmouseover="this.style.textDecoration=\'underline\'" onmouseout="this.style.textDecoration=\'none\'">'+esc(d.name||'—')+'</a>'
             : esc(d.name||'—');
           detailRows.push(
-            '<div style="display:flex;align-items:center;gap:8px;padding:4px 0 4px 10px;border-bottom:.5px solid rgba(0,0,0,.12);">' +
+            '<div class="inc-deal-row" style="display:flex;align-items:center;gap:8px;padding:4px 0 4px 10px;border-bottom:.5px solid rgba(0,0,0,.12);">' +
               '<span style="font-size:11px;color:rgba(255,255,255,.25);flex-shrink:0;">›</span>' +
-              '<span style="font-family:Inter,sans-serif;font-size:12px;color:#fff;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+nameHtml+'</span>' +
-              (d.rev ? '<span style="font-size:11px;color:'+GOLD+';white-space:nowrap;flex-shrink:0;">$' + Math.round(d.rev).toLocaleString() + '</span>' : '') +
+              '<span class="inc-deal-name" style="font-family:Inter,sans-serif;font-size:12px;color:#fff;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+nameHtml+'</span>' +
+              (d.rev ? '<span class="inc-deal-rev" style="font-size:11px;color:'+GOLD+';white-space:nowrap;flex-shrink:0;">$' + Math.round(d.rev).toLocaleString() + '</span>' : '') +
             '</div>'
           );
         });
