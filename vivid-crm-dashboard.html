@@ -343,6 +343,12 @@
   .tahiti-pace-lbl { font-family: 'Inter', sans-serif; font-size: 9px; color: var(--muted); letter-spacing: .06em; }
 
   /* ── Competition Tracker ── */
+  .tahiti-search-bar { padding: 10px 28px; border-bottom: 1px solid var(--border); background: var(--surface2); }
+  .tahiti-search-wrap { display: flex; align-items: center; gap: 8px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 7px 12px; transition: border-color .15s; }
+  .tahiti-search-wrap:focus-within { border-color: rgba(255,201,71,.5); }
+  .tahiti-search-icon { font-size: 15px; color: var(--muted); flex-shrink: 0; }
+  .tahiti-search-input { background: none; border: none; outline: none; color: var(--ink); font-size: 13px; flex: 1; font-family: 'Inter', sans-serif; }
+  .tahiti-search-input::placeholder { color: var(--muted); }
   .comp-wrapper { padding: 20px 28px 36px; }
   .comp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
   .comp-section { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
@@ -635,6 +641,7 @@
     .inc-rep { font-size: 14px; }
     .inc-deal-badge { width: 25px; height: 25px; font-size: 14px; }
     .comp-wrapper { padding: 12px 14px 20px; }
+    .tahiti-search-bar { padding: 10px 14px; }
     .comp-grid { grid-template-columns: 1fr; gap: 14px; }
     /* Tahiti countdown */
     .tahiti-countdown { grid-template-columns: auto 1fr; gap: 12px; padding: 12px 14px; }
@@ -1433,6 +1440,12 @@
   <!-- Tahiti Trip panel -->
   <div id="inc-panel-tahiti" style="display:none;">
     <div id="tahitiCountdown" class="tahiti-countdown"></div>
+    <div class="tahiti-search-bar">
+      <div class="tahiti-search-wrap">
+        <i class="ti ti-search tahiti-search-icon" aria-hidden="true"></i>
+        <input class="tahiti-search-input" type="text" placeholder="Search rep…" oninput="tahitiSearchFilter(this.value)" />
+      </div>
+    </div>
     <div class="comp-wrapper">
       <div id="compContainer">
         <div style="color:var(--muted);font-size:13px;padding:10px 0">Click Refresh to load…</div>
@@ -2701,6 +2714,16 @@ function renderTahitiCountdown(closerList, setterList) {
       '</div>' +
     '</div>' +
     '';
+}
+
+// ── Tahiti Search Filter ───────────────────────────────────────
+function tahitiSearchFilter(q) {
+  var term = q.trim().toLowerCase();
+  var rows = document.querySelectorAll('#compContainer .comp-row');
+  rows.forEach(function(row) {
+    var name = (row.dataset.rep || '').toLowerCase();
+    row.style.display = (!term || name.indexOf(term) !== -1) ? '' : 'none';
+  });
 }
 
 // ── Rep Drilldown ─────────────────────────────────────────────
