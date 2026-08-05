@@ -2209,8 +2209,8 @@ async function loadIncentivesData(force) {
   var now = new Date();
   var pad = function(n){return String(n).padStart(2,'0');};
   var MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-  var monthStart = now.getFullYear()+'-'+pad(now.getMonth()+1)+'-01';
-  var monthEnd   = now.getFullYear()+'-'+pad(now.getMonth()+1)+'-'+pad(now.getDate());
+  var todayStr   = now.getFullYear()+'-'+pad(now.getMonth()+1)+'-'+pad(now.getDate());
+  var BONUS_START = '2026-07-01';  // summer bonus begins July 1
   var COMP_START = '2026-04-17';
   var COMP_END   = '2026-12-31';
 
@@ -2218,16 +2218,16 @@ async function loadIncentivesData(force) {
 
   try {
     var results = await Promise.all([
-      fetch(LOCAL_API + '/api/odoo/deals?start='+monthStart+'&end='+monthEnd).then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); }),
+      fetch(LOCAL_API + '/api/odoo/deals?start='+BONUS_START+'&end='+todayStr).then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); }),
       fetch(LOCAL_API + '/api/odoo/deals?start='+COMP_START+'&end='+COMP_END).then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
     ]);
-    var monthDeals = results[0].deals || [];
+    var bonusDeals = results[0].deals || [];
     var compDeals  = results[1].deals || [];
-    renderIncentivesTracker(monthDeals);
+    renderIncentivesTracker(bonusDeals);
     renderCompetition(compDeals);
     _incLastLoaded = Date.now();
     document.getElementById('incStatusDot').className   = 'dot';
-    document.getElementById('incStatusText').textContent = monthDeals.length+' deals this month · '+compDeals.length+' in competition · updated '+new Date().toLocaleTimeString();
+    document.getElementById('incStatusText').textContent = bonusDeals.length+' bonus deals · '+compDeals.length+' in competition · updated '+new Date().toLocaleTimeString();
   } catch(err) {
     document.getElementById('incStatusDot').className   = 'dot error';
     document.getElementById('incStatusText').textContent = 'Error: '+err.message;

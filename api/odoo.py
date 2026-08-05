@@ -335,8 +335,8 @@ def build_report(start_date: str, end_date: str, force: bool = False) -> dict:
             "top_closer": closers_sorted[0] if closers_sorted else None,
             "top_setter": setters_sorted[0] if setters_sorted else None,
             "offices":    offices_sorted,
-            "closers":    closers_sorted[:10],
-            "setters":    setters_sorted[:10],
+            "closers":    closers_sorted,
+            "setters":    setters_sorted,
             "stale":      False,
         }
 
