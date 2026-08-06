@@ -1860,7 +1860,10 @@ function renderLevel1(deals) {
       '<div class="ov-panel">' +
         '<div class="ov-panel-header">' +
           '<span class="ov-panel-title">Revenue by Office</span>' +
-          '<span class="ov-panel-hint">click to drill in</span>' +
+          '<div style="display:flex;gap:6px;">' +
+            '<button onclick="renderAllReps(getFilteredDeals())" style="display:flex;align-items:center;gap:5px;padding:4px 11px;border-radius:6px;border:1px solid rgba(255,201,71,.3);background:rgba(255,201,71,.07);color:#ffc947;font-size:11px;font-weight:500;cursor:pointer;font-family:Inter,sans-serif;letter-spacing:.02em;"><i class=\"ti ti-users\" style=\"font-size:13px\" aria-hidden=\"true\"></i> All reps</button>' +
+            '<button onclick="renderAllDeals(getFilteredDeals())" style="display:flex;align-items:center;gap:5px;padding:4px 11px;border-radius:6px;border:1px solid rgba(255,201,71,.3);background:rgba(255,201,71,.07);color:#ffc947;font-size:11px;font-weight:500;cursor:pointer;font-family:Inter,sans-serif;letter-spacing:.02em;"><i class=\"ti ti-list\" style=\"font-size:13px\" aria-hidden=\"true\"></i> All deals</button>' +
+          '</div>' +
         '</div>' +
         officeHTML +
       '</div>' +
@@ -2090,6 +2093,192 @@ function revGoHome() {
   var lbl = document.getElementById('officeDropLabel');
   if (lbl) lbl.textContent = 'All Offices';
   renderLevel1(getFilteredDeals());
+}
+
+// ── All Reps flat view ────────────────────────────────────────
+var _allRepsTab = 'closer';
+
+function renderAllReps(deals) {
+  revLevel = 'allreps'; revOffice = null; revRep = null;
+  updateKPIs(deals, 'this period');
+  setMobileBackBar('All Reps', 'revGoHome()');
+
+  var byCloser = {}, bySetter = {};
+  deals.forEach(function(d) {
+    var c = d.closer || 'Unknown';
+    if (!byCloser[c]) byCloser[c] = {name:c, rev:0, wins:0, office:d.office||''};
+    byCloser[c].rev += d.rev||0; byCloser[c].wins++;
+    var s = d.setter || '';
+    if (s) {
+      if (!bySetter[s]) bySetter[s] = {name:s, rev:0, wins:0, office:d.office||''};
+      bySetter[s].rev += d.rev||0; bySetter[s].wins++;
+    }
+  });
+  var closers = Object.values(byCloser).sort(function(a,b){return b.rev-a.rev;});
+  var setters = Object.values(bySetter).sort(function(a,b){return b.rev-a.rev;});
+
+  function tableRows(reps) {
+    if (!reps.length) return '<tr><td colspan="4" style="padding:24px;text-align:center;color:var(--muted);font-size:13px;font-family:Inter,sans-serif;">No reps found</td></tr>';
+    return reps.map(function(r, i) {
+      var col = officeColor(r.office);
+      var badge = '<span style="display:inline-block;padding:1px 7px;border-radius:4px;font-size:10px;font-weight:500;border:1px solid ' + col + '44;background:' + col + '18;color:' + col + ';white-space:nowrap;">' + esc(r.office||'–') + '</span>';
+      var rnkCol = i===0?'#ffc947':i===1?'rgba(255,255,255,.6)':i===2?'rgba(205,127,50,.8)':'rgba(255,255,255,.25)';
+      return '<tr class="ar-row" data-name="' + esc(r.name).toLowerCase() + '">' +
+        '<td style="padding:9px 14px;font-size:12px;color:' + rnkCol + ';font-weight:600;width:32px;font-family:Inter,sans-serif;">' + (i+1) + '</td>' +
+        '<td style="padding:9px 14px;font-size:13px;font-weight:500;color:var(--white);font-family:Inter,sans-serif;">' + esc(r.name) + '</td>' +
+        '<td style="padding:9px 14px;">' + badge + '</td>' +
+        '<td style="padding:9px 14px;text-align:right;font-size:12px;color:rgba(255,255,255,.5);font-family:Inter,sans-serif;">' + r.wins + '</td>' +
+        '<td style="padding:9px 14px;text-align:right;font-size:13px;font-weight:600;color:#ffc947;font-family:Inter,sans-serif;">$' + Math.round(r.rev).toLocaleString() + '</td>' +
+      '</tr>';
+    }).join('');
+  }
+
+  function buildTable(reps) {
+    return '<table style="width:100%;border-collapse:collapse;">' +
+      '<thead><tr style="border-bottom:.5px solid rgba(255,255,255,.08);">' +
+        '<th style="padding:7px 14px;font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.3);text-align:left;font-family:Inter,sans-serif;width:32px;">#</th>' +
+        '<th style="padding:7px 14px;font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.3);text-align:left;font-family:Inter,sans-serif;">Name</th>' +
+        '<th style="padding:7px 14px;font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.3);text-align:left;font-family:Inter,sans-serif;">Office</th>' +
+        '<th style="padding:7px 14px;font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.3);text-align:right;font-family:Inter,sans-serif;">Deals</th>' +
+        '<th style="padding:7px 14px;font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.3);text-align:right;font-family:Inter,sans-serif;">Revenue</th>' +
+      '</tr></thead>' +
+      '<tbody id="arTableBody">' + tableRows(_allRepsTab === 'closer' ? closers : setters) + '</tbody>' +
+    '</table>';
+  }
+
+  var html =
+    '<div style="padding:12px 16px 10px;display:flex;align-items:center;gap:10px;border-bottom:.5px solid rgba(255,255,255,.07);background:var(--surface2);">' +
+      '<button onclick="revGoHome()" style="display:none" id="arDesktopBack"></button>' +
+      '<div style="display:flex;gap:4px;background:rgba(255,255,255,.05);border-radius:8px;padding:3px;">' +
+        '<button id="arTabCloser" onclick="arSwitchTab(\'closer\')" style="padding:5px 14px;border-radius:6px;font-size:12px;font-weight:500;cursor:pointer;border:none;font-family:Inter,sans-serif;' + (_allRepsTab==='closer'?'background:#ffc947;color:#0d1117;':'background:none;color:rgba(255,255,255,.4);') + '">Closers</button>' +
+        '<button id="arTabSetter" onclick="arSwitchTab(\'setter\')" style="padding:5px 14px;border-radius:6px;font-size:12px;font-weight:500;cursor:pointer;border:none;font-family:Inter,sans-serif;' + (_allRepsTab==='setter'?'background:#ffc947;color:#0d1117;':'background:none;color:rgba(255,255,255,.4);') + '">Setters</button>' +
+      '</div>' +
+      '<div style="display:flex;align-items:center;gap:7px;background:var(--surface);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:5px 11px;flex:1;max-width:260px;">' +
+        '<i class="ti ti-search" style="font-size:14px;color:rgba(255,255,255,.25);" aria-hidden="true"></i>' +
+        '<input id="arSearch" type="text" placeholder="Search rep…" oninput="arFilter(this.value)" style="background:none;border:none;outline:none;color:var(--white);font-size:13px;font-family:Inter,sans-serif;width:100%;" />' +
+      '</div>' +
+      '<button onclick="revGoHome()" style="margin-left:auto;display:flex;align-items:center;gap:4px;padding:5px 12px;border-radius:6px;border:1px solid rgba(255,255,255,.12);background:none;color:rgba(255,255,255,.45);font-size:12px;font-family:Inter,sans-serif;cursor:pointer;"><i class=\"ti ti-arrow-left\" style=\"font-size:13px\"></i> Back</button>' +
+    '</div>' +
+    '<div id="arTableWrap" style="overflow-x:auto;">' + buildTable(_allRepsTab === 'closer' ? closers : setters) + '</div>';
+
+  document.getElementById('revContent').innerHTML = html;
+
+  // store for tab switching without re-fetching
+  document.getElementById('revContent')._arClosers = closers;
+  document.getElementById('revContent')._arSetters = setters;
+}
+
+function arSwitchTab(tab) {
+  _allRepsTab = tab;
+  var content = document.getElementById('revContent');
+  var closers = content._arClosers || [];
+  var setters = content._arSetters || [];
+  var reps = tab === 'closer' ? closers : setters;
+  var GOLD = '#ffc947', DARK = '#0d1117', DIM = 'rgba(255,255,255,.4)';
+  ['Closer','Setter'].forEach(function(t) {
+    var btn = document.getElementById('arTab' + t);
+    if (!btn) return;
+    var active = (t.toLowerCase() === tab);
+    btn.style.background = active ? GOLD : 'none';
+    btn.style.color      = active ? DARK : DIM;
+  });
+  function tableRows(reps) {
+    if (!reps.length) return '<tr><td colspan="4" style="padding:24px;text-align:center;color:var(--muted);font-size:13px;font-family:Inter,sans-serif;">No reps found</td></tr>';
+    return reps.map(function(r, i) {
+      var col = officeColor(r.office);
+      var badge = '<span style="display:inline-block;padding:1px 7px;border-radius:4px;font-size:10px;font-weight:500;border:1px solid ' + col + '44;background:' + col + '18;color:' + col + ';white-space:nowrap;">' + esc(r.office||'–') + '</span>';
+      var rnkCol = i===0?'#ffc947':i===1?'rgba(255,255,255,.6)':i===2?'rgba(205,127,50,.8)':'rgba(255,255,255,.25)';
+      return '<tr class="ar-row" data-name="' + esc(r.name).toLowerCase() + '">' +
+        '<td style="padding:9px 14px;font-size:12px;color:' + rnkCol + ';font-weight:600;width:32px;font-family:Inter,sans-serif;">' + (i+1) + '</td>' +
+        '<td style="padding:9px 14px;font-size:13px;font-weight:500;color:var(--white);font-family:Inter,sans-serif;">' + esc(r.name) + '</td>' +
+        '<td style="padding:9px 14px;">' + badge + '</td>' +
+        '<td style="padding:9px 14px;text-align:right;font-size:12px;color:rgba(255,255,255,.5);font-family:Inter,sans-serif;">' + r.wins + '</td>' +
+        '<td style="padding:9px 14px;text-align:right;font-size:13px;font-weight:600;color:#ffc947;font-family:Inter,sans-serif;">$' + Math.round(r.rev).toLocaleString() + '</td>' +
+      '</tr>';
+    }).join('');
+  }
+  var tbody = document.getElementById('arTableBody');
+  if (tbody) { tbody.innerHTML = tableRows(reps); }
+  var searchEl = document.getElementById('arSearch');
+  if (searchEl && searchEl.value) arFilter(searchEl.value);
+}
+
+function arFilter(q) {
+  var term = q.trim().toLowerCase();
+  var rows = document.querySelectorAll('#revContent .ar-row');
+  rows.forEach(function(row) {
+    var name = row.dataset.name || '';
+    row.style.display = (!term || name.indexOf(term) !== -1) ? '' : 'none';
+  });
+}
+
+// ── All Deals flat view ───────────────────────────────────────
+function renderAllDeals(deals) {
+  revLevel = 'alldeals'; revOffice = null; revRep = null;
+  updateKPIs(deals, 'this period');
+  setMobileBackBar('All Deals', 'revGoHome()');
+
+  var sorted = deals.slice().sort(function(a,b){ return (b.rev||0)-(a.rev||0); });
+
+  function dealRows(reps) {
+    if (!reps.length) return '<tr><td colspan="5" style="padding:24px;text-align:center;color:var(--muted);font-size:13px;font-family:Inter,sans-serif;">No deals found</td></tr>';
+    return reps.map(function(d, i) {
+      var col   = officeColor(d.office);
+      var badge = '<span style="display:inline-block;padding:1px 7px;border-radius:4px;font-size:10px;font-weight:500;border:1px solid ' + col + '44;background:' + col + '18;color:' + col + ';white-space:nowrap;">' + esc(d.office||'–') + '</span>';
+      var rnkCol = i===0?'#ffc947':i===1?'rgba(255,255,255,.6)':i===2?'rgba(205,127,50,.8)':'rgba(255,255,255,.25)';
+      var isSG  = d.setter && d.closer && d.setter === d.closer;
+      var setter = (!isSG && d.setter) ? esc(d.setter) : '';
+      var sgTag = isSG ? '<span style="display:inline-block;margin-left:6px;padding:1px 5px;border-radius:3px;font-size:9px;font-weight:700;letter-spacing:.04em;background:rgba(255,201,71,.15);color:#ffc947;border:.5px solid rgba(255,201,71,.35);vertical-align:middle;">SG</span>' : '';
+      var meta = '<div style="font-size:11px;color:rgba(255,255,255,.35);margin-top:1px;font-family:Inter,sans-serif;">' +
+        esc(d.closer||'–') + sgTag + (setter ? ' · Set by ' + setter : '') +
+        '</div>';
+      var searchKey = [d.name||'', d.closer||'', d.setter||'', d.office||''].join(' ').toLowerCase();
+      return '<tr class="ad-row" data-search="' + esc(searchKey) + '">' +
+        '<td style="padding:9px 14px;font-size:12px;color:' + rnkCol + ';font-weight:600;width:32px;font-family:Inter,sans-serif;">' + (i+1) + '</td>' +
+        '<td style="padding:9px 14px;font-family:Inter,sans-serif;">' +
+          '<div style="font-size:13px;font-weight:500;color:var(--white);">' + esc(d.name||'–') + '</div>' +
+          meta +
+        '</td>' +
+        '<td style="padding:9px 14px;">' + badge + '</td>' +
+        '<td style="padding:9px 14px;font-size:12px;color:rgba(255,255,255,.35);font-family:Inter,sans-serif;white-space:nowrap;">' + esc((d.date_deadline||d.date_closed||'').slice(0,10)) + '</td>' +
+        '<td style="padding:9px 14px;text-align:right;font-size:13px;font-weight:600;color:#ffc947;font-family:Inter,sans-serif;white-space:nowrap;">$' + Math.round(d.rev||0).toLocaleString() + '</td>' +
+      '</tr>';
+    }).join('');
+  }
+
+  var html =
+    '<div style="padding:10px 16px;display:flex;align-items:center;gap:10px;border-bottom:.5px solid rgba(255,255,255,.07);background:var(--surface2);">' +
+      '<div style="display:flex;align-items:center;gap:7px;background:var(--surface);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:5px 11px;flex:1;max-width:300px;">' +
+        '<i class="ti ti-search" style="font-size:14px;color:rgba(255,255,255,.25);" aria-hidden="true"></i>' +
+        '<input id="adSearch" type="text" placeholder="Search deal, closer, setter…" oninput="adFilter(this.value)" style="background:none;border:none;outline:none;color:var(--white);font-size:13px;font-family:Inter,sans-serif;width:100%;" />' +
+      '</div>' +
+      '<span style="font-size:12px;color:rgba(255,255,255,.3);font-family:Inter,sans-serif;">' + sorted.length + ' deals</span>' +
+      '<button onclick="revGoHome()" style="margin-left:auto;display:flex;align-items:center;gap:4px;padding:5px 12px;border-radius:6px;border:1px solid rgba(255,255,255,.12);background:none;color:rgba(255,255,255,.45);font-size:12px;font-family:Inter,sans-serif;cursor:pointer;"><i class=\"ti ti-arrow-left\" style=\"font-size:13px\"></i> Back</button>' +
+    '</div>' +
+    '<div style="overflow-x:auto;">' +
+      '<table style="width:100%;border-collapse:collapse;min-width:480px;">' +
+        '<thead><tr style="border-bottom:.5px solid rgba(255,255,255,.08);">' +
+          '<th style="padding:7px 14px;font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.3);text-align:left;font-family:Inter,sans-serif;width:32px;">#</th>' +
+          '<th style="padding:7px 14px;font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.3);text-align:left;font-family:Inter,sans-serif;">Deal</th>' +
+          '<th style="padding:7px 14px;font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.3);text-align:left;font-family:Inter,sans-serif;">Office</th>' +
+          '<th style="padding:7px 14px;font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.3);text-align:left;font-family:Inter,sans-serif;">Closed</th>' +
+          '<th style="padding:7px 14px;font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.3);text-align:right;font-family:Inter,sans-serif;">Value</th>' +
+        '</tr></thead>' +
+        '<tbody id="adTableBody">' + dealRows(sorted) + '</tbody>' +
+      '</table>' +
+    '</div>';
+
+  document.getElementById('revContent').innerHTML = html;
+  document.getElementById('revContent')._adSorted = sorted;
+}
+
+function adFilter(q) {
+  var term = q.trim().toLowerCase();
+  var rows = document.querySelectorAll('#revContent .ad-row');
+  rows.forEach(function(row) {
+    var key = row.dataset.search || '';
+    row.style.display = (!term || key.indexOf(term) !== -1) ? '' : 'none';
+  });
 }
 
 // ── (legacy stubs kept for compat) ────────────────────────────
