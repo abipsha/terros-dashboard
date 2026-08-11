@@ -3714,5 +3714,117 @@ document.addEventListener('click', function(e) {
 </nav>
 
 </div><!-- /main-content -->
+
+<!-- ── AI Chat ─────────────────────────────────────────────── -->
+<style>
+#aiChatBtn{position:fixed;bottom:80px;right:18px;z-index:900;width:48px;height:48px;border-radius:50%;background:#ffc947;border:none;cursor:pointer;display:none;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(0,0,0,.4);transition:transform .15s;}
+#aiChatBtn:hover{transform:scale(1.08);}
+#aiChatBtn i{font-size:22px;color:#0d1117;}
+#aiChatPanel{position:fixed;bottom:140px;right:18px;z-index:901;width:340px;max-width:calc(100vw - 36px);background:#161b22;border:1px solid rgba(255,201,71,.2);border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,.5);display:none;flex-direction:column;overflow:hidden;}
+#aiChatPanel.open{display:flex;}
+.ai-chat-header{display:flex;align-items:center;gap:10px;padding:12px 14px;background:#0d1117;border-bottom:1px solid rgba(255,201,71,.15);}
+.ai-chat-header i{font-size:18px;color:#ffc947;}
+.ai-chat-title{font-family:Inter,sans-serif;font-size:13px;font-weight:600;color:#fff;flex:1;}
+.ai-chat-close{background:none;border:none;color:rgba(255,255,255,.4);cursor:pointer;font-size:18px;padding:0;line-height:1;display:flex;}
+.ai-chat-close:hover{color:#fff;}
+#aiMessages{flex:1;overflow-y:auto;padding:12px 14px;display:flex;flex-direction:column;gap:10px;max-height:320px;min-height:120px;}
+.ai-msg{font-family:Inter,sans-serif;font-size:13px;line-height:1.55;max-width:90%;padding:8px 11px;border-radius:10px;}
+.ai-msg.bot{background:rgba(255,255,255,.06);color:rgba(255,255,255,.85);align-self:flex-start;border-bottom-left-radius:3px;}
+.ai-msg.user{background:rgba(255,201,71,.12);color:#ffc947;align-self:flex-end;border-bottom-right-radius:3px;border:1px solid rgba(255,201,71,.2);}
+.ai-msg.typing{color:rgba(255,255,255,.35);font-style:italic;}
+.ai-chat-footer{display:flex;align-items:center;gap:8px;padding:10px 12px;border-top:1px solid rgba(255,255,255,.07);background:#0d1117;}
+#aiInput{flex:1;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:7px 11px;color:#fff;font-size:13px;font-family:Inter,sans-serif;outline:none;}
+#aiInput:focus{border-color:rgba(255,201,71,.4);}
+#aiInput::placeholder{color:rgba(255,255,255,.25);}
+#aiSendBtn{background:#ffc947;border:none;border-radius:8px;width:34px;height:34px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+#aiSendBtn i{font-size:16px;color:#0d1117;}
+#aiSendBtn:disabled{opacity:.4;cursor:default;}
+.ai-range-note{font-family:Inter,sans-serif;font-size:10px;color:rgba(255,255,255,.25);padding:0 14px 8px;text-align:center;}
+@media(max-width:768px){
+  #aiChatBtn{bottom:70px;}
+  #aiChatPanel{bottom:130px;right:10px;width:calc(100vw - 20px);}
+}
+</style>
+
+<button id="aiChatBtn" onclick="toggleAiChat()" title="Ask AI about this data" aria-label="Open AI chat">
+  <i class="ti ti-sparkles" aria-hidden="true"></i>
+</button>
+
+<div id="aiChatPanel">
+  <div class="ai-chat-header">
+    <i class="ti ti-sparkles" aria-hidden="true"></i>
+    <span class="ai-chat-title">Ask about the data</span>
+    <button class="ai-chat-close" onclick="toggleAiChat()" aria-label="Close chat"><i class="ti ti-x"></i></button>
+  </div>
+  <div id="aiMessages">
+    <div class="ai-msg bot">Hi! Ask me anything about the deals in the current date range — top reps, biggest deals, office totals, and more.</div>
+  </div>
+  <div class="ai-range-note" id="aiRangeNote"></div>
+  <div class="ai-chat-footer">
+    <input id="aiInput" type="text" placeholder="e.g. Who closed the most deals?" onkeydown="if(event.key==='Enter')aiSend();" maxlength="300" />
+    <button id="aiSendBtn" onclick="aiSend()" aria-label="Send"><i class="ti ti-send" aria-hidden="true"></i></button>
+  </div>
+</div>
+
+<script>
+var _aiOpen = false;
+function toggleAiChat() {
+  _aiOpen = !_aiOpen;
+  document.getElementById('aiChatPanel').classList.toggle('open', _aiOpen);
+  if (_aiOpen) {
+    updateAiRangeNote();
+    document.getElementById('aiInput').focus();
+  }
+}
+function updateAiRangeNote() {
+  var note = document.getElementById('aiRangeNote');
+  if (!note) return;
+  var start = document.getElementById('customStart') && document.getElementById('customStart').value;
+  var end   = document.getElementById('customEnd')   && document.getElementById('customEnd').value;
+  if (start && end) note.textContent = 'Using data: ' + start + ' to ' + end;
+  else note.textContent = 'Using current date range';
+}
+function aiAddMsg(text, cls) {
+  var box = document.getElementById('aiMessages');
+  var div = document.createElement('div');
+  div.className = 'ai-msg ' + cls;
+  div.textContent = text;
+  box.appendChild(div);
+  box.scrollTop = box.scrollHeight;
+  return div;
+}
+function aiSend() {
+  var input = document.getElementById('aiInput');
+  var q = (input.value || '').trim();
+  if (!q) return;
+  input.value = '';
+  document.getElementById('aiSendBtn').disabled = true;
+  aiAddMsg(q, 'user');
+  var typing = aiAddMsg('Thinking…', 'bot typing');
+
+  var startEl = document.getElementById('customStart');
+  var endEl   = document.getElementById('customEnd');
+  var start   = (startEl && startEl.value) || '';
+  var end     = (endEl   && endEl.value)   || '';
+  var url = LOCAL_API + '/api/ask?q=' + encodeURIComponent(q);
+  if (start) url += '&start=' + encodeURIComponent(start);
+  if (end)   url += '&end='   + encodeURIComponent(end);
+
+  fetch(url)
+    .then(function(r){ return r.json(); })
+    .then(function(data) {
+      typing.classList.remove('typing');
+      typing.textContent = data.answer || 'No answer returned.';
+    })
+    .catch(function(err) {
+      typing.classList.remove('typing');
+      typing.textContent = 'Error reaching the server. Is it running?';
+    })
+    .finally(function() {
+      document.getElementById('aiSendBtn').disabled = false;
+      document.getElementById('aiInput').focus();
+    });
+}
+</script>
 </body>
 </html>

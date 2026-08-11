@@ -18,9 +18,13 @@ ODOO_DB    = os.environ.get("ODOO_DB",       "myvivid")
 ODOO_USER  = os.environ.get("ODOO_USER",     "abipsha.joshi@vividwindows.com")
 ODOO_PASS  = os.environ.get("ODOO_PASSWORD", "")
 
-# XML-RPC proxies for external API (bypasses web session IP restrictions)
-_xmlrpc_common = xmlrpc.client.ServerProxy(f"{ODOO_URL}/xmlrpc/2/common")
-_xmlrpc_models = xmlrpc.client.ServerProxy(f"{ODOO_URL}/xmlrpc/2/object")
+# XML-RPC proxies — recreated per call to avoid stale-connection errors
+# (ResponseNotReady / CannotSendRequest after idle periods)
+def _xmlrpc_common():
+    return xmlrpc.client.ServerProxy(f"{ODOO_URL}/xmlrpc/2/common")
+
+def _xmlrpc_models():
+    return xmlrpc.client.ServerProxy(f"{ODOO_URL}/xmlrpc/2/object")
 
 # Persistent cookie jar so Odoo session survives across requests (fallback)
 _jar    = http.cookiejar.CookieJar()
@@ -66,7 +70,7 @@ def _post(endpoint: str, payload: dict) -> dict:
 def authenticate() -> int:
     """Authenticate via XML-RPC and cache uid."""
     global _uid
-    uid = _xmlrpc_common.authenticate(ODOO_DB, ODOO_USER, ODOO_PASS, {})
+    uid = _xmlrpc_common().authenticate(ODOO_DB, ODOO_USER, ODOO_PASS, {})
     if not uid:
         raise RuntimeError("Odoo XML-RPC auth failed: bad credentials or access denied")
     _uid = uid
@@ -80,13 +84,13 @@ def call_kw(model: str, method: str, args: list, kwargs: dict):
     if _uid is None:
         authenticate()
     try:
-        return _xmlrpc_models.execute_kw(ODOO_DB, _uid, ODOO_PASS, model, method, args, kwargs)
+        return _xmlrpc_models().execute_kw(ODOO_DB, _uid, ODOO_PASS, model, method, args, kwargs)
     except xmlrpc.client.Fault as e:
         if "session" in str(e).lower() or "access" in str(e).lower():
             print("  Odoo session issue — re-authenticating…")
             _uid = None
             authenticate()
-            return _xmlrpc_models.execute_kw(ODOO_DB, _uid, ODOO_PASS, model, method, args, kwargs)
+            return _xmlrpc_models().execute_kw(ODOO_DB, _uid, ODOO_PASS, model, method, args, kwargs)
         raise RuntimeError(f"Odoo XML-RPC error: {e}")
 
 
@@ -155,7 +159,7 @@ def get_deals_list(start_date: str, end_date: str, force: bool = False) -> dict:
             ["date_deadline", "<=", end_date],
         ]
         fields = [
-            "id", "name",
+            "id", "name", "x_studio_contact_name",
             "x_studio_closer_text_1",
             "x_studio_canvasser_text",
             "x_studio_contract_value",
@@ -196,7 +200,7 @@ def get_deals_list(start_date: str, end_date: str, force: bool = False) -> dict:
         for r in records:
             clean.append({
                 "id":           r["id"],
-                "name":         r.get("name") or "",
+                "name":         r.get("x_studio_contact_name") or r.get("name") or "",
                 "closer":       r.get("x_studio_closer_text_1") or "",
                 "setter":       r.get("x_studio_canvasser_text") or "",
                 "rev":          float(r.get("x_studio_contract_value") or 0),

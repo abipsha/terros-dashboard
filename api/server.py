@@ -33,6 +33,7 @@ import terros
 import odoo
 
 PORT          = int(os.environ.get("PORT", 8000))  # Render sets PORT automatically
+GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "")
 ROOT_DIR      = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # terros-dashboard/
 HTML_FILE        = os.path.join(ROOT_DIR, "index.html")
 CRM_HTML_FILE    = os.path.join(ROOT_DIR, "vivid-crm-dashboard.html")
@@ -155,6 +156,80 @@ class Handler(http.server.BaseHTTPRequestHandler):
             return session
         self._redirect("/login")
         return None
+
+    # ── Gemini AI ask ─────────────────────────────────────────────
+    def _ask_ai(self, question: str, start: str, end: str) -> str:
+        if not GROQ_API_KEY:
+            return "Groq API key not configured. Add GROQ_API_KEY to your environment variables."
+        try:
+            deals_data = odoo.get_deals_list(start, end)
+            deals = deals_data.get("deals", [])
+            total_rev = deals_data.get("total_rev", 0)
+
+            # Build compact text context
+            # Sort by value desc so the most significant deals come first if truncated
+            deals_sorted = sorted(deals, key=lambda d: d.get("rev", 0), reverse=True)
+            MAX_DEALS = 150
+            truncated = len(deals_sorted) > MAX_DEALS
+            deals_for_prompt = deals_sorted[:MAX_DEALS]
+
+            system_msg = (
+                "You are a helpful sales analytics assistant for Vivid Windows & Doors. "
+                "Answer questions about the CRM deals data provided. "
+                "Be concise, specific, and use dollar amounts and rep names directly from the data. "
+                "If asked to rank or list, show the top results with numbers. "
+                "Do not make up data not present in the context."
+            )
+
+            data_lines = [
+                f"Date range: {start} to {end}",
+                f"Total closed deals: {len(deals)}",
+                f"Total revenue: ${total_rev:,.0f}",
+            ]
+            if truncated:
+                data_lines.append(f"Note: Showing top {MAX_DEALS} deals by value (out of {len(deals)} total).")
+            data_lines.append("")
+            data_lines.append("Deal | Closer | Setter | Office | Close Date | Value | Self-Gen")
+            for d in deals_for_prompt:
+                setter = d.get("setter") or ""
+                closer = d.get("closer") or ""
+                sg = "Yes" if setter and closer and setter == closer else "No"
+                date = (d.get("date_closed") or d.get("date_deadline") or "")[:10]
+                name = (d.get("name") or "")[:40]
+                data_lines.append(
+                    f"{name} | {closer} | {setter} | {d.get('office','')} | {date} | ${d.get('rev',0):,.0f} | {sg}"
+                )
+            user_msg = "\n".join(data_lines) + f"\n\nQuestion: {question}"
+            payload = json.dumps({
+                "model": "llama-3.3-70b-versatile",
+                "messages": [
+                    {"role": "system", "content": system_msg},
+                    {"role": "user",   "content": user_msg},
+                ],
+                "temperature": 0.1,
+                "max_tokens": 600,
+            }).encode()
+            req = urllib.request.Request(
+                "https://api.groq.com/openai/v1/chat/completions",
+                data=payload, method="POST",
+                headers={
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer " + GROQ_API_KEY,
+                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+                }
+            )
+            with urllib.request.urlopen(req, timeout=30) as r:
+                result = json.loads(r.read())
+            text = result["choices"][0]["message"]["content"].strip()
+            print(f"  [groq] answer length: {len(text)}")
+            return text if text else "No answer returned."
+        except urllib.error.HTTPError as e:
+            body = e.read().decode()
+            print(f"  [groq] HTTP {e.code}: {body}")
+            return f"Groq API error ({e.code}): {body[:200]}"
+        except Exception as e:
+            import traceback; traceback.print_exc()
+            return f"Error: {e}"
 
     def do_GET(self):
         parsed = urllib.parse.urlparse(self.path)
@@ -361,6 +436,16 @@ class Handler(http.server.BaseHTTPRequestHandler):
                     end_s   = (qs.get("end")   or [today.strftime("%Y-%m-%d")])[0]
                     force   = (qs.get("force")  or [None])[0] == "1"
                     self._json(odoo.build_report(start_s, end_s, force=force))
+
+                elif path == "/api/ask":
+                    question = (qs.get("q") or [""])[0].strip()
+                    if not question:
+                        self._json({"error": "Missing ?q= parameter"}, status=400); return
+                    today = datetime.now(tz=timezone.utc)
+                    start_s = (qs.get("start") or [today.strftime("%Y-%m-01")])[0]
+                    end_s   = (qs.get("end")   or [today.strftime("%Y-%m-%d")])[0]
+                    answer = self._ask_ai(question, start_s, end_s)
+                    self._json({"question": question, "answer": answer, "start": start_s, "end": end_s})
 
                 elif path == "/api/me":
                     session = _get_session(self.headers) or {"e": "dev@vividwindows.com", "n": "Dev Mode"}
