@@ -439,6 +439,10 @@ class Handler(http.server.BaseHTTPRequestHandler):
                     force   = (qs.get("force")  or [None])[0] == "1"
                     self._json(odoo.get_deals_list(start_s, end_s, force=force))
 
+                elif path == "/api/odoo/onboarding":
+                    force = (qs.get("force") or [None])[0] == "1"
+                    self._json(odoo.get_onboarding(force=force))
+
                 elif path == "/api/odoo/report":
                     today = datetime.now(tz=timezone.utc)
                     start_s = (qs.get("start") or [today.strftime("%Y-%m-01")])[0]

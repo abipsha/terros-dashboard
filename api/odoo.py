@@ -45,6 +45,7 @@ DEFAULT_GOAL = float(os.environ.get("GOAL_DEFAULT", "300000"))
 _cache: dict = {}
 _stale_cache: dict = {}   # last known-good data — never expires, served on API failure
 CACHE_TTL = 120  # 2 minutes
+ONBOARDING_CACHE_TTL = 600  # 10 minutes
 
 
 def _post(endpoint: str, payload: dict) -> dict:
@@ -354,5 +355,107 @@ def build_report(start_date: str, end_date: str, force: bool = False) -> dict:
             stale["stale"] = True
             stale["stale_since"] = datetime.utcnow().isoformat() + "Z"
             print(f"  [odoo] API error, serving stale cache: {e}")
+            return stale
+        raise
+PIPELINE_STAGES = {
+    "status1":    "Pre-Boarding",
+    "status2":    "Onboarding",
+    "status3":    "Active",
+    "Deboarding": "Deboarding",
+    "in-Active":  "in-Active",
+}
+
+
+def get_onboarding(force: bool = False) -> dict:
+    """
+    Return employees currently in Pre-Boarding or Onboarding, with:
+    - Pipeline stage
+    - W-9 Submission completion status (from chatter)
+    - Unsigned signature requests
+    Cached for CACHE_TTL seconds.
+    """
+    cache_key = "onboarding"
+    now = time.time()
+    if not force and cache_key in _cache:
+        ts, data = _cache[cache_key]
+        if now - ts < ONBOARDING_CACHE_TTL:
+            return data
+
+    try:
+        # --- employees in the onboarding stages ---
+        employees = call_kw("hr.employee", "search_read", [
+            [["x_studio_selection_field_4cv_1ju5kfpt2", "in", ["status1", "status2"]],
+             ["active", "=", True]],
+        ], {"fields": ["id", "name", "x_studio_selection_field_4cv_1ju5kfpt2",
+                       "x_studio_region", "x_studio_start_date",
+                       "x_studio_referred_by_level_1", "parent_id"]})
+
+        emp_ids = [e["id"] for e in employees]
+        if not emp_ids:
+            result = {"generated_at": datetime.utcnow().isoformat() + "Z", "employees": []}
+            _cache[cache_key] = (now, result)
+            return result
+
+        # --- W-9: an OPEN activity means it is still outstanding ---
+        w9_open_acts = call_kw("mail.activity", "search_read", [
+            [["res_model", "=", "hr.employee"],
+             ["res_id", "in", emp_ids],
+             ["summary", "ilike", "W-9 Submission in Gusto"]],
+        ], {"fields": ["res_id"]})
+        w9_pending_ids = {a["res_id"] for a in w9_open_acts}
+        print(f"  [onboarding] emp_ids={emp_ids} w9_pending_ids={w9_pending_ids}")
+
+        w9_done = {eid for eid in emp_ids if eid not in w9_pending_ids}
+
+        # --- unsigned signature requests, matched by partner name ---
+        from collections import defaultdict
+        unsigned_by_name = defaultdict(list)
+        try:
+            emp_names = [e["name"] for e in employees]
+            all_unsigned = call_kw("sign.request.item", "search_read", [
+                [["partner_id.name", "in", emp_names],
+                 ["state", "!=", "completed"]],
+            ], {"fields": ["id", "sign_request_id", "state", "partner_id"]})
+            for item in all_unsigned:
+                pname    = item["partner_id"][1] if isinstance(item.get("partner_id"), list) else ""
+                req_name = item["sign_request_id"][1] if isinstance(item.get("sign_request_id"), list) else "Unknown"
+                if not pname:
+                    continue
+                unsigned_by_name[pname].append(req_name)
+        except Exception:
+            pass
+
+        # --- shape for the dashboard ---
+        clean = []
+        for e in employees:
+            stage_key = e.get("x_studio_selection_field_4cv_1ju5kfpt2") or ""
+            clean.append({
+                "id":            e["id"],
+                "name":          e["name"],
+                "stage":         PIPELINE_STAGES.get(stage_key, stage_key),
+                "stage_key":     stage_key,
+                "region":        e.get("x_studio_region") or "",
+                "start_date":    e.get("x_studio_start_date") or "",
+                "manager":       e["parent_id"][1] if isinstance(e.get("parent_id"), list) else "",
+                "referred_by":   e["x_studio_referred_by_level_1"][1] if isinstance(e.get("x_studio_referred_by_level_1"), list) else "",
+                "w9_done":       e["id"] in w9_done,
+                "unsigned_docs": unsigned_by_name.get(e["name"], []),
+            })
+
+        clean.sort(key=lambda x: (x["stage_key"], x["start_date"] or ""))
+
+        result = {
+            "generated_at": datetime.utcnow().isoformat() + "Z",
+            "employees": clean,
+        }
+        _cache[cache_key] = (now, result)
+        _stale_cache[cache_key] = result
+        return result
+
+    except Exception as e:
+        if cache_key in _stale_cache:
+            stale = dict(_stale_cache[cache_key])
+            stale["stale"] = True
+            print(f"  [odoo] onboarding error, serving stale: {e}")
             return stale
         raise
