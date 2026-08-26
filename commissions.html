@@ -1,0 +1,2762 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Commission Ledger</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
+<style>
+:root{
+  --bg:#F7F9FA; --card:#FFFFFF; --card-2:#FCFDFD; --line:#E4E8EB; --line-2:#D3D8DB;
+  --ink:#2B363B; --ink-strong:#172024; --num:#222C31; --ink-2:#424B4F;
+  --muted:#777D80; --muted-2:#878F94; --faint:#C7CED4;
+  --accent:#545CFF; --accent-2:#4C4FD9; --accent-soft:#D3D5FC; --accent-wash:#F0F1FF;
+  --c1:#4C4FD9; --c2:#00967F; --c3:#D8604A; --c4:#8B4FD0; --c5:#A6780F;
+  --good:#00967F; --warn:#A6780F; --crit:#D8604A; --neg:#D63B78;
+  --good-wash:#E5F4F1; --warn-wash:#FBF2DF; --crit-wash:#FBEAE6; --neutral-wash:#EFF2F4;
+  --shadow:0 2px 8px var(--line);
+  --grid:#EDF1F3;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0F151B; --card:#141B22; --card-2:#182028; --line:#26303A; --line-2:#37444F;
+    --ink:#E6ECF1; --ink-strong:#F4F7FA; --num:#F4F7FA; --ink-2:#B7C2CC;
+    --muted:#8B97A3; --muted-2:#77838F; --faint:#3B4854;
+    --accent:#8B90FF; --accent-2:#6E73EC; --accent-soft:#2C3157; --accent-wash:#1A2032;
+    --c1:#6E73EC; --c2:#0AA98F; --c3:#DE6A52; --c4:#A169DC; --c5:#B98C2A;
+    --good:#0AA98F; --warn:#B98C2A; --crit:#DE6A52; --neg:#E86BA0;
+    --good-wash:#0F2C28; --warn-wash:#2C2416; --crit-wash:#301C18; --neutral-wash:#1C242C;
+    --shadow:0 2px 10px rgba(0,0,0,.55);
+    --grid:#222C35;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0F151B; --card:#141B22; --card-2:#182028; --line:#26303A; --line-2:#37444F;
+  --ink:#E6ECF1; --ink-strong:#F4F7FA; --num:#F4F7FA; --ink-2:#B7C2CC;
+  --muted:#8B97A3; --muted-2:#77838F; --faint:#3B4854;
+  --accent:#8B90FF; --accent-2:#6E73EC; --accent-soft:#2C3157; --accent-wash:#1A2032;
+  --c1:#6E73EC; --c2:#0AA98F; --c3:#DE6A52; --c4:#A169DC; --c5:#B98C2A;
+  --good:#0AA98F; --warn:#B98C2A; --crit:#DE6A52; --neg:#E86BA0;
+  --good-wash:#0F2C28; --warn-wash:#2C2416; --crit-wash:#301C18; --neutral-wash:#1C242C;
+  --shadow:0 2px 10px rgba(0,0,0,.55);
+  --grid:#222C35;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font-family:"Plus Jakarta Sans","Hellix",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased;
+  font-variant-numeric:tabular-nums}
+h1,h2,h3{margin:0;font-weight:700;color:var(--ink-strong);letter-spacing:-.02em;text-wrap:balance}
+button,input,select{font:inherit;color:inherit}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+
+/* ---------- top nav ---------- */
+.topnav{background:var(--card);border-bottom:1px solid var(--line);height:72px;
+  display:flex;align-items:center;gap:24px;padding:0 22px;position:sticky;top:0;z-index:40}
+.logo{display:flex;align-items:center;gap:12px;flex-shrink:0;color:var(--ink-strong)}
+.logo svg{display:block;width:106px;height:auto}
+
+.navlinks{display:flex;align-items:center;gap:19px;overflow-x:auto;scrollbar-width:none}
+.navlinks::-webkit-scrollbar{display:none}
+.navlink{background:none;border:0;padding:4px 0;cursor:pointer;white-space:nowrap;
+  font-size:12.5px;font-weight:700;letter-spacing:1.1px;text-transform:uppercase;color:var(--muted-2)}
+.navlink:hover{color:var(--ink)}
+.navlink[aria-current="true"]{color:var(--ink-strong);position:relative}
+.navlink[aria-current="true"]::after{content:"";position:absolute;left:0;right:0;bottom:-26px;height:3px;background:var(--accent)}
+.navright{margin-left:auto;display:flex;align-items:center;gap:14px;flex-shrink:0}
+.seg{display:inline-flex;border:1px solid var(--line-2);border-radius:4px;overflow:hidden;background:var(--card)}
+.seg button{background:none;border:0;padding:7px 13px;cursor:pointer;color:var(--muted);
+  font-size:11.5px;font-weight:700;letter-spacing:.7px;text-transform:uppercase}
+.seg button+button{border-left:1px solid var(--line-2)}
+.seg button[aria-pressed="true"]{background:var(--accent);color:#fff}
+.viewas{display:flex;align-items:center;gap:8px}
+.viewas span{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted-2);white-space:nowrap}
+.viewas select{min-width:170px;padding:7px 10px;font-size:13px}
+@media(max-width:1080px){.viewas span{display:none}}
+.iconbtn{width:32px;height:32px;border-radius:50%;border:0;background:none;color:var(--muted);
+  cursor:pointer;display:grid;place-items:center;font-size:15px}
+.iconbtn:hover{background:var(--neutral-wash);color:var(--ink)}
+
+/* ---------- context band ---------- */
+.context{background:var(--card);border-bottom:1px solid var(--line);padding:16px 26px;
+  display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.context h1{font-size:26px}
+.ctxlabel{font-size:12px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted)}
+.divider{width:1px;height:26px;background:var(--line)}
+.stepper{display:flex;align-items:center;gap:14px}
+.step{width:26px;height:26px;border-radius:50%;border:1.5px solid var(--line-2);background:none;
+  color:var(--muted);cursor:pointer;display:grid;place-items:center;font-size:12px;line-height:1}
+.step:hover:not(:disabled){border-color:var(--accent);color:var(--accent)}
+.step:disabled{opacity:.35;cursor:default}
+.period{font-size:13px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--ink-strong)}
+select.pick{background:var(--card);border:1px solid var(--line-2);border-radius:4px;
+  padding:9px 12px;font-size:14px;min-width:150px;color:var(--ink)}
+.ctxright{margin-left:auto;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.back{background:none;border:0;color:var(--ink-2);cursor:pointer;font-size:19px;padding:0 6px;line-height:1}
+
+/* ---------- layout ---------- */
+.wrap{max-width:1400px;margin:0 auto;padding:26px}
+.row{display:grid;gap:20px;margin-bottom:20px;align-items:start}
+.row.two{grid-template-columns:repeat(auto-fit,minmax(330px,1fr))}
+.row.two.split{grid-template-columns:minmax(290px,1fr) minmax(340px,1.35fr)}
+.row.three{grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+.row.four{grid-template-columns:repeat(auto-fit,minmax(198px,1fr))}
+.card{background:var(--card);border:1px solid var(--line);box-shadow:var(--shadow)}
+.card.pad{padding:24px}
+.chead{padding:20px 24px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;min-width:0}
+.chead h2{font-size:20px}
+.chead .spacer{flex:1}
+.cbody{padding:0 24px 24px}
+.note{background:var(--card);border:1px solid var(--line);border-left:3px solid var(--warn);
+  padding:16px 20px;margin-bottom:20px;box-shadow:var(--shadow);font-size:13.5px;max-width:none}
+.note b{color:var(--ink-strong)}
+.note .tag{font-size:11.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--warn);
+  display:block;margin-bottom:5px}
+.note.good{border-left-color:var(--good)} .note.good .tag{color:var(--good)}
+.note.crit{border-left-color:var(--crit)} .note.crit .tag{color:var(--crit)}
+.hint{color:var(--muted);font-size:13.5px;max-width:76ch;margin:0 0 20px}
+
+/* ---------- metrics ---------- */
+.metric{display:flex;flex-direction:column;gap:6px}
+.mlabel{font-size:12px;font-weight:600;color:var(--muted)}
+.mval{font-size:36px;font-weight:600;letter-spacing:-1.25px;color:var(--num);line-height:1.05}
+.mval.sm{font-size:30px;letter-spacing:-1px}
+.mval.xs{font-size:24px;letter-spacing:-.6px}
+.mval.link{color:var(--accent)}
+.metricgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:26px}
+.delta{font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:5px;margin-left:8px}
+.delta.up{color:var(--good)} .delta.down{color:var(--neg)}
+.hero{text-align:center;padding:44px 24px}
+.hero .mval{font-size:44px;letter-spacing:-1.6px}
+.hero .mlabel{margin-top:10px;font-size:13px}
+.adderbox{margin:22px auto 0;max-width:270px;padding:14px 16px;border:1px solid var(--line);
+  border-radius:8px;background:var(--neutral-wash);display:flex;flex-direction:column;gap:2px}
+.adderbox[role=button]{cursor:pointer}
+.adderbox[role=button]:hover{border-color:var(--accent)}
+.adderbox .mlabel{margin-top:0;font-size:11px}
+.adderbox b{font-size:26px;letter-spacing:-.8px;color:var(--c2);line-height:1.15}
+.toast{position:fixed;left:50%;bottom:26px;transform:translate(-50%,20px);z-index:99;
+  max-width:min(560px,92vw);padding:12px 18px;border-radius:8px;font-size:14px;line-height:1.45;
+  background:var(--ink-strong);color:#fff;box-shadow:0 6px 24px rgba(0,0,0,.22);
+  opacity:0;pointer-events:none;transition:opacity .18s,transform .18s}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+.toast.bad{background:var(--crit)}
+
+/* ---------- date lines ---------- */
+.when{display:flex;align-items:baseline;gap:12px;padding:5px 0;border-bottom:1px solid var(--line);font-size:13.5px}
+.when:last-of-type{border-bottom:0}
+.when span{flex:0 0 66px;font-size:11.5px;font-weight:700;letter-spacing:.7px;text-transform:uppercase;color:var(--muted)}
+.when b{color:var(--ink-strong);font-weight:600}
+.when.pay b{color:var(--accent-2);font-weight:700}
+
+/* ---------- tables ---------- */
+.scroll{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{text-align:left;font-size:13px;font-weight:700;color:var(--ink-2);padding:12px 14px;
+  border-bottom:1px solid var(--line);border-top:1px solid var(--line);white-space:nowrap;
+  background:var(--card);position:sticky;top:0;z-index:1}
+td{padding:11px 14px;border-bottom:1px solid var(--line);vertical-align:middle}
+tbody tr:hover{background:var(--card-2)}
+tr.clickable{cursor:pointer}
+td.r,th.r{text-align:right}
+td.n{white-space:nowrap}
+td.idx{color:var(--faint);font-size:12px;width:40px}
+tfoot td{padding:13px 14px;font-weight:700;color:var(--ink-strong);background:var(--card-2);
+  border-top:1px solid var(--line-2);border-bottom:0}
+.muted{color:var(--muted-2)}
+.sub{font-size:12px;color:var(--muted-2);margin-top:2px}
+.dash{color:var(--faint)}
+
+.who{display:flex;align-items:center;gap:10px}
+.avatar{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;flex-shrink:0;
+  font-size:10px;font-weight:800;color:#fff;letter-spacing:.3px}
+.avatar.lg{width:34px;height:34px;font-size:12px}
+
+.pill{display:inline-block;padding:3px 10px;border-radius:3px;font-size:11.5px;font-weight:700;
+  letter-spacing:.4px;white-space:nowrap}
+.pill.good{background:var(--good-wash);color:var(--good)}
+.pill.warn{background:var(--warn-wash);color:var(--warn)}
+.pill.crit{background:var(--crit-wash);color:var(--crit)}
+.pill.info{background:var(--accent-wash);color:var(--accent-2)}
+.pill.plain{background:var(--neutral-wash);color:var(--muted)}
+
+.btn{background:var(--accent);color:#fff;border:0;border-radius:4px;padding:9px 18px;
+  font-size:13px;font-weight:700;cursor:pointer;letter-spacing:.2px}
+.btn:hover{background:var(--accent-2)}
+.btn.ghost{background:var(--card);color:var(--ink);border:1px solid var(--line-2)}
+.btn.ghost:hover{background:var(--neutral-wash)}
+.btn.soft{background:var(--accent-soft);color:var(--accent-2)}
+.btn:focus-visible,.navlink:focus-visible,.seg button:focus-visible,.step:focus-visible,
+tr.clickable:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.search{background:var(--card);border:1px solid var(--line-2);border-radius:4px;padding:9px 13px;
+  font-size:14px;min-width:230px}
+.search::placeholder{color:var(--muted-2)}
+
+.bar{height:6px;background:var(--neutral-wash);border-radius:3px;overflow:hidden;min-width:56px}
+.bar i{display:block;height:100%;border-radius:3px;background:var(--c1)}
+
+/* ---------- plan cards ---------- */
+.plan{background:var(--card);border:1px solid var(--line);box-shadow:var(--shadow);
+  display:flex;flex-direction:column}
+.plan .ptitle{padding:20px 18px;text-align:center;font-size:14px;font-weight:700;
+  letter-spacing:1.4px;text-transform:uppercase;color:var(--ink-strong);border-bottom:1px solid var(--line)}
+.plan .pmid{padding:30px 18px;text-align:center;flex:1;display:flex;flex-direction:column;
+  align-items:center;gap:8px;justify-content:center}
+.plan .pmid .glyph{width:42px;height:42px;border-radius:50%;border:2px solid var(--faint);
+  display:grid;place-items:center;color:var(--faint);font-size:18px;font-weight:700;margin-bottom:6px}
+.plan .pfoot{border-top:1px solid var(--line);padding:15px;text-align:center}
+.plan .pfoot button{background:none;border:0;cursor:pointer;color:var(--accent);
+  font-size:12.5px;font-weight:700;letter-spacing:1.1px;text-transform:uppercase}
+
+/* ---------- charts ---------- */
+.chart{width:100%;display:block;overflow:visible}
+.chart text{font-family:inherit;font-variant-numeric:tabular-nums}
+.legend{display:flex;flex-wrap:wrap;gap:6px 18px;margin-top:14px;font-size:12.5px;color:var(--ink-2)}
+.legend span{display:inline-flex;align-items:center;gap:7px}
+.legend i{width:10px;height:10px;border-radius:2px;flex-shrink:0}
+.tip{position:fixed;pointer-events:none;z-index:90;background:var(--ink-strong);color:var(--bg);
+  padding:7px 11px;border-radius:4px;font-size:12.5px;font-weight:600;opacity:0;transition:opacity .12s;
+  white-space:nowrap;box-shadow:0 4px 14px rgba(0,0,0,.28)}
+.tip.on{opacity:1}
+@media (prefers-reduced-motion:reduce){.tip{transition:none}}
+
+/* ---------- rates editor ---------- */
+.rate{display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid var(--line)}
+.rate:last-child{border-bottom:0}
+.rate .rl{flex:1;min-width:0}
+.rate .rl b{font-weight:700;font-size:14px;color:var(--ink-strong)}
+.rate input{width:82px;text-align:right;background:var(--card);border:1px solid var(--line-2);
+  border-radius:4px;padding:8px 10px;font-weight:600}
+.rate .unit{color:var(--muted);width:12px}
+.grouplabel{font-size:12px;font-weight:700;letter-spacing:1.1px;text-transform:uppercase;
+  color:var(--muted);padding:18px 0 4px}
+
+/* ---------- tab strip ---------- */
+.tabs{display:flex;gap:2px;flex-wrap:wrap;min-width:0}
+.tabbtn{background:none;border:1px solid transparent;border-radius:4px;padding:7px 12px;cursor:pointer;
+  font-size:13px;font-weight:600;color:var(--muted);display:inline-flex;align-items:center;gap:7px;white-space:nowrap}
+.tabbtn:hover{background:var(--neutral-wash);color:var(--ink)}
+.tabbtn[aria-pressed="true"]{background:var(--accent-wash);color:var(--accent-2);border-color:var(--accent)}
+.tabbtn[aria-pressed="true"] .pill{background:var(--accent);color:#fff}
+.panelbody{border-top:1px solid var(--line);padding:18px 20px 20px}
+.panelbody>.card{box-shadow:none;border:0;padding:0}
+.panelbody>.card>.chead{padding:0 0 14px}
+.panelbody>.card>.cbody{padding:0}
+.panelbody>.card>.scroll{margin:0}
+
+/* ---------- adjustment form ---------- */
+.adjform{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;align-items:end;
+  padding:18px;border:1px solid var(--line-2);background:var(--card-2)}
+.adjform label{display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:600;color:var(--muted)}
+.adjform input,.adjform select{background:var(--card);border:1px solid var(--line-2);border-radius:4px;
+  padding:9px 11px;font-size:14px;color:var(--ink);width:100%}
+.adjform input:disabled{color:var(--muted-2);background:var(--neutral-wash)}
+.adjform .actions{display:flex;gap:10px;flex-wrap:wrap}
+.err{color:var(--crit);font-size:13px;font-weight:600;padding:12px 0 0}
+
+/* ---------- tree ---------- */
+.tnode{border-left:1px solid var(--line);margin-left:14px;padding-left:18px}
+.trow{display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid var(--line)}
+.trow:last-child{border-bottom:0}
+.trow .nm{font-weight:600}
+.trow .amt{margin-left:auto;font-weight:700;color:var(--num)}
+.lvl{font-size:11px;font-weight:700;letter-spacing:.5px;color:var(--muted);
+  border:1px solid var(--line-2);border-radius:3px;padding:2px 7px;white-space:nowrap}
+
+
+/* ================= mobile ================= */
+@media(max-width:900px){
+  .wrap{padding:16px 14px 56px}
+  .row{gap:14px;margin-bottom:14px}
+  .row.two,.row.three,.row.four{grid-template-columns:1fr}
+  .card.pad{padding:18px}
+  .chead{padding:16px 18px;gap:10px}
+  .cbody{padding:0 18px 18px}
+  .chead h2{font-size:17px}
+  .mval{font-size:30px;letter-spacing:-1px}
+  .mval.sm{font-size:25px} .mval.xs{font-size:21px}
+  .hero{padding:28px 18px}
+  .hero .mval{font-size:35px}
+  .note{padding:14px 16px}
+  .panelbody{padding:14px 16px 16px}
+}
+@media(max-width:760px){
+  /* --- nav: logo row, then a scrolling link row --- */
+  .topnav{height:auto;min-height:56px;padding:10px 14px 0;gap:0 8px;flex-wrap:wrap;align-items:center}
+  .navright{display:contents}
+  .logo{order:1;margin-right:auto}
+  .logo svg{width:88px}
+  .iconbtn{order:2}
+  .avatar.lg{order:3}
+  .viewas{order:4;flex:0 0 100%;padding:8px 0 2px}
+  .viewas select{width:100%;min-width:0}
+  .navlinks{order:5;width:100%;gap:0;border-top:1px solid var(--line);
+    margin-top:8px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .navlink{padding:12px 14px;font-size:12px;letter-spacing:.8px}
+  .navlink:first-child{padding-left:0}
+  .navlink[aria-current="true"]::after{bottom:0}
+
+  .context{padding:12px 14px;gap:10px}
+  .context h1{font-size:20px;width:100%}
+  .ctxlabel{font-size:11px;letter-spacing:.9px}
+  .divider{display:none}
+  .stepper{gap:10px;width:100%}
+  .stepper .period{flex:1;text-align:center;font-size:12px}
+  .step{width:38px;height:38px;font-size:15px}
+  .ctxright{margin-left:0;width:100%}
+  .ctxright select.pick{width:100%}
+  .back{font-size:22px;padding:0 4px}
+
+  /* --- tap targets --- */
+  .btn{padding:11px 16px;min-height:42px}
+  .iconbtn{width:38px;height:38px}
+  .search{width:100%;min-width:0;padding:11px 13px}
+  select.pick{padding:11px 12px}
+
+  /* --- tab strips scroll rather than wrap --- */
+  .tabs{flex-wrap:wrap;gap:4px;max-width:100%;width:100%}
+  .tabbtn{padding:9px 11px;font-size:12.5px}
+  .chead .spacer{display:none}
+
+  /* --- every labelled table becomes stacked rows --- */
+  .scroll{overflow-x:visible;min-width:0}
+  table.stacked{display:block;width:100%;border-collapse:collapse}
+  table.stacked thead{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+  table.stacked tbody{display:block;width:100%}
+  table.stacked tbody tr{display:block;border-bottom:1px solid var(--line);padding:10px 0}
+  table.stacked tbody tr:last-child{border-bottom:0}
+  table.stacked tbody tr:hover{background:none}
+  table.stacked tbody td{display:flex;align-items:baseline;justify-content:space-between;gap:14px;
+    border:0;padding:5px 16px;text-align:right;min-width:0}
+  table.stacked tbody td::before{content:attr(data-label);color:var(--muted);font-size:12px;font-weight:600;
+    text-align:left;flex:0 0 auto;max-width:48%}
+  table.stacked tbody td[data-label=""]::before{content:none}
+  table.stacked tbody td.idx{display:none}
+  table.stacked tbody td[colspan]{justify-content:flex-start;padding:14px 16px}
+  table.stacked tbody td[colspan]::before{content:none}
+  table.stacked tbody td.lead{display:block;text-align:left;font-weight:700;color:var(--ink-strong);
+    font-size:15px;padding:2px 16px 8px}
+  table.stacked tbody td.lead::before{content:none}
+  table.stacked tbody td .sub{text-align:right}
+  table.stacked tbody td.lead .sub{text-align:left}
+  table.stacked tbody td .who{justify-content:flex-end}
+  table.stacked tbody td.lead .who{justify-content:flex-start}
+  table.stacked tfoot{display:block;width:100%;border-top:1px solid var(--line-2)}
+  table.stacked tfoot tr{display:flex;justify-content:space-between;gap:14px}
+  table.stacked tfoot td{border:0;padding:13px 16px;flex:1;min-width:0}
+  table.stacked tfoot td:last-child{text-align:right;flex:0 0 auto}
+  /* key-value tables keep their two columns but tighten up */
+  #view table:not(.stacked) td{padding:9px 6px}
+  .row.two.split{grid-template-columns:1fr}
+
+  .tnode{margin-left:6px;padding-left:10px}
+  .trow{flex-wrap:wrap;gap:8px}
+  .trow .amt{margin-left:auto}
+  .adjform{padding:14px;grid-template-columns:1fr}
+  .rate{flex-wrap:wrap}
+  .rate .rl{flex:1 1 100%}
+  .hint,.note{font-size:13.5px}
+}
+@media(max-width:400px){
+  .wrap{padding:12px 10px 48px}
+  .chead,.cbody{padding-left:14px;padding-right:14px}
+  .scroll tbody td,.scroll tfoot td{padding-left:14px;padding-right:14px}
+  .mval{font-size:26px}
+  .hero .mval{font-size:30px}
+}
+</style>
+</head>
+<body>
+
+<div class="topnav" id="topnav"></div>
+<div class="context" id="context"></div>
+<div class="wrap" id="view"></div>
+<div class="tip" id="tip"></div>
+
+<script>
+(function () {
+  const topnav = document.getElementById('topnav'), context = document.getElementById('context'),
+    view = document.getElementById('view'), tip = document.getElementById('tip');
+
+  const fail = (title, detail) => {
+    view.innerHTML = '<div class="card pad" style="max-width:520px;margin:60px auto;text-align:center">'
+      + '<h2 style="margin:0 0 10px">' + title + '</h2>'
+      + '<p class="hint" style="margin:0">' + detail + '</p></div>';
+  };
+
+  view.innerHTML = '<p class="muted" style="text-align:center;margin:80px 0">Loading your commissions...</p>';
+
+  fetch('/commissions/data', { credentials: 'same-origin', headers: { Accept: 'application/json' } })
+    .then(r => {
+      if (r.status === 401 || r.status === 403) { throw new Error('forbidden'); }
+      if (!r.ok) { throw new Error('http ' + r.status); }
+      return r.json();
+    })
+    .then(D => { boot(D, topnav, context, view, tip); })
+    .catch(e => {
+      if (String(e.message) === 'forbidden') {
+        fail('No commission record for this account',
+          'You are signed in, but this Google account is not matched to anyone on the sales roster. '
+          + 'Ask Abipsha or Biss to add you.');
+      } else {
+        fail('Could not load your commissions',
+          'The server did not return the data. Try reloading; if it keeps happening, send this to Abipsha: '
+          + String(e.message));
+      }
+    });
+
+  function boot(D, topnav, context, view, tip) {
+/* the page is embedded, so make sure a viewport meta exists before anything lays out */
+(function () {
+  if (document.querySelector('meta[name="viewport"]')) return;
+  const m = document.createElement('meta');
+  m.name = 'viewport';
+  m.content = 'width=device-width, initial-scale=1, viewport-fit=cover';
+  document.head.appendChild(m);
+})();
+
+const LOGO = '<svg viewBox="0 0 1128 396" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Vivid Windows"><g transform="translate(0,396) scale(0.1,-0.1)" fill="currentColor"><path d="M1152 3488 c-20 -20 -14 -57 17 -101 16 -23 32 -58 36 -77 7 -35 16 -57 71 -175 16 -33 38 -87 50 -120 35 -97 75 -189 91 -206 7 -9 16 -34 20 -55 3 -22 27 -84 53 -139 26 -55 55 -125 63 -155 9 -30 28 -70 42 -89 14 -19 25 -41 25 -48 0 -21 57 -170 96 -250 42 -86 65 -95 85 -35 6 20 20 48 30 61 11 13 24 42 29 65 6 22 21 64 34 91 60 126 86 186 86 198 0 6 14 39 30 72 16 33 30 66 30 74 0 8 11 33 24 55 13 23 29 60 35 84 7 23 23 58 36 78 13 19 27 49 30 67 8 37 44 126 86 212 42 87 89 201 89 217 0 7 14 33 30 57 33 49 38 91 14 115 -14 14 -84 16 -618 16 -455 0 -605 -3 -614 -12z"/><path d="M3125 3482 c-41 -26 -51 -40 -65 -92 -6 -25 -23 -64 -36 -87 -13 -23 -24 -48 -24 -56 0 -8 -13 -38 -29 -68 -15 -30 -31 -70 -35 -90 -4 -21 -15 -48 -25 -60 -19 -25 -65 -129 -83 -189 -5 -19 -23 -59 -39 -89 -16 -29 -29 -60 -29 -68 0 -8 -9 -32 -21 -55 -11 -22 -26 -59 -33 -82 -7 -22 -25 -59 -39 -80 -15 -21 -27 -45 -27 -54 0 -14 -49 -131 -96 -227 -13 -28 -24 -59 -24 -69 0 -10 -11 -39 -24 -65 -52 -98 -96 -198 -96 -217 0 -10 -10 -35 -21 -54 -28 -45 -77 -161 -94 -222 -7 -27 -24 -61 -38 -77 -13 -16 -28 -46 -31 -66 -4 -20 -18 -57 -32 -82 -13 -25 -24 -54 -24 -63 0 -10 -11 -34 -25 -54 -30 -44 -31 -62 -6 -76 29 -15 1072 -14 1106 2 14 6 25 14 25 17 0 3 0 523 1 1155 0 975 -2 1152 -14 1163 -24 24 -88 27 -122 5z"/><path d="M3974 3486 c-19 -14 -19 -39 -22 -1162 -2 -1018 -1 -1150 13 -1171 l15 -23 573 0 c432 0 576 3 585 12 17 17 15 42 -8 70 -10 14 -22 44 -26 67 -4 23 -17 58 -30 77 -26 37 -77 161 -88 210 -4 17 -18 47 -32 65 -13 19 -31 56 -39 83 -16 53 -36 98 -91 211 -19 39 -34 78 -34 89 0 10 -9 35 -19 55 -30 56 -88 193 -95 225 -4 17 -15 41 -25 55 -10 14 -26 50 -35 78 -10 29 -21 55 -26 58 -5 3 -16 31 -25 62 -9 32 -25 69 -36 84 -18 25 -55 117 -84 207 -8 24 -26 57 -40 74 -14 16 -25 39 -25 51 0 12 -11 45 -23 72 -13 28 -27 64 -31 80 -4 17 -18 46 -31 66 -13 20 -30 60 -39 89 -9 29 -20 58 -26 65 -6 7 -19 37 -29 66 -24 74 -62 99 -146 99 -37 0 -69 -6 -81 -14z"/><path d="M4940 3480 c-26 -26 -25 -42 3 -77 13 -15 33 -55 45 -88 50 -144 65 -181 82 -200 10 -11 24 -43 29 -70 6 -28 19 -68 30 -90 51 -105 81 -175 99 -225 25 -70 60 -155 82 -200 10 -19 23 -54 29 -78 7 -23 22 -59 34 -79 12 -21 29 -58 38 -83 50 -136 68 -180 95 -230 35 -65 57 -74 72 -30 6 17 20 43 31 58 11 15 28 52 39 82 57 157 71 191 90 215 11 14 24 40 28 58 8 40 55 156 89 221 14 27 25 59 25 70 0 12 10 37 21 56 24 39 72 148 100 229 10 30 23 59 29 66 14 17 69 152 85 207 7 27 25 62 39 79 33 39 36 103 7 119 -13 6 -222 10 -610 10 -578 0 -591 0 -611 -20z"/><path d="M6903 3481 c-38 -24 -49 -42 -63 -107 -6 -27 -17 -56 -25 -64 -16 -18 -70 -143 -92 -215 -9 -27 -26 -64 -39 -81 -13 -17 -24 -37 -24 -45 0 -8 -11 -38 -25 -67 -13 -28 -27 -68 -31 -86 -3 -19 -17 -50 -30 -68 -14 -18 -29 -51 -35 -73 -11 -40 -35 -98 -90 -210 -16 -33 -29 -66 -29 -74 0 -13 -37 -95 -86 -192 -13 -25 -28 -67 -34 -94 -6 -26 -21 -61 -35 -76 -13 -16 -26 -43 -30 -61 -4 -18 -15 -46 -25 -63 -10 -16 -23 -50 -30 -75 -6 -25 -20 -57 -31 -72 -18 -26 -55 -116 -85 -208 -8 -24 -25 -60 -38 -80 -13 -19 -27 -51 -31 -70 -4 -19 -18 -55 -31 -80 -13 -25 -24 -52 -24 -60 0 -9 -11 -31 -25 -50 -29 -40 -30 -44 -9 -64 14 -14 78 -16 557 -16 475 0 545 2 565 16 l22 15 0 1148 c0 1120 0 1148 -19 1165 -30 27 -90 31 -128 7z"/><path d="M7754 3486 c-19 -14 -19 -39 -22 -1162 -2 -1018 -1 -1150 13 -1171 15 -23 16 -23 235 -23 215 0 219 0 234 22 14 20 16 147 16 1165 0 1130 0 1143 -20 1163 -19 19 -33 20 -228 20 -164 0 -212 -3 -228 -14z"/><path d="M9973 3490 c-44 -18 -26 -48 38 -69 77 -25 183 -86 314 -180 75 -54 235 -236 235 -267 0 -7 12 -26 26 -43 24 -29 46 -80 96 -223 11 -32 24 -58 29 -58 25 0 29 56 29 429 l0 390 -22 15 c-19 14 -71 16 -373 15 -192 0 -360 -4 -372 -9z"/><path d="M366 3424 c-3 -9 -6 -521 -6 -1138 0 -1075 1 -1124 18 -1139 17 -15 66 -17 494 -17 547 0 519 -5 474 83 -14 29 -26 61 -26 72 0 11 -10 36 -21 55 -23 37 -70 145 -96 220 -9 25 -22 53 -31 62 -13 16 -36 73 -86 213 -11 34 -31 74 -43 89 -13 16 -23 38 -23 50 0 12 -9 39 -20 61 -11 21 -25 54 -31 73 -6 19 -24 59 -40 89 -16 30 -29 62 -29 70 0 14 -32 88 -91 208 -16 33 -29 69 -29 80 0 11 -10 36 -22 55 -28 45 -64 129 -89 205 -10 33 -27 71 -38 86 -11 14 -25 46 -31 70 -7 24 -23 64 -36 89 -13 25 -24 51 -24 58 0 7 -14 39 -30 70 -17 31 -44 95 -62 142 -17 47 -36 91 -41 98 -13 17 -34 15 -41 -4z"/><path d="M8942 2983 l-23 -18 0 -644 c0 -567 2 -646 16 -667 l15 -24 230 0 c201 0 235 2 277 19 26 10 78 23 116 29 105 17 183 59 290 160 16 15 35 39 43 55 8 15 19 27 24 27 5 0 25 33 44 73 51 104 69 255 51 429 -19 177 -55 257 -168 369 -98 97 -162 136 -246 150 -32 5 -80 19 -107 31 -45 21 -67 23 -294 26 -227 4 -247 3 -268 -15z"/><path d="M10695 1958 c-84 -246 -162 -377 -297 -503 -101 -94 -146 -127 -223 -166 -40 -19 -84 -45 -99 -57 -16 -12 -44 -24 -65 -28 -43 -8 -91 -31 -91 -44 0 -26 53 -30 414 -30 327 0 377 2 390 16 14 13 16 64 16 404 0 214 -3 395 -6 404 -7 19 -33 21 -39 4z"/><path d="M5227 522 c-15 -16 -17 -50 -17 -270 l0 -252 159 0 c148 0 159 1 164 19 2 11 27 30 53 43 33 15 60 39 84 73 34 48 35 50 32 140 -2 86 -4 92 -40 144 -27 40 -53 63 -97 87 -59 33 -62 33 -191 34 -114 0 -133 -2 -147 -18z m328 -97 c31 -27 60 -56 66 -66 5 -10 9 -50 9 -90 l0 -73 -55 -53 c-30 -30 -65 -57 -78 -62 -12 -4 -60 -7 -107 -7 -111 1 -110 0 -110 210 0 201 -4 195 125 191 l94 -2 56 -48z"/><path d="M6175 526 c-48 -21 -89 -61 -135 -131 -40 -62 -42 -68 -38 -127 4 -61 11 -77 72 -164 8 -12 35 -31 60 -43 32 -15 46 -27 46 -41 0 -19 7 -20 109 -20 99 0 109 2 114 19 2 11 23 29 45 40 83 43 108 96 106 236 -1 90 -14 123 -66 171 -67 63 -97 74 -194 74 -51 -1 -102 -6 -119 -14z m236 -90 c59 -53 73 -81 73 -146 0 -98 -10 -123 -65 -170 -48 -40 -56 -43 -123 -48 -68 -4 -73 -3 -110 27 -21 17 -43 31 -48 31 -13 0 -44 78 -52 132 -9 59 18 117 77 168 51 45 54 45 136 45 65 0 70 -2 112 -39z"/><path d="M7999 509 c-24 -17 -50 -38 -56 -47 -13 -16 -18 -98 -7 -126 11 -28 136 -94 192 -102 43 -5 58 -13 87 -46 38 -41 38 -51 -5 -96 -18 -19 -31 -22 -104 -22 -68 0 -88 4 -109 20 -14 11 -32 20 -41 20 -22 0 -20 -37 3 -49 10 -6 22 -22 25 -36 6 -25 6 -25 126 -25 98 0 120 3 120 14 0 8 23 37 50 64 53 53 60 73 33 112 -52 79 -124 120 -209 120 -25 0 -39 8 -63 37 -39 47 -39 63 -1 103 l30 32 93 -3 c89 -4 92 -3 95 18 5 32 -30 43 -132 43 -77 0 -86 -2 -127 -31z"/><path d="M2816 517 c-16 -12 -16 -17 4 -87 12 -41 32 -112 44 -158 13 -46 33 -93 44 -105 14 -14 25 -48 33 -95 l12 -72 47 0 47 0 10 74 c7 46 19 84 32 102 12 16 29 58 39 94 13 50 23 68 44 80 24 13 29 13 42 0 9 -8 20 -46 25 -84 5 -37 17 -76 25 -85 9 -10 24 -54 33 -99 l17 -82 46 0 46 0 12 59 c7 32 21 70 33 85 11 14 27 58 35 98 8 40 22 83 30 96 8 13 19 47 25 75 5 29 12 64 15 80 6 25 4 27 -24 27 -38 0 -47 -15 -56 -91 -5 -36 -16 -69 -31 -89 -13 -18 -27 -47 -30 -64 -4 -17 -11 -46 -17 -64 -9 -30 -13 -33 -36 -27 -42 10 -50 23 -57 83 -3 31 -20 87 -36 123 -16 36 -29 75 -29 87 0 46 -61 69 -93 34 -9 -9 -21 -40 -27 -67 -6 -27 -18 -57 -27 -67 -22 -24 -42 -87 -43 -134 0 -47 -14 -64 -52 -64 -33 0 -44 20 -54 102 -3 29 -17 69 -29 88 -13 19 -26 51 -30 70 -11 59 -16 70 -34 80 -13 6 -24 5 -35 -3z"/><path d="M3912 518 c-9 -9 -12 -82 -12 -265 l0 -253 35 0 35 0 0 246 c0 150 -4 253 -10 265 -12 22 -30 25 -48 7z"/><path d="M4372 513 c-5 -10 -10 -129 -11 -266 l-2 -247 40 0 41 0 2 88 c2 48 3 121 4 162 0 97 1 100 20 100 16 0 41 -27 114 -124 25 -33 55 -72 68 -86 57 -66 92 -113 92 -126 0 -9 12 -14 35 -14 l35 0 0 248 c0 200 -3 252 -14 268 -12 15 -18 17 -33 8 -16 -10 -18 -29 -21 -167 -2 -144 -4 -157 -22 -167 -17 -9 -23 -6 -37 18 -22 35 -93 126 -153 195 -25 29 -56 69 -68 90 -19 29 -30 37 -52 37 -18 0 -33 -7 -38 -17z"/><path d="M6854 515 c-6 -14 8 -56 58 -180 11 -27 29 -87 39 -132 10 -45 26 -94 35 -108 9 -14 20 -40 23 -58 6 -28 11 -32 44 -35 29 -3 38 1 43 15 3 10 14 36 24 58 28 60 71 204 77 258 12 99 57 66 100 -72 15 -47 39 -110 55 -140 15 -29 28 -61 28 -71 0 -39 11 -50 50 -50 22 0 41 4 44 8 2 4 12 46 22 92 10 51 26 97 40 115 12 17 27 56 33 89 6 32 16 65 22 72 6 7 16 35 23 61 16 60 6 96 -26 91 -17 -2 -25 -14 -33 -48 -7 -25 -21 -61 -33 -80 -11 -19 -25 -61 -31 -94 -12 -64 -57 -146 -81 -146 -11 0 -18 18 -26 69 -7 41 -20 82 -34 101 -12 17 -28 59 -36 93 -20 82 -37 107 -74 107 -22 0 -33 -6 -39 -22 -5 -13 -18 -48 -31 -78 -12 -30 -26 -75 -30 -100 -8 -45 -62 -154 -82 -166 -17 -11 -28 10 -38 70 -5 31 -18 68 -30 83 -11 14 -20 34 -20 44 0 46 -24 124 -46 146 -26 26 -62 30 -70 8z"/></g></svg>';
+/* ====================== engine (verified against the workbooks) ====================== */
+const EMP = D.employees;
+const byName = new Map(EMP.map(e => [e.name, e]));
+const RATES = { closer: .09, canvasser: .05, hourly: .01, override: .04 };
+const RECRUIT = { l1: { self: .015, closer: .0075, setter: .0075 }, l2: { self: .005, closer: .0025, setter: .0025 } };
+
+const fmt = n => (n < 0 ? '-$' : '$') + Math.abs(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const fmt0 = n => (n < 0 ? '-$' : '$') + Math.abs(Math.round(n)).toLocaleString('en-US');
+const fmtK = n => Math.abs(n) >= 1000 ? (n < 0 ? '-$' : '$') + (Math.abs(n) / 1000).toFixed(Math.abs(n) >= 10000 ? 0 : 1) + 'k' : fmt0(n);
+const pct = n => (n * 100).toFixed(n * 100 % 1 ? 2 : 0) + '%';
+const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const dshort = s => { if (!s) return '&mdash;'; const p = s.split('-'); return MON[+p[1] - 1] + ' ' + (+p[2]) + ', ' + p[0]; };
+const dlong = s => { if (!s) return ''; const p = s.split('-'); return MON[+p[1] - 1] + ' ' + (+p[2]) + ' Pay Period'; };
+const dtiny = s => { if (!s) return '&mdash;'; const p = s.split('-'); return (+p[1]) + '/' + (+p[2]); };
+const monLabel = k => MON[+k.slice(5, 7) - 1] + ' ' + k.slice(0, 4);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const initials = n => (n || '?').split(/\s+/).slice(0, 2).map(w => w[0]).join('').toUpperCase();
+const AV = ['#FF8B73', '#FFC45C', '#00BDA4', '#B179F4', '#545CFF', '#FF6F91', '#48C6B5', '#9D5AE0', '#F79A5B'];
+const avColor = n => AV[[...(n || '')].reduce((a, c) => a + c.charCodeAt(0), 0) % AV.length];
+const avatar = (n, lg) => `<span class="avatar${lg ? ' lg' : ''}" style="background:${avColor(n)}">${esc(initials(n))}</span>`;
+const who2 = n => `<span class="who">${avatar(n)}<span>${esc(n)}</span></span>`;
+
+/* pay run = first Friday on or after close + 10 days.
+   Verified: reproduces the real 8/14 (22 deals) and 8/21 (19 deals) batches exactly. */
+function payRunOf(close) {
+  const dt = new Date(close + 'T00:00:00Z');
+  dt.setUTCDate(dt.getUTCDate() + 10);
+  while (dt.getUTCDay() !== 5) dt.setUTCDate(dt.getUTCDate() + 1);
+  return dt.toISOString().slice(0, 10);
+}
+const ADMINS = ['Abipsha Joshi', 'Biss Larsen'];   /* full rights, back office */
+const VIEWERS = ['Brock Morrison', 'Tyler Mickelsen', 'Jake Boyce'];   /* read everything, change nothing */
+/* When the page is served by the app, the server says who is signed in and has
+   already cut the payload down to what they may see. With no session this is the
+   standalone prototype and the viewing-as picker stands in for signing in. */
+const SESSION = (D && typeof D.session === 'object' && D.session) ? D.session : null;
+const LIVE = !!SESSION;
+if (SESSION) {
+  if (SESSION.role === 'admin' && ADMINS.indexOf(SESSION.name) < 0) ADMINS.push(SESSION.name);
+  if (SESSION.role === 'viewer' && VIEWERS.indexOf(SESSION.name) < 0) VIEWERS.push(SESSION.name);
+}
+let ADMIN_NOW = SESSION && SESSION.role === 'admin' ? SESSION.name : ADMINS[0];
+const LAST_PAID = '2026-08-21', OPEN_RUN = '2026-08-28';
+const DAYSHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const dayOf = s2 => DAYSHORT[new Date(s2 + 'T00:00:00Z').getUTCDay()];
+const dday = s2 => s2 ? dayOf(s2) + ' ' + dshort(s2) : '&mdash;';
+/* a payday covers the seven close dates ending ten days before it */
+function runWindow(runDate) {
+  const to = new Date(runDate + 'T00:00:00Z');
+  to.setUTCDate(to.getUTCDate() - 10);
+  const from = new Date(to);
+  from.setUTCDate(from.getUTCDate() - 6);
+  return { from: from.toISOString().slice(0, 10), to: to.toISOString().slice(0, 10) };
+}
+function windowLabel(runDate) {
+  const w = runWindow(runDate);
+  return dayOf(w.from) + ' ' + dshort(w.from).replace(', ' + w.from.slice(0, 4), '')
+    + ' - ' + dayOf(w.to) + ' ' + dshort(w.to);
+}
+/* A run freezes ahead of its Friday payday. Nothing can be edited after the freeze;
+   anything entered later rolls into the next open run. */
+const TZ = 'America/Denver';           /* the whole business runs on Mountain Time */
+const NOW_D = '2026-08-21', NOW_T = '10:00';   /* the prototype's "now", in MT */
+const TODAY_D = NOW_D;
+const FROZEN = new Set();              /* runs frozen early by hand */
+/* MDT or MST for a given date, so the freeze lands at the right instant either side of DST */
+function tzAbbr(dateISO) {
+  try {
+    const parts = new Intl.DateTimeFormat('en-US', { timeZone: TZ, timeZoneName: 'short' })
+      .formatToParts(new Date(dateISO + 'T18:00:00Z'));
+    return (parts.find(p => p.type === 'timeZoneName') || {}).value || 'MT';
+  } catch (e) { return 'MT'; }
+}
+const tzOffset = dateISO => tzAbbr(dateISO) === 'MST' ? 7 : 6;
+function mtInstant(dateISO, hhmm) {
+  return new Date(dateISO + 'T' + hhmm + ':00Z').getTime() + tzOffset(dateISO) * 36e5;
+}
+const NOW_MS = mtInstant(NOW_D, NOW_T);
+function freezeDate(runDate) {
+  const dt = new Date(runDate + 'T00:00:00Z');
+  dt.setUTCDate(dt.getUTCDate() - S.freezeDays);
+  return dt.toISOString().slice(0, 10);
+}
+const freezeMs = runDate => mtInstant(freezeDate(runDate), S.freezeTime);
+function runStatus(d) {
+  if (d <= TODAY_D) return 'paid';
+  if (FROZEN.has(d) || NOW_MS >= freezeMs(d)) return 'frozen';
+  return 'open';
+}
+const isApproved = d => runStatus(d) !== 'open';   /* locked for editing */
+const DAYNAME = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+function freezeLabel(runDate) {
+  const fd = freezeDate(runDate);
+  const hh = +S.freezeTime.slice(0, 2), mm = S.freezeTime.slice(3);
+  const t = (hh % 12 || 12) + ':' + mm + ' ' + (hh < 12 ? 'AM' : 'PM');
+  return DAYNAME[new Date(fd + 'T12:00:00Z').getUTCDay()] + ' ' + dshort(fd) + ', ' + t + ' ' + tzAbbr(fd);
+}
+function untilFreeze(runDate) {
+  const ms = freezeMs(runDate) - NOW_MS;
+  if (ms <= 0) return null;
+  const h = Math.round(ms / 36e5);
+  return h >= 48 ? Math.round(h / 24) + ' days' : h + ' hour' + (h === 1 ? '' : 's');
+}
+
+const CUTOFF = '2026-01-01';   /* the dashboard covers deals closing 2026 onward */
+const DEALS = D.deals.filter(d => d.close && d.close >= CUTOFF).map((d, i) => {
+  const o = Object.assign({ id: i }, d);
+  o.won = d.status === 'Won';
+  o.run = d.close ? payRunOf(d.close) : null;
+  o.month = d.close ? d.close.slice(0, 7) : null;
+  o.hourly = d.canvTag === 'Setter, Hourly';
+  o.baseImplied = d.canvComm ? +(d.canvComm / RATES.canvasser).toFixed(2)
+    : d.closerComm ? +(d.closerComm / RATES.closer).toFixed(2) : 0;
+  o.canvPay = 0; o.closerPay = 0; o.total = 0;
+  o.variance = o.won && d.value && o.baseImplied ? +(d.value - o.baseImplied).toFixed(2) : 0;
+  o.flagged = o.won && Math.abs(o.variance) > 15;
+  o.unknownRep = d.canvTag === '#N/A' || !byName.has(d.canvasser) || !byName.has(d.closer);
+  o.state = o.won ? (o.run <= LAST_PAID ? 'paid' : (o.run === OPEN_RUN ? 'open' : 'next')) : 'lost';
+  return o;
+});
+/* ---- Vivid Adder ----------------------------------------------------------
+   Odoo carries a VIVID Adder amount on a won deal. It is not commission and it
+   does not move with a pay run: it accrues to whoever closed the deal and shows
+   as a running balance on their profile. Same 2026-onward scope as everything
+   else on the dashboard. */
+function adderDeals(person) {
+  return DEALS.filter(d => d.won && d.closer === person && (+d.adder || 0) !== 0)
+    .slice().sort((a, b) => (b.close || '').localeCompare(a.close || ''));
+}
+/* the field is a count of adders; each one is worth a fixed dollar amount,
+   and the balance is kept per calendar quarter of the closing date */
+function quarterOf(iso) { return iso ? iso.slice(0, 4) + '-Q' + (Math.floor((+iso.slice(5, 7) - 1) / 3) + 1) : null; }
+function qLabel(q) { return q ? q.slice(5) + ' ' + q.slice(0, 4) : '&mdash;'; }
+function windowOf(q) { const w = qWindow(q); return dshort(w.from) + ' - ' + dshort(w.to); }
+/* a quarter's adder balance pays two quarters later, on the first Friday after
+   the 10th of that quarter's first month. Q1 pays in July, Q2 in October, and so on. */
+function adderPayQuarter(q) {
+  let y = +q.slice(0, 4), n = +q.slice(6) - 1 + 2;
+  if (n > 3) { y += 1; n -= 4; }
+  return y + '-Q' + (n + 1);
+}
+/* first Friday after the 10th - when the 10th is itself a Friday it pays the following
+   Friday, the same rule the recruiting and override runs use */
+function adderPayday(q) {
+  const pq = adderPayQuarter(q);
+  return bonusPayday(+pq.slice(0, 4), (+pq.slice(6) - 1) * 3 + 1);
+}
+const adderPaid = q => adderPayday(q) <= TODAY_D;
+function qWindow(q) {
+  const y = +q.slice(0, 4), n = +q.slice(6) - 1;
+  const from = new Date(Date.UTC(y, n * 3, 1)), to = new Date(Date.UTC(y, n * 3 + 3, 0));
+  return { from: from.toISOString().slice(0, 10), to: to.toISOString().slice(0, 10) };
+}
+/* every quarter that has a closed deal in scope, newest first */
+const QUARTERS = [...new Set(DEALS.filter(d => d.won && d.close).map(d => quarterOf(d.close)))]
+  .sort().reverse();
+const THIS_Q = quarterOf(NOW_D);
+function adderCount(person, q) {
+  return adderDeals(person).filter(d => !q || quarterOf(d.close) === q)
+    .reduce((a, d) => a + (+d.adder || 0), 0);
+}
+function adderBalance(person, q) { return adderCount(person, q) * S.adderRate; }
+/* one row per quarter for one closer */
+function adderByQuarter(person) {
+  const m = new Map();
+  adderDeals(person).forEach(d => {
+    const q = quarterOf(d.close);
+    if (!m.has(q)) m.set(q, { q: q, count: 0, deals: [] });
+    const e = m.get(q); e.count += (+d.adder || 0); e.deals.push(d);
+  });
+  return [...m.values()].sort((a, b) => b.q.localeCompare(a.q))
+    .map(e => Object.assign(e, { amount: e.count * S.adderRate }));
+}
+const closedAny = person => DEALS.some(d => d.won && d.closer === person);
+function adderLeaders(q) {
+  const m = new Map();
+  DEALS.forEach(d => {
+    if (!d.won || !d.closer || !(+d.adder || 0)) return;
+    if (q && quarterOf(d.close) !== q) return;
+    if (!m.has(d.closer)) m.set(d.closer, { name: d.closer, count: 0, deals: 0, byQ: {} });
+    const e = m.get(d.closer); e.count += (+d.adder || 0); e.deals++;
+    const k = quarterOf(d.close); e.byQ[k] = (e.byQ[k] || 0) + (+d.adder || 0);
+  });
+  return [...m.values()].map(x => Object.assign(x, { amount: x.count * S.adderRate }))
+    .sort((a, b) => b.amount - a.amount);
+}
+const adders = n => n + ' adder' + (n === 1 ? '' : 's');
+function recompute() {
+  DEALS.forEach(o => {
+    if (!o.won) { o.canvPay = o.closerPay = o.total = 0; return; }
+    const base = comBase(o);
+    o.canvPay = +(base * (o.hourly ? S.rates.hourly : S.rates.canvasser)).toFixed(2);
+    o.closerPay = +(base * S.rates.closer).toFixed(2);
+    o.total = +(o.canvPay + o.closerPay).toFixed(2);
+  });
+  RUNS.forEach(r => { r.total = r.deals.reduce((s, d) => s + d.total, 0); });
+}
+const RUNS = (() => {
+  const m = new Map();
+  DEALS.filter(d => d.won && d.run).forEach(d => {
+    if (!m.has(d.run)) m.set(d.run, { date: d.run, deals: [], total: 0, value: 0 });
+    const r = m.get(d.run); r.deals.push(d); r.value += d.value;
+  });
+  return [...m.values()].sort((a, b) => b.date.localeCompare(a.date))
+    .map(r => (r.state = r.date <= LAST_PAID ? 'paid' : (r.date === OPEN_RUN ? 'open' : 'next'), r));
+})();
+const RUNDATES = RUNS.map(r => r.date);
+const MONTHS = [...new Set(DEALS.filter(d => d.won && d.month).map(d => d.month))].sort().reverse();
+
+let adjSeq = 0;
+const ADJ = D.adjustments.map(a => ({
+  id: 'a' + (adjSeq++), who: a.closer || a.setter,
+  kind: a.amount < 0 ? 'Deduction' : 'Manual commission',
+  label: (a.first ? a.first + ' ' : '') + a.last,
+  note: a.notes || (a.type ? a.type + ' at ' + pct(a.pct) + ' of ' + fmt0(a.value) : ''),
+  amount: a.amount, run: a.paid
+})).concat([
+  { id: 'a' + (adjSeq++), who: 'Blake Holmes', kind: 'Chargeback',
+    label: 'Teema McIntosh / 6819 Red Cloud Trl', note: 'Cancelled after the 3-day ROC window',
+    amount: -412.5, run: OPEN_RUN },
+  { id: 'a' + (adjSeq++), who: 'Kerrigan Simpson', kind: 'Bonus',
+    label: 'August self-gen bonus', note: '10 or more self-generated units in one run',
+    amount: 500, run: OPEN_RUN }
+]);
+const ADJ_KINDS = [['Bonus', 1], ['Manual commission', 1], ['Reimbursement', 1],
+  ['Chargeback', -1], ['Deduction', -1], ['Advance repayment', -1]];
+const adjSign = k => (ADJ_KINDS.find(x => x[0] === k) || ['', 1])[1];
+
+function runLines(run) {
+  const m = new Map();
+  const touch = n => { if (!m.has(n)) m.set(n, { name: n, setter: 0, closer: 0, adj: 0, deals: 0 }); return m.get(n); };
+  run.deals.forEach(d => {
+    if (d.canvPay) { const r = touch(d.canvasser); r.setter += d.canvPay; r.deals++; }
+    if (d.closerPay) { const r = touch(d.closer); r.closer += d.closerPay; if (d.closer !== d.canvasser) r.deals++; }
+  });
+  ADJ.filter(a => a.run === run.date).forEach(a => { touch(a.who).adj += a.amount; });
+  return [...m.values()].map(r => (r.total = r.setter + r.closer + r.adj, r)).sort((a, b) => b.total - a.total);
+}
+
+/* ---- leadership: three tiers, each on its own override plan ---- */
+const TIERS = [
+  { key: 'manager', name: 'Team Manager', rate: .04, note: 'Runs the region day to day' },
+  { key: 'director', name: 'Director', rate: .04, note: 'Owns several regions' },
+  { key: 'vp', name: 'VP', rate: .04, note: 'Owns the whole sales org' }
+];
+const tierOf = k => TIERS.find(t => t.key === k) || TIERS[0];
+const REGIONS = [...new Set(D.regional.map(r => r.region)
+  .concat(DEALS.filter(d => d.won && d.team).map(d => d.team)))].sort();
+/* A seat is a timeline, not a single name. Reassigning it changes who earns from the
+   next open bonus month onward - months already paid keep whoever held the seat then. */
+const FIRST_MONTH = MONTHS[MONTHS.length - 1];
+const SEATS = [];
+REGIONS.forEach(region => {
+  const reg = D.regional.find(r => r.region === region);
+  const dir = D.director.find(r => r.region === region);
+  SEATS.push({ tier: 'manager', region, history: [{ from: FIRST_MONTH, person: reg ? reg.mgr : null }] });
+  SEATS.push({ tier: 'director', region, history: [{ from: FIRST_MONTH, person: dir ? dir.mgr : null }] });
+  SEATS.push({ tier: 'vp', region, history: [{ from: FIRST_MONTH, person: null }] });
+});
+const seatOf = (tier, region) => SEATS.find(x => x.tier === tier && x.region === region);
+function seatPerson(tier, region, month) {
+  const s = seatOf(tier, region);
+  if (!s) return null;
+  let p = null;
+  s.history.forEach(h => { if (h.from <= month) p = h.person; });
+  return p;
+}
+/* the earliest month whose bonus run has not been frozen yet */
+function effectiveMonth() {
+  const asc = MONTHS.slice().sort();
+  return asc.find(m => { const bd = BONUS_OF.get(m); return !bd || !isApproved(bd); }) || asc[asc.length - 1];
+}
+function setSeat(tier, region, person) {
+  const s = seatOf(tier, region);
+  if (!s) return;
+  const from = effectiveMonth();
+  const hit = s.history.find(h => h.from === from);
+  if (hit) hit.person = person || null;
+  else { s.history.push({ from, person: person || null }); s.history.sort((a, b) => a.from.localeCompare(b.from)); }
+  /* a leading empty entry is noise */
+  while (s.history.length > 1 && !s.history[0].person && s.history[0].from === FIRST_MONTH
+    && s.history[1].from === FIRST_MONTH) s.history.shift();
+}
+const regionRevenue = (month, region) =>
+  DEALS.filter(d => d.won && d.month === month && d.team === region).reduce((a, d) => a + comBase(d), 0);
+
+function overrideRows(month) {
+  const rows = [];
+  SEATS.forEach(seat => {
+    const person = seatPerson(seat.tier, seat.region, month);
+    if (!person) return;
+    const t = tierOf(seat.tier);
+    const v = regionRevenue(month, seat.region);
+    if (!v) return;
+    rows.push({ tier: t.name, tierKey: t.key, region: seat.region, mgr: person,
+      revenue: v, rate: t.rate, amount: +(v * t.rate).toFixed(2) });
+  });
+  return rows.sort((a, b) => b.amount - a.amount);
+}
+function overrideByPerson(month) {
+  const m = new Map();
+  overrideRows(month).forEach(r => {
+    if (!m.has(r.mgr)) m.set(r.mgr, { name: r.mgr, amount: 0, parts: [] });
+    const p = m.get(r.mgr); p.amount += r.amount; p.parts.push(r);
+  });
+  return [...m.values()].sort((a, b) => b.amount - a.amount);
+}
+
+function recruitRun(month, strict) {
+  if (strict === undefined) strict = true;
+  const pool = DEALS.filter(d => d.won && (strict ? d.month === month
+    : d.close && +d.close.slice(5, 7) === +month.slice(5, 7)));
+  const self = new Map(), cl = new Map(), st = new Map();
+  const bump = (m, k, v) => m.set(k, (m.get(k) || 0) + v);
+  pool.forEach(d => { const v = comBase(d);
+    if (d.selfGen) bump(self, d.closer, v); else { bump(cl, d.closer, v); bump(st, d.canvasser, v); } });
+  const out = new Map();
+  const cell = to => { if (!out.has(to)) out.set(to, { name: to, l1: 0, l2: 0, special: 0, lines: [] }); return out.get(to); };
+  EMP.forEach(e => {
+    const s = self.get(e.name) || 0, c = cl.get(e.name) || 0, t = st.get(e.name) || 0;
+    if (!s && !c && !t) return;
+    const a1 = s * S.recruit.l1.self + c * S.recruit.l1.closer + t * S.recruit.l1.setter;
+    const a2 = s * S.recruit.l2.self + c * S.recruit.l2.closer + t * S.recruit.l2.setter;
+    if (e.ref1 && a1) { const r = cell(e.ref1); r.l1 += a1; r.lines.push({ from: e.name, lvl: 'l1', amt: a1 }); }
+    if (e.ref2 && a2) { const r = cell(e.ref2); r.l2 += a2; r.lines.push({ from: e.name, lvl: 'l2', amt: a2 }); }
+  });
+  const sp = D.mavryckPlan;
+  sp.members.forEach(n => {
+    const v = (self.get(n) || 0) + (cl.get(n) || 0) + (st.get(n) || 0);
+    if (!v) return;
+    const r = cell(sp.owner); r.special += v * sp.rate;
+    r.lines.push({ from: n, lvl: 'special', amt: v * sp.rate });
+  });
+  return [...out.values()].map(r => (r.total = r.l1 + r.l2 + r.special, r)).sort((a, b) => b.total - a.total);
+}
+function recruitTotal(m, strict) {
+  return (PRE_RECRUIT ? preRecruit(m) : recruitRun(m, strict)).reduce((s, r) => s + r.total, 0);
+}
+/* a scoped payload carries finished recruiting lines instead of other people's
+   deals, so the browser can show the bonus without seeing what earned it */
+const PRE_RECRUIT = !!(D.recruitLines && D.recruitLines.length);
+function preRecruit(month) {
+  const m = new Map();
+  (D.recruitLines || []).forEach(l => {
+    if (l.month !== month) return;
+    if (!m.has(l.to)) m.set(l.to, { name: l.to, l1: 0, l2: 0, special: 0, total: 0, lines: [] });
+    const r = m.get(l.to);
+    r[l.lvl === 'l1' ? 'l1' : l.lvl === 'l2' ? 'l2' : 'special'] += l.amt;
+    r.total += l.amt;
+    r.lines.push({ from: l.from, lvl: l.lvl, amt: l.amt });
+  });
+  return [...m.values()].sort((a, b) => b.total - a.total);
+}
+
+const CHILD1 = new Map(), CHILD2 = new Map();
+EMP.forEach(e => {
+  if (e.ref1) { if (!CHILD1.has(e.ref1)) CHILD1.set(e.ref1, []); CHILD1.get(e.ref1).push(e.name); }
+  if (e.ref2) { if (!CHILD2.has(e.ref2)) CHILD2.set(e.ref2, []); CHILD2.get(e.ref2).push(e.name); }
+});
+
+function history(name, months) {
+  return months.map(m => {
+    let v = 0;
+    DEALS.forEach(d => {
+      if (!d.won || d.month !== m) return;
+      if (d.canvasser === name) v += d.canvPay;
+      if (d.closer === name) v += d.closerPay;
+    });
+    return { k: m, v };
+  });
+}
+function planSplit(name, month) {
+  let setter = 0, closer = 0;
+  DEALS.forEach(d => {
+    if (!d.won || d.month !== month) return;
+    if (d.canvasser === name) setter += d.canvPay;
+    if (d.closer === name) closer += d.closerPay;
+  });
+  const rec = recruitRun(month, S.strictYear).find(r => r.name === name);
+  const ov = overrideByPerson(month).find(r => r.name === name);
+  const adj = ADJ.filter(a => a.who === name && a.run && a.run.slice(0, 7) === month).reduce((s, a) => s + a.amount, 0);
+  return [
+    { label: 'Setter commission', value: setter, color: 'var(--c1)', rate: pct(S.rates.canvasser) },
+    { label: 'Closer commission', value: closer, color: 'var(--c2)', rate: pct(S.rates.closer) },
+    { label: 'Recruiting bonus', value: rec ? rec.total : 0, color: 'var(--c4)', rate: 'Level 1 + 2' },
+    { label: 'Manager override', value: ov ? ov.amount : 0, color: 'var(--c5)', rate: 'By tier' },
+    { label: 'Adjustments', value: adj, color: 'var(--c3)', rate: 'Manual' }
+  ];
+}
+
+/* ---- bonuses land in the second Friday run of the following month.
+   Grounded in the workbook: July 2026 recruiting bonus and override both paid 8/14/2026. ---- */
+function bonusPayday(y, m) {          /* first Friday after the 10th of month m */
+  const d = new Date(Date.UTC(y, m - 1, 11));
+  while (d.getUTCDay() !== 5) d.setUTCDate(d.getUTCDate() + 1);
+  return d.toISOString().slice(0, 10);
+}
+const BONUS_RUN = new Map();          /* payday -> the month it pays for */
+const BONUS_OF = new Map();           /* month -> its payday */
+MONTHS.forEach(m => {
+  const y = +m.slice(0, 4), mm = +m.slice(5, 7);
+  const pay = bonusPayday(mm === 12 ? y + 1 : y, mm === 12 ? 1 : mm + 1);
+  BONUS_RUN.set(pay, m); BONUS_OF.set(m, pay);
+});
+[...BONUS_RUN.keys()].forEach(d => {
+  if (!RUNS.some(r => r.date === d)) RUNS.push({ date: d, deals: [], total: 0, value: 0, state: d <= LAST_PAID ? 'paid' : 'next' });
+});
+RUNS.sort((a, b) => b.date.localeCompare(a.date));
+const RUNDATES2 = RUNS.map(r => r.date);
+
+
+/* ---- change orders: the contract value moved after commission was paid on it ---- */
+const CO = new Map();                 /* deal id -> {delta, state, commRun, bonusRun, note} */
+const firstOpenRun = () => RUNDATES2.slice().reverse().find(d => !isApproved(d)) || OPEN_RUN;
+const nextBonusRun = () => [...BONUS_RUN.keys()].sort().find(d => !isApproved(d)) || firstOpenRun();
+/* the value every plan should calculate on: what was paid, unless a change order has been applied */
+function comBase(d) {
+  const co = CO.get(d.id);
+  return co && co.state === 'applied' ? d.value : d.baseImplied;
+}
+function applyCO(id, state) {
+  const co = CO.get(id); if (!co) return;
+  const d = DEALS[id];
+  co.state = state;
+  if (state === 'applied') {
+    /* if the run that paid it is already closed, the difference is trued up in the next open run */
+    co.commRun = isApproved(d.run) ? firstOpenRun() : null;
+    const bd = BONUS_OF.get(d.month);
+    co.bonusRun = bd && isApproved(bd) ? nextBonusRun() : null;
+    co.at = D.frozenAt; co.by = ADMIN_NOW;
+  } else { co.commRun = null; co.bonusRun = null; }
+}
+DEALS.forEach(d => {
+  if (!d.won || !d.baseImplied) return;
+  const delta = +(d.value - d.baseImplied).toFixed(2);
+  if (Math.abs(delta) < 15) return;
+  CO.set(d.id, { delta, state: 'pending', at: D.frozenAt, commRun: null, bonusRun: null,
+    note: delta > 0 ? 'Contract value increased after commission was paid'
+                    : 'Contract value reduced after commission was paid' });
+});
+const coPending = () => [...CO.entries()].filter(x => x[1].state === 'pending')
+  .map(x => ({ d: DEALS[x[0]], co: x[1] })).sort((a, b) => Math.abs(b.co.delta) - Math.abs(a.co.delta));
+const coApplied = () => [...CO.entries()].filter(x => x[1].state === 'applied')
+  .map(x => ({ d: DEALS[x[0]], co: x[1] }));
+/* what one change order is worth, leg by leg */
+function coEffect(d) {
+  const co = CO.get(d.id); if (!co) return null;
+  const D_ = co.delta;
+  const sRate = d.hourly ? S.rates.hourly : S.rates.canvasser;
+  const out = { setter: 0, closer: 0, recruit: [], override: [], delta: D_ };
+  if (d.canvPay || d.canvasser) out.setter = D_ * sRate;
+  if (d.closer) out.closer = D_ * S.rates.closer;
+  const legs = d.selfGen ? [[d.closer, 'self']] : [[d.closer, 'closer'], [d.canvasser, 'setter']];
+  legs.forEach(l => {
+    const e = byName.get(l[0]); if (!e) return;
+    if (e.ref1) out.recruit.push({ to: e.ref1, on: l[0], lvl: 'L1', amt: D_ * S.recruit.l1[l[1]] });
+    if (e.ref2) out.recruit.push({ to: e.ref2, on: l[0], lvl: 'L2', amt: D_ * S.recruit.l2[l[1]] });
+  });
+  const sp = D.mavryckPlan;
+  legs.forEach(l => { if (sp.members.indexOf(l[0]) >= 0)
+    out.recruit.push({ to: sp.owner, on: l[0], lvl: '2%', amt: D_ * sp.rate }); });
+  SEATS.forEach(seat => {
+    if (seat.region !== d.team) return;
+    const person = seatPerson(seat.tier, seat.region, d.month);
+    if (person) out.override.push({ to: person, region: seat.region, tier: tierOf(seat.tier).name,
+      amt: D_ * tierOf(seat.tier).rate });
+  });
+  out.total = out.setter + out.closer + out.recruit.reduce((s2, r) => s2 + r.amt, 0)
+    + out.override.reduce((s2, r) => s2 + r.amt, 0);
+  return out;
+}
+
+/* ---- summer weekly bonus: setters who close 2+ deals in a Mon-Sun week ---- */
+const SUMMER = { on: true, start: '2026-07-01', end: '', tier2: .02, tier3: .04 };
+function weekStart(iso) {
+  const d = new Date(iso + 'T00:00:00Z');
+  d.setUTCDate(d.getUTCDate() - d.getUTCDay());               /* back to Sunday */
+  return d.toISOString().slice(0, 10);
+}
+const weekEnd = wk => { const d = new Date(wk + 'T00:00:00Z'); d.setUTCDate(d.getUTCDate() + 6);
+  return d.toISOString().slice(0, 10); };
+const weekLabel = wk => dtiny(wk) + ' - ' + dtiny(weekEnd(wk));
+function summerDeals() {
+  return DEALS.filter(d => d.won && d.close && SUMMER.on && d.close >= SUMMER.start
+    && (!SUMMER.end || d.close <= SUMMER.end) && d.canvasser);
+}
+/* every setter's weeks; a week belongs to the month its Sunday falls in */
+function summerWeeks(filterMonth) {
+  const m = new Map();
+  summerDeals().forEach(d => {
+    const wk = weekStart(d.close);
+    if (filterMonth && wk.slice(0, 7) !== filterMonth) return;
+    if (!m.has(d.canvasser)) m.set(d.canvasser, new Map());
+    const w = m.get(d.canvasser);
+    if (!w.has(wk)) w.set(wk, { week: wk, deals: [], value: 0, base: 0 });
+    const e = w.get(wk); e.deals.push(d); e.value += comBase(d); e.base += d.canvPay;
+  });
+  const out = [];
+  m.forEach((weeks, name) => {
+    const list = [...weeks.values()].map(w => {
+      w.count = w.deals.length;
+      w.rate = w.count >= 3 ? SUMMER.tier3 : w.count === 2 ? SUMMER.tier2 : 0;
+      w.amount = +(w.value * w.rate).toFixed(2);
+      w.qualifying = w.count >= 2;
+      w.baseRate = w.value ? w.base / w.value : 0;
+      w.effective = w.baseRate + w.rate;
+      return w;
+    }).sort((a, b) => b.week.localeCompare(a.week));
+    out.push({ name, weeks: list,
+      base: list.filter(w => w.qualifying).reduce((a, w) => a + w.base, 0),
+      qualifying: list.filter(w => w.qualifying).length,
+      deals: list.reduce((a, w) => a + w.count, 0),
+      total: list.reduce((a, w) => a + w.amount, 0) });
+  });
+  return out.filter(r => r.total > 0 || !filterMonth)
+    .sort((a, b) => b.qualifying - a.qualifying || b.deals - a.deals || b.total - a.total);
+}
+/* a month's summer bonus is payable in the following month's bonus run, always */
+function summerPayRun(month) { return BONUS_OF.get(month) || null; }
+function summerMonthsFor(date) {
+  return MONTHS.filter(m => m >= SUMMER.start.slice(0, 7) && summerPayRun(m) === date);
+}
+
+/* one sheet per run: commission + bonuses + adjustments, per person */
+/* ---- commission holds: an admin can withhold either leg of a deal ---- */
+const HOLD_REASONS = ['Customer financing not approved', 'Awaiting signed change order',
+  'Job cancelled - chargeback pending', 'Rep eligibility under review',
+  'Contract value in dispute', 'Install on hold', 'Other'];
+const HOLDS = new Map();   /* deal id -> {setter, closer, reason, at} where a leg is 'held' or 'released' */
+function legState(d, leg) { const h = HOLDS.get(d.id); return (h && h[leg]) || 'pay'; }
+function legAmt(d, leg) { return leg === 'setter' ? d.canvPay : d.closerPay; }
+function legWho(d, leg) { return leg === 'setter' ? d.canvasser : d.closer; }
+/* a released leg pays in the next open run when its own run has already gone out */
+function legRun(d, leg) { return legState(d, leg) === 'released' && d.run <= LAST_PAID ? OPEN_RUN : d.run; }
+function setHold(id, leg, state, reason, by, at) {
+  const h = HOLDS.get(id) || { setter: null, closer: null, reason: '', at: at || D.frozenAt, by: by || ADMIN_NOW };
+  h[leg] = state;
+  h.by = by || ADMIN_NOW;
+  if (at) h.at = at;
+  if (reason) h.reason = reason;
+  if (!h.setter && !h.closer) HOLDS.delete(id); else HOLDS.set(id, h);
+}
+/* a snapshot of one deal's hold, so a refused save can be put back */
+function holdSnapshot(id) {
+  const h = HOLDS.get(id);
+  return h ? Object.assign({}, h) : null;
+}
+function holdRestore(id, snap) { if (snap) HOLDS.set(id, snap); else HOLDS.delete(id); }
+function allHolds() {
+  const out = [];
+  HOLDS.forEach((h, id) => ['setter', 'closer'].forEach(leg => {
+    if (h[leg] === 'held') out.push({ d: DEALS[id], leg, amt: legAmt(DEALS[id], leg), reason: h.reason, at: h.at });
+  }));
+  return out.sort((a, b) => b.amt - a.amt);
+}
+/* Holds are records in the dataset, matched to a deal by opportunity and closing
+   date rather than by position, so a scoped payload holds exactly the same legs
+   the full dataset does. */
+(D.holds || []).forEach(h => {
+  const d = DEALS.find(x => x.opp === h.opp && x.close === h.close);
+  if (!d) return;                       /* the deal is outside this person's scope */
+  (h.legs || []).forEach(leg => setHold(d.id, leg, 'held', h.reason));
+});
+
+/* ===========================================================================
+   Saving what an admin does
+   ---------------------------------------------------------------------------
+   Holds, releases, adjustments, change orders and freezing a run are not edits
+   to state in this tab: each is an event posted to the server and stored. The
+   screen applies the change straight away so it feels immediate, then confirms.
+   If the server refuses - not an admin, run already frozen, deal not in the
+   ledger - the change is rolled back and the reason is shown. The server is the
+   authority; this page is a view of it.
+   =========================================================================== */
+const dealKey = d => d.opp + '|' + d.close;
+const DEAL_BY_KEY = new Map(DEALS.map(d => [dealKey(d), d]));
+let SAVING = 0;
+
+function toast(msg, bad) {
+  let el = document.getElementById('toast');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'toast'; el.className = 'toast';
+    document.body.appendChild(el);
+  }
+  el.textContent = msg;
+  el.className = 'toast on' + (bad ? ' bad' : '');
+  clearTimeout(el._t);
+  el._t = setTimeout(() => { el.className = 'toast'; }, bad ? 6000 : 2600);
+}
+
+/* post one event. `undo` puts the screen back if the server says no. */
+function save(kind, target, payload, undo) {
+  if (!LIVE) return Promise.resolve(null);      /* standalone prototype: nothing to save to */
+  SAVING++;
+  return fetch('/commissions/events', {
+    method: 'POST',
+    credentials: 'same-origin',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ kind: kind, target: target, payload: payload || {} })
+  })
+    .then(r => r.json().catch(() => ({})).then(b => {
+      if (!r.ok) throw new Error(b.error || ('Refused (' + r.status + ')'));
+      return b.event;
+    }))
+    .catch(e => {
+      if (undo) undo();
+      toast(e.message === 'Failed to fetch'
+        ? 'No connection - that change was not saved.' : e.message, true);
+      render();
+      return null;
+    })
+    .then(v => { SAVING--; return v; });
+}
+
+/* replay the stored events over the seeded state, oldest first */
+function applyEvents(events) {
+  (events || []).forEach(e => {
+    const p = e.payload || {};
+    if (e.kind === 'run.freeze') { FROZEN.add(e.target); return; }
+    if (e.kind === 'adjustment') {
+      ADJ.push({ id: 'e' + e.id, who: e.target, kind: p.type, label: p.note || p.type,
+        note: 'Added ' + dshort(String(e.at).slice(0, 10)) + ' by ' + e.actor,
+        amount: adjSign(p.type) * Math.abs(+p.amount || 0), run: p.run });
+      return;
+    }
+    if (e.kind === 'adjustment.remove') {
+      const i = ADJ.findIndex(a => a.id === 'e' + e.target);
+      if (i >= 0) ADJ.splice(i, 1);
+      return;
+    }
+    const d = DEAL_BY_KEY.get(e.target);
+    if (!d) return;                              /* outside this person's scope */
+    if (e.kind === 'hold') setHold(d.id, p.leg, 'held', p.reason, e.actor, String(e.at).slice(0, 10));
+    if (e.kind === 'release') setHold(d.id, p.leg, 'released', '', e.actor, String(e.at).slice(0, 10));
+    if (e.kind === 'changeorder.apply') applyCO(d.id, 'applied');
+    if (e.kind === 'changeorder.undo') applyCO(d.id, 'pending');
+  });
+}
+applyEvents(D.events);
+
+/* Odoo was unreachable and these came from cache. Say so plainly rather than
+   letting someone freeze a run against holds that may have moved since. */
+if (D.eventsStale) {
+  addEventListener('DOMContentLoaded', () => {});
+  setTimeout(() => {
+    if (!view.querySelector('.note.stalewarn')) {
+      view.insertAdjacentHTML('afterbegin', '<div class="note crit stalewarn">'
+        + '<span class="tag">Odoo not responding</span> Holds, adjustments and change orders are '
+        + 'showing as they were the last time Odoo answered. Anything entered in the meantime is '
+        + 'not here yet, and new changes cannot be saved. Reload in a minute.</div>');
+    }
+  }, 0);
+}
+
+function runSheet(date) {
+  const run = RUNS.find(r => r.date === date) || { date, deals: [] };
+  const bm = BONUS_RUN.get(date);
+  const m = new Map();
+  const touch = n => {
+    if (!m.has(n)) m.set(n, { name: n, setter: 0, closer: 0, recruit: 0, override: 0, adj: 0,
+      released: 0, heldBack: 0, co: 0, summer: 0, deals: [], bonusLines: [], holds: [],
+      coLines: [], summerLines: [] });
+    return m.get(n);
+  };
+  const consider = run.deals.slice();
+  HOLDS.forEach((h, id) => { const d = DEALS[id]; if (d && consider.indexOf(d) < 0) consider.push(d); });
+  const held = [];
+  consider.forEach(d => ['setter', 'closer'].forEach(leg => {
+    const amt = legAmt(d, leg);
+    if (!amt) return;
+    const st = legState(d, leg);
+    if (st === 'held') {
+      if (d.run === date) {
+        const r = touch(legWho(d, leg));
+        r.heldBack += amt; r.holds.push({ d, leg, amt });
+        held.push({ d, leg, amt, who: legWho(d, leg), reason: (HOLDS.get(d.id) || {}).reason });
+      }
+      return;
+    }
+    if (legRun(d, leg) !== date) return;
+    const r = touch(legWho(d, leg));
+    if (leg === 'setter') r.setter += amt; else r.closer += amt;
+    if (st === 'released') r.released += amt;
+    if (r.deals.indexOf(d) < 0) r.deals.push(d);
+  }));
+  if (bm) {
+    (PRE_RECRUIT ? preRecruit(bm) : recruitRun(bm, S.strictYear)).forEach(x => {
+      const r = touch(x.name); r.recruit += x.total;
+      x.lines.forEach(l => r.bonusLines.push(l));
+    });
+    overrideByPerson(bm).forEach(x => { touch(x.name).override += x.amount; });
+  }
+  /* summer weekly bonus for every month that pays in this run */
+  summerMonthsFor(date).forEach(m => {
+    summerWeeks(m).forEach(x => {
+      if (!x.total) return;
+      const r = touch(x.name); r.summer += x.total;
+      x.weeks.filter(w => w.qualifying).forEach(w =>
+        r.summerLines.push({ month: m, week: w.week, count: w.count, value: w.value, rate: w.rate,
+          amt: w.amount, base: w.base, baseRate: w.baseRate, effective: w.effective,
+          dealIds: w.deals.map(d => d.id) }));
+    });
+  });
+  /* change orders on runs that already went out are trued up here */
+  coApplied().forEach(x => {
+    const eff = coEffect(x.d); if (!eff) return;
+    if (x.co.commRun === date) {
+      if (eff.setter) { const r = touch(x.d.canvasser); r.co += eff.setter;
+        r.coLines.push({ d: x.d, what: 'Setter commission', amt: eff.setter }); }
+      if (eff.closer) { const r = touch(x.d.closer); r.co += eff.closer;
+        r.coLines.push({ d: x.d, what: 'Closer commission', amt: eff.closer }); }
+    }
+    if (x.co.bonusRun === date) {
+      eff.recruit.forEach(l => { const r = touch(l.to); r.co += l.amt;
+        r.coLines.push({ d: x.d, what: 'Recruiting ' + l.lvl + ' on ' + l.on, amt: l.amt }); });
+      eff.override.forEach(l => { const r = touch(l.to); r.co += l.amt;
+        r.coLines.push({ d: x.d, what: 'Override ' + l.region, amt: l.amt }); });
+    }
+  });
+  ADJ.filter(a => a.run === date).forEach(a => { touch(a.who).adj += a.amount; });
+  const rows = [...m.values()].map(r => {
+    r.commission = r.setter + r.closer;
+    r.bonus = r.recruit + r.override + r.summer;
+    r.total = r.commission + r.bonus + r.adj + r.co;
+    return r;
+  }).filter(r => Math.abs(r.total) > 0.004 || r.heldBack > 0.004).sort((a, b) => b.total - a.total);
+  return { date, bonusMonth: bm, deals: run.deals, rows,
+    state: runStatus(date), held,
+    withheld: held.reduce((s, h) => s + h.amt, 0),
+    total: rows.reduce((s, r) => s + r.total, 0) };
+}
+const sheetCache = new Map();
+function sheet(date) { if (!sheetCache.has(date)) sheetCache.set(date, runSheet(date)); return sheetCache.get(date); }
+
+/* ---- data checks ---- */
+let _q = null;
+function checks() {
+  if (_q) return _q;
+  const q = [];
+  const pend = coPending();
+  q.push({
+    sev: 'crit', title: 'Change orders that were never paid on',
+    what: pend.length + ' won deals carry a contract value that moved after the commission was paid, worth '
+      + fmt(pend.reduce((a2, x) => a2 + x.co.delta, 0)) + ' of contract value in total. In the workbook nothing '
+      + 'recalculates, so the setter, the closer, both recruiters and the two override seats were all paid on the old '
+      + 'number. Applying them here pays or claws back only the difference. Open Pay runs to work the queue.',
+    n: pend.length, rows: pend.map(x => x.d)
+  });
+  q.push({
+    sev: 'crit', title: 'Recruiting bonus formula filters month but not year',
+    what: 'The SUMIFS matches MONTH() and never YEAR(). Two July 2025 deals sitting in that tab were swept into the '
+      + 'July 2026 run and overpaid it by ' + fmt(657.71) + '. That tab holds only 14 months of deals; run the same '
+      + 'formula across the full history and the July error grows to ' + fmt(13449.02) + ', because all 37 July 2025 '
+      + 'deals qualify. This dashboard matches on month and year, so it cannot repeat the mistake.',
+    n: 2, rows: []
+  });
+  const unk = DEALS.filter(d => d.won && d.unknownRep);
+  q.push({
+    sev: 'warn', title: 'Rep on the deal is not in the employee list',
+    what: unk.length + ' won deals name a setter or closer the employee lookup cannot resolve, so their plan falls '
+      + 'through to the default rate instead of the hourly one.',
+    n: unk.length, rows: unk
+  });
+  q.push({
+    sev: 'warn', title: 'Payout history is not retained',
+    what: 'The master sheet keeps a Commission Paid Date only for the most recent run, so '
+      + (DEALS.filter(d => d.won && d.run <= LAST_PAID).length - 19) + ' previously paid deals carry no record of when '
+      + 'they were paid. The runs here are rebuilt from close dates using a rule that reproduces both known runs exactly.',
+    n: DEALS.filter(d => d.won && d.run <= LAST_PAID).length - 19, rows: []
+  });
+  const m = new Map(); DEALS.forEach(d => { const k = d.opp.toLowerCase().trim(); m.set(k, (m.get(k) || 0) + 1); });
+  const dup = [...m.entries()].filter(x => x[1] > 1);
+  if (dup.length) q.push({
+    sev: 'warn', title: 'Duplicate opportunity names',
+    what: dup.length + ' opportunity names appear more than once. Every lookup in the workbook matches on name alone, '
+      + 'so a duplicate pays the wrong person or pays twice.',
+    n: dup.length, rows: []
+  });
+  _q = q; return q;
+}
+
+/* ====================== state ====================== */
+const MANAGERS = [];   /* filled after SEATS exist */
+function buildManagers() {
+  const seatHolders = SEATS.map(x => x.history.map(h => h.person)).flat().filter(Boolean);
+  const withReports = EMP.map(e => e.manager).filter(Boolean);
+  [...new Set(withReports.concat(seatHolders))].filter(n => byName.has(n)).sort()
+    .forEach(n => { if (MANAGERS.indexOf(n) < 0) MANAGERS.push(n); });
+}
+const NAV_KEYS = { admin: ['runs', 'deals', 'people', 'plans'], viewer: ['runs', 'deals', 'people', 'plans'],
+  manager: ['runs', 'deals', 'people'], rep: ['runs', 'deals'] };
+const S = {
+  role: 'admin', admin: ADMIN_NOW, viewer: VIEWERS[0], actor: 'Carl Crosland', rep: 'Kerrigan Simpson',
+  view: 'runs', focus: null, dealFocus: null,
+  run: OPEN_RUN, q: '', dealFilter: 'all', strictYear: true,
+  freezeDays: 1, freezeTime: '08:00',      /* Thursday 8am ahead of a Friday payday */
+  adderRate: 500,                          /* what one VIVID Adder is worth */
+  adderQ: null,                            /* which quarter's balance is on screen */
+  rates: Object.assign({}, RATES),
+  recruit: JSON.parse(JSON.stringify(RECRUIT))
+};
+buildManagers();
+if (SESSION) {
+  S.role = SESSION.role === 'admin' ? 'admin'
+    : SESSION.role === 'viewer' ? 'viewer'
+    : SESSION.role === 'manager' ? 'manager' : 'rep';
+  if (S.role === 'admin') S.admin = SESSION.name;
+  if (S.role === 'viewer') S.viewer = SESSION.name;
+  if (S.role === 'manager') S.actor = SESSION.name;
+  if (S.role === 'rep') S.rep = SESSION.name;
+  const okViews = NAV_KEYS[S.role] || [];
+  if (okViews.indexOf(S.view) < 0) S.view = okViews[0] || 'runs';
+}
+const me = () => S.role === 'rep' ? S.rep : S.role === 'manager' ? S.actor
+  : S.role === 'viewer' ? S.viewer : S.admin;
+const signedIn = () => S.role === 'admin' ? S.admin : me();
+/* admins and read-only viewers both see the whole company */
+const seesAll = () => S.role === 'admin' || S.role === 'viewer';
+const canEditAll = () => S.role === 'admin';
+const directReports = m => EMP.filter(e => e.manager === m).map(e => e.name);
+/* every region where this person holds a seat, at any tier */
+function seatRegions(person) {
+  const m = effectiveMonth();
+  return [...new Set(SEATS.filter(x => seatPerson(x.tier, x.region, m) === person).map(x => x.region))];
+}
+function seatTitles(person) {
+  const m = effectiveMonth();
+  return SEATS.filter(x => seatPerson(x.tier, x.region, m) === person)
+    .map(x => ({ tier: tierOf(x.tier).name, region: x.region }));
+}
+/* what a leader can see: their own regions, their direct reports, and themselves */
+function visibleTo(person) {
+  const m = effectiveMonth();
+  const regions = new Set(seatRegions(person));
+  const tiers = new Set(seatTitles(person).map(t => t.tier));
+  /* a region nobody holds a seat in rolls up to any Director or VP */
+  if (tiers.has('Director') || tiers.has('VP')) {
+    REGIONS.forEach(r => {
+      if (!SEATS.some(x => x.region === r && seatPerson(x.tier, x.region, m))) regions.add(r);
+    });
+  }
+  /* a VP holds the whole company, whichever region the seat sits in */
+  if (tiers.has('VP')) REGIONS.forEach(r => regions.add(r));
+  const names = new Set(directReports(person).concat([person]));
+  return { regions, names, tiers, all: REGIONS.every(r => regions.has(r)) };
+}
+function inScope(d) {
+  if (seesAll()) return true;
+  if (S.role === 'rep') return d.canvasser === S.rep || d.closer === S.rep;
+  const v = visibleTo(S.actor);
+  if (d.team && v.regions.has(d.team)) return true;
+  return v.names.has(d.canvasser) || v.names.has(d.closer);
+}
+function scopeName(n) {
+  if (seesAll()) return true;
+  if (S.role === 'rep') return n === S.rep;
+  const v = visibleTo(S.actor);
+  if (v.names.has(n)) return true;
+  const e = byName.get(n);
+  return !!(e && e.team && v.regions.has(e.team));
+}
+const teamOf = directReports;   /* kept for the People list */
+
+/* ====================== charts ====================== */
+function roundTop(x, y, w, h, r) {
+  if (h <= 0) return '';
+  r = Math.min(r, w / 2, h);
+  return `M${x},${y + h}L${x},${y + r}Q${x},${y} ${x + r},${y}L${x + w - r},${y}Q${x + w},${y} ${x + w},${y + r}L${x + w},${y + h}Z`;
+}
+function barChart(data, opts) {
+  opts = opts || {};
+  const W = 360, H = 128, PB = 20, PT = 16, PR = 78;
+  const max = Math.max(1, ...data.map(d => d.v));
+  const avg = data.reduce((s, d) => s + d.v, 0) / (data.length || 1);
+  const plotW = W - PR - 8, band = plotW / Math.max(data.length, 1), bw = Math.min(13, band * .56);
+  const y = v => PT + (H - PT - PB) * (1 - v / max);
+  let hi = opts.highlight != null ? data.findIndex(d => d.k === opts.highlight) : -1;
+  if (hi < 0) hi = data.length - 1;
+  const bars = data.map((d, i) => {
+    const x = 4 + band * i + (band - bw) / 2, yy = y(d.v), h = (H - PB) - yy;
+    return `<path d="${roundTop(x, yy, bw, d.v > 0 ? Math.max(h, 3) : 0, 4)}" fill="${i === hi ? 'var(--c2)' : 'var(--faint)'}"></path>
+      <rect x="${4 + band * i}" y="${PT}" width="${band}" height="${H - PB - PT}" fill="transparent"
+        data-tip="${dshort(d.k)}: ${fmt(d.v)}"></rect>`;
+  }).join('');
+  const ay = y(avg);
+  return `<svg class="chart" viewBox="0 0 ${W} ${H + 16}" role="img"
+      aria-label="Payable by run. Selected ${fmt(data[hi] ? data[hi].v : 0)}, average ${fmt(avg)}.">
+    <line x1="4" y1="${H - PB}" x2="${W - PR}" y2="${H - PB}" stroke="var(--line)" stroke-width="1"/>
+    <line x1="4" y1="${ay}" x2="${W - PR}" y2="${ay}" stroke="var(--line-2)" stroke-width="1.5" stroke-dasharray="3 3"/>
+    <text x="${W - PR + 10}" y="${ay - 3}" font-size="13" font-weight="700" fill="var(--num)">${fmtK(avg)}</text>
+    <text x="${W - PR + 10}" y="${ay + 12}" font-size="10.5" fill="var(--muted)">Average</text>
+    ${bars}
+    ${data.map((d, i) => `<text x="${4 + band * i + band / 2}" y="${H - 4}" font-size="10.5"
+      fill="${i === hi ? 'var(--ink-2)' : 'var(--muted-2)'}" font-weight="${i === hi ? '700' : '400'}"
+      text-anchor="middle">${+d.k.slice(8)}</text>`).join('')}
+  </svg>`;
+}
+function donut(parts, total) {
+  const live = parts.filter(p => Math.abs(p.value) > 0.005)
+    .map(p => ({ label: p.label, value: Math.abs(p.value), color: p.color }));
+  const sum = live.reduce((s, p) => s + p.value, 0) || 1;
+  const R = 54, C = 2 * Math.PI * R, GAP = live.length > 1 ? 3 : 0;
+  let off = 0;
+  const arcs = live.map(p => {
+    const len = Math.max(C * (p.value / sum) - GAP, 1);
+    const el = `<circle cx="70" cy="70" r="${R}" fill="none" stroke="${p.color}" stroke-width="17"
+      stroke-dasharray="${len} ${C - len}" stroke-dashoffset="${-off}"
+      data-tip="${p.label}: ${fmt(p.value)} (${(p.value / sum * 100).toFixed(0)}%)"></circle>`;
+    off += C * (p.value / sum); return el;
+  }).join('');
+  return `<svg class="chart" viewBox="0 0 140 140" style="max-width:170px;margin:0 auto" role="img"
+      aria-label="Split. ${live.map(p => p.label.replace(/&[a-z]+;/g, ' ') + ' ' + fmt0(p.value)).join(', ')}.">
+    <g transform="rotate(-90 70 70)">${live.length ? arcs
+      : `<circle cx="70" cy="70" r="${R}" fill="none" stroke="var(--neutral-wash)" stroke-width="17"></circle>`}</g>
+    <text x="70" y="68" text-anchor="middle" font-size="19" font-weight="700" fill="var(--num)" letter-spacing="-.5">${fmtK(total)}</text>
+    <text x="70" y="84" text-anchor="middle" font-size="10.5" fill="var(--muted)">total</text>
+  </svg>`;
+}
+function legend(parts) {
+  const live = parts.filter(p => Math.abs(p.value) > 0.005);
+  if (live.length < 2) return '';
+  return `<div class="legend">${live.map(p =>
+    `<span><i style="background:${p.color}"></i>${p.label} <b style="color:var(--num)">${fmt0(p.value)}</b></span>`).join('')}</div>`;
+}
+function attainment(value, target, label) {
+  const p = target > 0 ? value / target : 0;
+  return `<div style="margin-top:4px">
+    <div style="display:flex;justify-content:space-between;gap:12px;font-size:12px;color:var(--muted);margin-bottom:6px">
+      <span>${label}</span><b style="color:${p >= 1 ? 'var(--good)' : 'var(--ink-2)'}">${(p * 100).toFixed(0)}%</b></div>
+    <div class="bar" style="height:8px"><i style="width:${Math.max(Math.min(p, 1) * 100, 0)}%;background:${p >= 1 ? 'var(--c2)' : 'var(--c1)'}"></i></div></div>`;
+}
+function deltaTag(cur, prev) {
+  if (!prev) return '';
+  const d = (cur - prev) / Math.abs(prev);
+  if (Math.abs(d) > 3) return '';
+  return `<span class="delta ${d >= 0 ? 'up' : 'down'}">${d >= 0 ? '&#9650;' : '&#9660;'} ${(d * 100).toFixed(1)}%</span>`;
+}
+
+/* ====================== chrome ====================== */
+const NAV = {
+  admin: [['runs', 'Pay runs'], ['deals', 'Deals'], ['people', 'People'], ['plans', 'Plans']],
+  viewer: [['runs', 'Pay runs'], ['deals', 'Deals'], ['people', 'People'], ['plans', 'Plans']],
+  manager: [['runs', 'Pay runs'], ['deals', 'Deals'], ['people', 'Reps']],
+  rep: [['runs', 'My pay'], ['deals', 'My deals']]
+};
+/* signed in with no one else to look at: show who they are, not a picker */
+function renderNavFixed() {
+  const title = S.role === 'admin' ? 'Full admin'
+    : S.role === 'viewer' ? 'Read-only'
+    : S.role === 'manager'
+      ? (seatTitles(SESSION.name).map(t => t.tier).filter((v, i, a) => a.indexOf(v) === i).join(' + ') || 'Manager')
+      : 'My commissions';
+  topnav.innerHTML = `
+  <div class="logo">${LOGO}</div>
+  <div class="navlinks">
+    ${NAV[S.role].map(([k, t]) => `<button class="navlink" data-nav="${k}"
+      aria-current="${S.view === k && !S.focus && S.dealFocus == null}">${t}</button>`).join('')}
+  </div>
+  <div class="navright">
+    <span class="viewas"><span>${esc(title)}</span><b style="color:var(--ink-strong)">${esc(SESSION.name)}</b></span>
+    <button class="iconbtn" data-act="theme" aria-label="Toggle light or dark theme" title="Toggle theme">
+      <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.4"
+        fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M8 1.6a6.4 6.4 0 0 1 0 12.8Z" fill="currentColor"/></svg>
+    </button>
+    ${avatar(SESSION.name, true)}
+  </div>`;
+}
+function renderNav() {
+  /* Signed in through the app: identity comes from the session and cannot be
+     switched. An admin who wants a rep's statement opens them from People.
+     The picker below exists only in the standalone prototype. */
+  if (LIVE) return renderNavFixed();
+  const opts = `<optgroup label="Admin &middot; full rights">${ADMINS.map(n =>
+      `<option value="admin:${esc(n)}" ${S.role === 'admin' && S.admin === n ? 'selected' : ''}>${esc(n)}</option>`).join('')}</optgroup>
+    <optgroup label="Read-only &middot; everything">${VIEWERS.map(n =>
+      `<option value="viewer:${esc(n)}" ${S.role === 'viewer' && S.viewer === n ? 'selected' : ''}>${esc(n)}</option>`).join('')}</optgroup>
+    <optgroup label="Manager">${MANAGERS.map(m => `<option value="manager:${esc(m)}" ${S.role === 'manager' && S.actor === m ? 'selected' : ''}>${esc(m)}</option>`).join('')}</optgroup>
+    <optgroup label="Rep">${EMP.filter(e => e.active).map(e => `<option value="rep:${esc(e.name)}" ${S.role === 'rep' && S.rep === e.name ? 'selected' : ''}>${esc(e.name)}</option>`).join('')}</optgroup>`;
+  topnav.innerHTML = `
+  <div class="logo">${LOGO}</div>
+  <div class="navlinks">
+    ${NAV[S.role].map(([k, t]) => `<button class="navlink" data-nav="${k}"
+      aria-current="${S.view === k && !S.focus && S.dealFocus == null}">${t}</button>`).join('')}
+  </div>
+  <div class="navright">
+    <label class="viewas"><span>Viewing as</span>
+      <select class="pick" id="viewAs" aria-label="Viewing as">${opts}</select></label>
+    <button class="iconbtn" data-act="theme" aria-label="Toggle light or dark theme" title="Toggle theme">
+      <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.4"
+        fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M8 1.6a6.4 6.4 0 0 1 0 12.8Z" fill="currentColor"/></svg>
+    </button>
+    ${avatar(signedIn(), true)}
+  </div>`;
+}
+function stepper(cur, label) {
+  const i = RUNDATES2.indexOf(cur);
+  return `${label ? `<span class="ctxlabel">${label}</span>` : ''}<span class="divider"></span>
+  <div class="stepper">
+    <button class="step" data-step="${i + 1}" ${i >= RUNDATES2.length - 1 ? 'disabled' : ''} aria-label="Previous run">&#8249;</button>
+    <span class="period">${dshort(cur)}</span>
+    <button class="step" data-step="${i - 1}" ${i <= 0 ? 'disabled' : ''} aria-label="Next run">&#8250;</button>
+  </div>`;
+}
+function renderContext() {
+  if (S.dealFocus != null) {
+    const d = DEALS[S.dealFocus];
+    context.innerHTML = `<button class="back" data-act="unfocus" aria-label="Back">&#8592;</button>
+      <h1 style="font-size:21px">${esc(d.opp)}</h1>
+      <span class="divider"></span><span class="ctxlabel">${esc(d.team || 'Deal')}</span>`;
+    return;
+  }
+  if (S.focus) {
+    context.innerHTML = `${S.role === 'rep' ? '' : '<button class="back" data-act="unfocus" aria-label="Back">&#8592;</button>'}
+      ${avatar(S.focus, true)}<h1 style="font-size:22px">${esc(S.focus)}</h1>
+      <span class="divider"></span>${stepper(S.run, 'Pay run')}`;
+    return;
+  }
+  const titles = { runs: S.role === 'rep' ? 'My pay' : 'Pay runs', deals: S.role === 'rep' ? 'My deals' : 'Deals',
+    people: S.role === 'manager' ? 'My team' : 'People', plans: 'Plans and rates', checks: 'Data checks' };
+  const roPill = S.role === 'viewer'
+    ? `<span class="ctxlabel">${esc(S.viewer)} &middot; read-only &middot; all regions</span>` : '';
+  const scopeNote = S.role === 'manager' ? (() => {
+    const t = seatTitles(S.actor), v = visibleTo(S.actor);
+    const heads = EMP.filter(e => e.active && scopeName(e.name)).length;
+    const who = t.length ? [...new Set(t.map(x => x.tier))].join(' + ') : 'Direct reports';
+    return `<span class="ctxlabel">${esc(S.actor)} &middot; ${who} &middot;
+      ${v.all ? 'all regions' : [...v.regions].map(esc).join(', ')} &middot; ${heads} reps</span>`;
+  })() : '';
+  context.innerHTML = `<h1>${titles[S.view] || ''}</h1>${scopeNote}${roPill}
+    ${S.view === 'runs' ? stepper(S.run, 'Pay run') : ''}
+    ${S.view === 'checks' ? '<button class="btn ghost" data-nav="runs" style="margin-left:auto">Back to pay runs</button>' : ''}`;
+}
+
+/* ====================== views ====================== */
+const V = {};
+
+V.runs = () => {
+  const sh = sheet(S.run);
+  const rows = sh.rows.filter(r => scopeName(r.name))
+    .filter(r => !S.q || r.name.toLowerCase().includes(S.q.toLowerCase()));
+  const total = rows.reduce((s, r) => s + r.total, 0);
+  const pi = RUNDATES2.indexOf(S.run);
+  const prevDate = RUNDATES2[pi + 1];
+  const prevTotal = prevDate ? sheet(prevDate).rows.filter(r => scopeName(r.name)).reduce((s, r) => s + r.total, 0) : 0;
+  const trend = RUNDATES2.slice(Math.max(pi - 5, 0), pi + 7).reverse()
+    .map(d => ({ k: d, v: sheet(d).rows.filter(r => scopeName(r.name)).reduce((s, x) => s + x.total, 0) }));
+  const comm = rows.reduce((s, r) => s + r.commission, 0);
+  const bon = rows.reduce((s, r) => s + r.bonus, 0);
+  const co = rows.reduce((s, r) => s + r.co, 0);
+  const adj = rows.reduce((s, r) => s + r.adj, 0);
+
+  return `
+  <div class="row three">
+    <div class="card pad"><div class="metric"><span class="mlabel">Total payable</span>
+      <span class="mval">${fmt0(total)}${deltaTag(total, prevTotal)}</span>
+      <span class="mlabel">${rows.length} people &middot; ${sh.deals.length} deal${sh.deals.length === 1 ? '' : 's'} closing ${windowLabel(S.run)}</span>
+      ${sh.bonusMonth ? `<span class="mlabel">Bonuses for the month of ${monLabel(sh.bonusMonth)}</span>` : ''}</div></div>
+    <div class="card pad"><div class="metric" style="gap:0">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+        <span class="mlabel">Pay period</span>
+        <span class="pill ${sh.state === 'paid' ? 'good' : sh.state === 'open' ? 'warn' : 'info'}">${sh.state === 'paid' ? 'Paid' : sh.state === 'open' ? 'Open' : 'Frozen'}</span></div>
+      <div class="when"><span>Covers</span><b>${windowLabel(S.run)}</b></div>
+      <div class="when"><span>Freezes</span><b>${freezeLabel(S.run)}</b></div>
+      <div class="when pay"><span>Pays</span><b>${dday(S.run)}</b></div>
+      ${sh.bonusMonth ? `<div class="when"><span>Bonuses</span><b>${monLabel(sh.bonusMonth)}</b></div>` : ''}
+      ${S.role === 'admin' && sh.state === 'open' ? `<button class="btn" data-act="approve" style="margin-top:14px;align-self:flex-start">Freeze this run</button>`
+        : sh.state === 'open' && untilFreeze(S.run) ? `<span class="mlabel" style="margin-top:10px">Freezes in ${untilFreeze(S.run)}</span>` : ''}
+    </div></div>
+    <div class="card"><div class="cbody" style="padding:16px 20px 8px">${barChart(trend, { highlight: S.run })}</div></div>
+  </div>
+
+  ${seesAll() ? reviewStrip(sh) : ''}
+
+  <div class="card">
+    <div class="chead"><h2>${sh.state === 'paid' ? 'Paid' : 'Payable'} to ${rows.length} ${rows.length === 1 ? 'person' : 'people'}</h2>
+      ${S.role === 'manager' && visibleTo(S.actor).all ? '<span class="pill info">All regions</span>' : ''}
+      <div class="spacer"></div>
+      <input class="search" id="dealQ" placeholder="Search by name" value="${esc(S.q)}">
+      ${seesAll() ? '<button class="btn ghost" data-act="export">Export CSV</button>' : ''}</div>
+    <div class="scroll"><table>
+      <thead><tr><th class="idx">#</th><th>Person</th><th>Team</th>
+        <th class="r">Commission</th><th class="r">Bonuses</th><th class="r">Change orders</th>
+        <th class="r">Adjustments</th><th class="r">Total</th></tr></thead>
+      <tbody>${rows.map((r, i) => {
+        const e = byName.get(r.name);
+        return `<tr class="clickable" data-focus="${esc(r.name)}" tabindex="0">
+        <td class="idx">${i + 1}</td>
+        <td><span class="who">${avatar(r.name)}<a href="#" data-focus="${esc(r.name)}">${esc(r.name)}</a></span>
+          ${r.heldBack ? `<div class="sub" style="color:var(--crit)">${fmt0(r.heldBack)} held back</div>` : ''}</td>
+        <td class="muted">${e ? esc(e.team || '&mdash;') : '&mdash;'}
+          ${e && e.tags === 'Setter, Hourly' ? '<div class="sub">Hourly &middot; 1%</div>' : ''}</td>
+        <td class="n r">${r.commission ? fmt(r.commission) : '<span class="dash">--</span>'}</td>
+        <td class="n r">${r.bonus ? fmt(r.bonus) : '<span class="dash">--</span>'}</td>
+        <td class="n r">${r.co ? `<b style="color:${r.co < 0 ? 'var(--crit)' : 'var(--c4)'}">${fmt(r.co)}</b>` : '<span class="dash">--</span>'}</td>
+        <td class="n r">${r.adj ? `<b style="color:${r.adj < 0 ? 'var(--crit)' : 'var(--good)'}">${fmt(r.adj)}</b>` : '<span class="dash">--</span>'}</td>
+        <td class="n r"><b>${fmt(r.total)}</b></td></tr>`;
+      }).join('') || '<tr><td colspan="8" class="muted">Nothing payable in this run.</td></tr>'}</tbody>
+      ${rows.length ? `<tfoot><tr><td colspan="3">${rows.length} ${rows.length === 1 ? 'person' : 'people'}</td>
+        <td class="r">${fmt(comm)}</td><td class="r">${fmt(bon)}</td>
+        <td class="r">${fmt(co)}</td><td class="r">${fmt(adj)}</td>
+        <td class="r">${fmt(total)}</td></tr></tfoot>` : ''}
+    </table></div></div>`;
+};
+
+/* ---- one strip for everything that needs a decision before the freeze ---- */
+function reviewStrip(sh) {
+  const holds = allHolds().filter(h => scopeName(legWho(h.d, h.leg)));
+  const adjs = ADJ.filter(a => a.run === sh.date);
+  const cos = coPending();
+  const crit = checks().filter(c => c.sev === 'crit').length;
+  const summerMonths = summerMonthsFor(sh.date);
+  const tabs = [
+    { k: 'co', label: 'Change orders', n: cos.length, tone: cos.length ? 'warn' : 'good' },
+    { k: 'holds', label: 'On hold', n: holds.length, tone: holds.length ? 'crit' : 'good' },
+    { k: 'adj', label: 'Adjustments', n: adjs.length, tone: 'plain' },
+    summerMonths.length ? { k: 'summer', label: 'Summer bonus', n: null, tone: 'info' } : null,
+    { k: 'checks', label: 'Data checks', n: crit, tone: crit ? 'crit' : 'good' }
+  ].filter(Boolean);
+  const open = S.panel;
+  const body = open === 'co' ? coCard() : open === 'holds' ? holdsCard(holds)
+    : open === 'adj' ? adjCard(sh.date, null) : open === 'summer' ? summerCard(sh)
+    : open === 'checks' ? checksCard() : '';
+  return `<div class="card" style="margin-bottom:20px">
+    <div class="chead" style="padding:14px 20px">
+      <span class="mlabel">${sh.state === 'open' ? 'Settle before ' + freezeLabel(sh.date) : 'This run is locked'}</span>
+      <div class="spacer"></div>
+      <div class="tabs">${tabs.map(t => `<button class="tabbtn" data-panel="${t.k}" aria-pressed="${open === t.k}">
+        ${t.label}${t.n === null ? '' : ` <span class="pill ${t.tone}">${t.n}</span>`}</button>`).join('')}
+        ${open ? '<button class="tabbtn" data-panel="">Close</button>' : ''}</div>
+    </div>
+    ${body ? `<div class="panelbody">${body}</div>` : ''}
+  </div>`;
+}
+function holdsCard(holds) {
+  return `<div class="scroll"><table>
+    <thead><tr><th class="idx">#</th><th>Opportunity</th><th>Person</th><th>Leg</th><th>Reason</th>
+      <th>Would have paid</th><th class="r">Withheld</th>${canEditAll() ? '<th></th>' : ''}</tr></thead>
+    <tbody>${holds.map((h, i) => `<tr>
+      <td class="idx">${i + 1}</td>
+      <td><a href="#" data-deal="${h.d.id}">${esc(h.d.opp)}</a></td>
+      <td>${who2(legWho(h.d, h.leg))}</td>
+      <td><span class="pill plain">${h.leg === 'setter' ? 'Setter' : 'Closer'}</span></td>
+      <td class="muted">${esc(h.reason || 'No reason given')}</td>
+      <td class="n muted">${dshort(h.d.run)}</td>
+      <td class="n r"><b style="color:var(--crit)">${fmt(h.amt)}</b></td>
+      ${canEditAll() ? `<td class="r"><button class="btn ghost" data-release="${h.d.id}:${h.leg}">Release</button></td>` : ''}</tr>`).join('')
+    || `<tr><td colspan="${canEditAll() ? 8 : 7}" class="muted">Nothing withheld. Open a deal to hold a leg.</td></tr>`}</tbody>
+  </table></div>`;
+}
+function checksCard() {
+  return `<div style="display:flex;flex-direction:column;gap:14px">
+    ${checks().map(q => `<div>
+      <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:4px">
+        <h3 style="font-size:15px">${q.title}</h3>
+        <span class="pill ${q.sev === 'crit' ? 'crit' : 'warn'}">${q.n}</span></div>
+      <p style="margin:0;max-width:84ch;color:var(--ink-2);font-size:13.5px">${q.what}</p></div>`).join('')}
+    <div><button class="btn ghost" data-nav="checks">Open the affected deals</button></div>
+  </div>`;
+}
+
+/* ---- one person, one run ---- */
+V.person = () => {
+  const name = S.focus || me();
+  const e = byName.get(name);
+  const sh = sheet(S.run);
+  const r = sh.rows.find(x => x.name === name) || { name, setter: 0, closer: 0, recruit: 0, override: 0,
+    adj: 0, co: 0, summer: 0, commission: 0, bonus: 0, total: 0, heldBack: 0, released: 0,
+    deals: [], bonusLines: [], holds: [], coLines: [], summerLines: [] };
+  const pi = RUNDATES2.indexOf(S.run);
+  const trend = RUNDATES2.slice(Math.max(pi - 5, 0), pi + 7).reverse().map(d => {
+    const row = sheet(d).rows.find(x => x.name === name);
+    return { k: d, v: row ? row.total : 0 };
+  });
+  const avg = trend.reduce((s, t) => s + t.v, 0) / (trend.length || 1);
+  const prev = trend[trend.findIndex(t => t.k === S.run) - 1];
+  const earn = d => (d.canvasser === name ? d.canvPay : 0) + (d.closer === name ? d.closerPay : 0);
+  const adjs = ADJ.filter(a => a.who === name && a.run === S.run);
+  const addQs = adderByQuarter(name), isCloser = closedAny(name);
+  const addQ = addQs.some(x => x.q === S.adderQ) ? S.adderQ : (addQs[0] ? addQs[0].q : THIS_Q);
+  const addRow = addQs.find(x => x.q === addQ) || { q: addQ, count: 0, deals: [], amount: 0 };
+  const addD = addRow.deals, addN = addRow.count, addBal = addRow.amount;
+  const addAll = addQs.reduce((a, x) => a + x.amount, 0);
+  const lines = [
+    ['Setter commission', pct(e && e.tags === 'Setter, Hourly' ? S.rates.hourly : S.rates.canvasser), r.setter],
+    ['Closer commission', pct(S.rates.closer), r.closer],
+    ['Recruiting bonus', sh.bonusMonth ? monLabel(sh.bonusMonth) : '&mdash;', r.recruit],
+    ['Summer weekly bonus', r.summerLines.length + ' week' + (r.summerLines.length === 1 ? '' : 's'), r.summer],
+    ['Manager override', sh.bonusMonth ? monLabel(sh.bonusMonth) : '&mdash;', r.override],
+    ['Change orders', r.coLines.length + ' line' + (r.coLines.length === 1 ? '' : 's'), r.co],
+    ['Adjustments', 'Manual', r.adj]
+  ].filter(l => Math.abs(l[2]) > 0.004);
+
+  const tabs = [
+    { k: 'deals', label: 'Deals', n: r.deals.length },
+    r.bonusLines.length ? { k: 'recruit', label: 'Recruiting', n: r.bonusLines.length } : null,
+    r.summerLines.length ? { k: 'summer', label: 'Summer bonus',
+      n: r.summerLines.reduce((a, l) => a + l.dealIds.length, 0) } : null,
+    r.coLines.length ? { k: 'co', label: 'Change orders', n: r.coLines.length } : null,
+    r.holds.length ? { k: 'holds', label: 'Held back', n: r.holds.length } : null,
+    addQs.length ? { k: 'adder', label: 'Vivid Adder', n: addN } : null,
+    { k: 'adj', label: 'Adjustments', n: adjs.length }
+  ].filter(Boolean);
+  const open = tabs.some(t => t.k === S.ptab) ? S.ptab : 'deals';
+
+  const panels = {
+    deals: `<div class="scroll"><table>
+      <thead><tr><th class="idx">#</th><th>Opportunity</th><th>Role</th><th>Closed</th>
+        <th class="r">Contract</th><th class="r">Rate</th><th class="r">Earned</th></tr></thead>
+      <tbody>${r.deals.map((d, i) => `<tr class="clickable" data-deal="${d.id}" tabindex="0">
+        <td class="idx">${i + 1}</td><td>${esc(d.opp)}</td>
+        <td>${d.selfGen && d.closer === name ? '<span class="pill info">Self-gen</span>'
+          : d.closer === name ? 'Closer' : d.hourly ? '<span class="pill plain">Setter, hourly</span>' : 'Setter'}</td>
+        <td class="n muted">${dday(d.close)}</td>
+        <td class="n r">${fmt0(d.value)}</td>
+        <td class="n r muted">${d.selfGen && d.closer === name ? pct(S.rates.closer + (d.hourly ? S.rates.hourly : S.rates.canvasser))
+          : d.closer === name ? pct(S.rates.closer) : pct(d.hourly ? S.rates.hourly : S.rates.canvasser)}</td>
+        <td class="n r"><b>${fmt(earn(d))}</b></td></tr>`).join('')
+      || '<tr><td colspan="7" class="muted">No deals pay in this run.</td></tr>'}</tbody>
+      ${r.deals.length ? `<tfoot><tr><td colspan="6">Deal commission</td>
+        <td class="r">${fmt(r.commission)}</td></tr></tfoot>` : ''}</table></div>`,
+
+    recruit: `<div class="scroll"><table>
+      <thead><tr><th>Recruit</th><th>Level</th><th>Team</th><th class="r">Bonus</th></tr></thead>
+      <tbody>${r.bonusLines.slice().sort((a, b) => b.amt - a.amt).map(l => {
+        const re = byName.get(l.from) || {};
+        return `<tr><td>${who2(l.from)}</td>
+        <td><span class="pill ${l.lvl === 'l1' ? 'info' : l.lvl === 'special' ? 'warn' : 'plain'}">${l.lvl === 'l1' ? 'Level 1' : l.lvl === 'l2' ? 'Level 2' : 'Special 2%'}</span></td>
+        <td class="muted">${esc(re.team || '&mdash;')}</td>
+        <td class="n r"><b>${fmt(l.amt)}</b></td></tr>`; }).join('')}</tbody>
+      <tfoot><tr><td colspan="3">Recruiting bonus</td><td class="r">${fmt(r.recruit)}</td></tr></tfoot></table></div>`,
+
+    summer: `<div class="scroll"><table>
+      <thead><tr><th>Opportunity</th><th>Closed</th><th>Qualifying week</th><th class="r">Contract value</th>
+        <th class="r">Base already paid</th><th class="r">Bonus tier</th><th class="r">Extra earned</th></tr></thead>
+      <tbody>${r.summerLines.flatMap(l => l.dealIds.map(id => {
+        const d = DEALS[id], v = comBase(d);
+        return `<tr class="clickable" data-deal="${id}" tabindex="0">
+          <td>${esc(d.opp)}</td>
+          <td class="n muted">${dshort(d.close)}</td>
+          <td class="muted">${weekLabel(l.week)}<div class="sub">${l.count} deals set that week</div></td>
+          <td class="n r">${fmt0(v)}</td>
+          <td class="n r muted">${fmt(d.canvPay)} at ${pct(l.baseRate)}</td>
+          <td class="n r"><span class="pill ${l.count >= 3 ? 'warn' : 'good'}">+${pct(l.rate)}</span></td>
+          <td class="n r"><b>${fmt(v * l.rate)}</b></td></tr>`;
+      })).join('')}</tbody>
+      <tfoot><tr><td colspan="6">${r.summerLines.reduce((a, l) => a + l.dealIds.length, 0)} deals
+        across ${r.summerLines.length} qualifying week${r.summerLines.length === 1 ? '' : 's'}</td>
+        <td class="r">${fmt(r.summer)}</td></tr></tfoot></table></div>`,
+
+    co: `<div class="scroll"><table>
+      <thead><tr><th>Opportunity</th><th>What changed</th><th class="r">Amount</th></tr></thead>
+      <tbody>${r.coLines.map(l => `<tr class="clickable" data-deal="${l.d.id}" tabindex="0">
+        <td>${esc(l.d.opp)}<div class="sub">value moved ${fmt0((CO.get(l.d.id) || {}).delta || 0)}</div></td>
+        <td class="muted">${l.what}</td>
+        <td class="n r"><b style="color:${l.amt < 0 ? 'var(--crit)' : 'var(--good)'}">${fmt(l.amt)}</b></td></tr>`).join('')}</tbody>
+      <tfoot><tr><td colspan="2">Change order true-up</td><td class="r">${fmt(r.co)}</td></tr></tfoot></table></div>`,
+
+    holds: `<div class="scroll"><table>
+      <thead><tr><th>Opportunity</th><th>Leg</th><th>Reason</th><th class="r">Not paid</th></tr></thead>
+      <tbody>${r.holds.map(x => `<tr class="clickable" data-deal="${x.d.id}" tabindex="0">
+        <td>${esc(x.d.opp)}</td>
+        <td><span class="pill plain">${x.leg === 'setter' ? 'Setter' : 'Closer'}</span></td>
+        <td class="muted">${esc((HOLDS.get(x.d.id) || {}).reason || 'No reason given')}</td>
+        <td class="n r"><b style="color:var(--crit)">${fmt(x.amt)}</b></td></tr>`).join('')}</tbody>
+      <tfoot><tr><td colspan="3">Held back</td><td class="r">${fmt(r.heldBack)}</td></tr></tfoot></table></div>`,
+
+    adder: `<p class="hint" style="margin:0 0 14px">Won deals that carried a <b>VIVID Adder</b> count in Odoo,
+      with ${esc(name)} as the closer. Each adder is worth <b>${fmt0(S.adderRate)}</b>, and the balance is
+      kept per calendar quarter of the closing date. A quarter pays out <b>two quarters later</b>, on the first
+      Friday after the 10th of that quarter's first month &mdash; so ${qLabel(addQ)} pays
+      <b>${dday(adderPayday(addQ))}</b>. It rides its own schedule, not the weekly commission run, and is not
+      part of the total above.</p>
+      <div class="seg" style="margin-bottom:16px">${addQs.map(x =>
+        `<button data-adderq="${x.q}" aria-pressed="${x.q === addQ}">${qLabel(x.q)}
+          <span class="pill plain">${fmt0(x.amount)}</span></button>`).join('')}</div>
+      <div class="scroll"><table>
+      <thead><tr><th class="idx">#</th><th>Opportunity</th><th>Team</th><th>Closed</th>
+        <th class="r">Contract</th><th class="r">Adders</th><th class="r">Value</th>
+        <th class="r">Quarter to date</th></tr></thead>
+      <tbody>${(() => { let run = addBal;
+        return addD.slice().sort((a, b) => (b.close || '').localeCompare(a.close || ''))
+          .map((d, i) => { const n = +d.adder || 0, at = run; run -= n * S.adderRate;
+          return `<tr class="clickable" data-deal="${d.id}" tabindex="0">
+            <td class="idx">${i + 1}</td><td>${esc(d.opp)}</td>
+            <td class="muted">${esc(d.team || '&mdash;')}</td>
+            <td class="n muted">${dday(d.close)}</td>
+            <td class="n r">${fmt0(d.value)}</td>
+            <td class="n r"><b>${n}</b></td>
+            <td class="n r"><b style="color:var(--c2)">${fmt0(n * S.adderRate)}</b></td>
+            <td class="n r muted">${fmt0(at)}</td></tr>`; }).join(''); })()
+        || '<tr><td colspan="8" class="muted">No adders closed in this quarter.</td></tr>'}</tbody>
+      <tfoot><tr><td colspan="4">${qLabel(addQ)} &middot; ${windowOf(addQ)}</td>
+        <td class="r">${addD.length} deal${addD.length === 1 ? '' : 's'}</td>
+        <td class="r">${addN}</td><td class="r">${fmt0(addBal)}</td>
+        <td class="r">${fmt0(addBal)}</td></tr></tfoot></table></div>
+      ${addQs.length > 1 ? `<div class="grouplabel" style="margin-top:22px">Every quarter</div>
+        <div class="scroll"><table>
+        <thead><tr><th>Quarter</th><th>Closings covered</th><th class="r">Deals</th>
+          <th class="r">Adders</th><th class="r">Balance</th><th>Pays</th></tr></thead>
+        <tbody>${addQs.map(x => `<tr class="clickable" data-adderq="${x.q}" tabindex="0">
+          <td><b>${qLabel(x.q)}</b>${x.q === THIS_Q ? ' <span class="pill info">Current</span>' : ''}</td>
+          <td class="muted">${windowOf(x.q)}</td>
+          <td class="n r muted">${x.deals.length}</td>
+          <td class="n r">${x.count}</td>
+          <td class="n r"><b style="color:var(--c2)">${fmt0(x.amount)}</b></td>
+          <td class="n">${dday(adderPayday(x.q))}
+            <div class="sub">${adderPaid(x.q) ? 'paid' : 'in ' + qLabel(adderPayQuarter(x.q))}</div></td>
+          </tr>`).join('')}</tbody>
+        <tfoot><tr><td colspan="3">All quarters</td>
+          <td class="r">${addQs.reduce((a, x) => a + x.count, 0)}</td>
+          <td class="r">${fmt0(addAll)}</td><td></td></tr></tfoot></table></div>` : ''}`,
+
+    adj: adjCard(S.run, name)
+  };
+
+  return `
+  <div class="row two split">
+    <div class="card"><div class="hero">
+      <div class="mval">${fmt(r.total)}</div>
+      ${deltaTag(r.total, prev ? prev.v : 0) ? `<div style="margin-top:6px">${deltaTag(r.total, prev ? prev.v : 0)}</div>` : ''}
+      <div class="mlabel">Deals closing ${windowLabel(S.run)}</div>
+      ${sh.bonusMonth ? `<div class="mlabel" style="margin-top:2px">Bonuses for the month of ${monLabel(sh.bonusMonth)}</div>` : ''}
+      <div class="mlabel" style="margin-top:6px">${e ? [e.job, e.team].filter(Boolean).map(esc).join(' &middot; ') : 'Not in the employee list'}</div>
+      ${r.heldBack ? `<div style="margin-top:10px"><span class="pill crit">${fmt0(r.heldBack)} held back</span></div>` : ''}
+      ${r.released ? `<div style="margin-top:10px"><span class="pill info">${fmt0(r.released)} released from an earlier run</span></div>` : ''}
+      ${isCloser ? `<div class="adderbox" ${addQs.length ? 'data-ptab="adder" role="button" tabindex="0"' : ''}>
+        <span class="mlabel">Vivid Adder &middot; ${qLabel(addQ)}</span>
+        <b class="n">${fmt0(addBal)}</b>
+        <span class="mlabel">${addD.length ? adders(addN) + ' at ' + fmt0(S.adderRate) + ' each, over '
+            + addD.length + ' closed deal' + (addD.length === 1 ? '' : 's')
+          : 'no adders closed this quarter'}</span>
+        ${addQs.length ? `<span class="when" style="margin-top:8px">
+          <span class="pill ${adderPaid(addQ) ? 'good' : 'info'}">${adderPaid(addQ) ? 'Paid' : 'Pays'}</span>
+          ${dday(adderPayday(addQ))}</span>` : ''}
+        ${addQs.length > 1 ? `<span class="mlabel" style="margin-top:6px">${fmt0(addAll)} across
+          ${addQs.length} quarters</span>` : ''}</div>` : ''}
+      <div style="max-width:250px;margin:22px auto 0">${attainment(r.total, avg, 'Against their recent average')}</div>
+    </div></div>
+    <div class="card"><div class="chead"><h2>How it adds up</h2></div>
+      <div class="cbody"><table><tbody>
+        ${lines.map(l => `<tr><td>${l[0]}</td><td class="n r muted">${l[1]}</td>
+          <td class="n r"><b>${fmt(l[2])}</b></td></tr>`).join('')
+        || '<tr><td colspan="3" class="muted">Nothing payable in this run.</td></tr>'}
+      </tbody><tfoot><tr><td colspan="2">Total</td><td class="r">${fmt(r.total)}</td></tr></tfoot></table>
+      <div style="margin-top:18px">${barChart(trend, { highlight: S.run })}</div>
+      <div class="mlabel" style="text-align:center">Their last ${trend.length} runs</div>
+      </div></div>
+  </div>
+
+  <div class="card">
+    <div class="chead" style="padding:14px 20px">
+      <div class="tabs">${tabs.map(t => `<button class="tabbtn" data-ptab="${t.k}" aria-pressed="${open === t.k}">
+        ${t.label} <span class="pill plain">${t.n}</span></button>`).join('')}</div>
+    </div>
+    <div class="panelbody">${panels[open] || panels.deals}</div>
+  </div>`;
+};
+
+/* ---- deals ---- */
+V.deals = () => {
+  let list = DEALS.filter(inScope);
+  if (S.dealFilter === 'won') list = list.filter(d => d.won);
+  if (S.dealFilter === 'lost') list = list.filter(d => !d.won);
+  if (S.dealFilter === 'flagged') list = list.filter(d => d.flagged || d.unknownRep);
+  if (S.dealFilter === 'selfgen') list = list.filter(d => d.selfGen && d.won);
+  if (S.dealFilter === 'hold') list = list.filter(d => HOLDS.has(d.id));
+  if (S.dealFilter === 'co') list = list.filter(d => CO.has(d.id));
+  if (S.q) { const q = S.q.toLowerCase(); list = list.filter(d => (d.opp + d.canvasser + d.closer + (d.team || '')).toLowerCase().includes(q)); }
+  list = list.slice().sort((a, b) => (b.close || '').localeCompare(a.close || ''));
+  const won = list.filter(d => d.won), val = won.reduce((s, d) => s + d.value, 0), com = won.reduce((s, d) => s + d.total, 0);
+  const attn = won.filter(d => d.flagged || d.unknownRep).length;
+  return `
+  <div class="row four">
+    <div class="card pad"><div class="metric"><span class="mlabel">Deals</span><span class="mval">${list.length}</span>
+      <span class="mlabel">${won.length} won &middot; ${list.length - won.length} lost</span></div></div>
+    <div class="card pad"><div class="metric"><span class="mlabel">Contract value</span><span class="mval">${fmtK(val)}</span>
+      <span class="mlabel">won deals only</span></div></div>
+    <div class="card pad"><div class="metric"><span class="mlabel">Commission</span><span class="mval">${fmtK(com)}</span>
+      <span class="mlabel">${(com / (val || 1) * 100).toFixed(2)}% of contract value</span></div></div>
+    <div class="card pad"><div class="metric"><span class="mlabel">Need a look</span>
+      <span class="mval ${attn ? 'link' : ''}">${attn}</span>
+      <span class="mlabel">value changed, or rep not on the list</span></div></div>
+  </div>
+  <div class="card">
+    <div class="chead"><h2>Deals</h2><span class="pill plain">2026 onward</span><div class="spacer"></div>
+      <input class="search" id="dealQ" placeholder="Search opportunity or rep" value="${esc(S.q)}">
+      <div class="seg">${[['all', 'All'], ['won', 'Won'], ['lost', 'Lost'], ['selfgen', 'Self-gen'], ['co', 'Change orders'], ['hold', 'On hold']]
+        .map(x => `<button data-df="${x[0]}" aria-pressed="${S.dealFilter === x[0]}">${x[1]}</button>`).join('')}</div></div>
+    <div class="scroll"><table><thead><tr><th class="idx">#</th><th>Opportunity</th><th>Team</th><th>Closed</th>
+      <th>Setter</th><th>Closer</th><th class="r">Contract</th><th class="r">Setter $</th>
+      <th class="r">Closer $</th><th>Pays in</th></tr></thead>
+    <tbody>${list.slice(0, 200).map((d, i) => `<tr class="clickable" data-deal="${d.id}" tabindex="0">
+      <td class="idx">${i + 1}</td>
+      <td>${esc(d.opp)}${d.selfGen ? ' <span class="pill info">Self-gen</span>' : ''}
+        ${d.flagged ? ' <span class="pill crit">Variance</span>' : ''}${d.unknownRep ? ' <span class="pill warn">Unlisted</span>' : ''}
+        ${HOLDS.has(d.id) ? ' <span class="pill crit">On hold</span>' : ''}
+        ${CO.has(d.id) ? ` <span class="pill ${CO.get(d.id).state === 'applied' ? 'info' : 'warn'}">Change order ${fmt0(CO.get(d.id).delta)}</span>` : ''}</td>
+      <td class="muted">${esc(d.team || '&mdash;')}</td><td class="n muted">${dday(d.close)}</td>
+      <td>${who2(d.canvasser)}${d.hourly ? ' <span class="pill plain">1%</span>' : ''}</td>
+      <td>${who2(d.closer)}</td>
+      <td class="n r">${fmt0(d.value)}</td>
+      <td class="n r">${d.canvPay ? fmt(d.canvPay) : '<span class="dash">--</span>'}</td>
+      <td class="n r">${d.closerPay ? fmt(d.closerPay) : '<span class="dash">--</span>'}</td>
+      <td class="n muted">${d.won ? dday(d.run) : '<span class="pill plain">Lost</span>'}</td></tr>`).join('')}
+    </tbody>${list.length > 200 ? `<tfoot><tr><td colspan="10">Showing 200 of ${list.length}</td></tr></tfoot>` : ''}</table></div></div>`;
+};
+
+/* ---- people ---- */
+V.people = () => {
+  let list = S.role === 'manager' ? EMP.filter(e => scopeName(e.name)) : EMP;
+  if (S.q) { const q = S.q.toLowerCase(); list = list.filter(e => (e.name + (e.team || '') + (e.tags || '') + (e.manager || '')).toLowerCase().includes(q)); }
+  const ytd = new Map();
+  DEALS.filter(d => d.won && d.close >= '2026-01-01').forEach(d => {
+    ytd.set(d.canvasser, (ytd.get(d.canvasser) || 0) + d.canvPay);
+    ytd.set(d.closer, (ytd.get(d.closer) || 0) + d.closerPay);
+  });
+  const top = Math.max(1, ...[...ytd.values()]);
+  const addQ = QUARTERS.includes(S.adderQ) ? S.adderQ : THIS_Q;
+  const addM = new Map(adderLeaders(addQ).map(x => [x.name, x]));
+  return `${summerLeaderboard()}<div class="card"><div class="chead"><h2>${S.role === 'manager'
+      ? (visibleTo(S.actor).all ? 'All reps' : 'My reps') : 'People'}</h2>
+    <span class="pill good">${list.filter(e => e.active).length} active</span>
+    <span class="pill plain">${list.filter(e => !e.active).length} inactive</span>
+    <div class="spacer"></div>
+    <input class="search" id="peopleQ" placeholder="Search name, team or plan" value="${esc(S.q)}">
+    ${S.role === 'admin' ? '<button class="btn" data-act="newuser">Add person</button>' : ''}</div>
+    <div class="scroll"><table><thead><tr><th class="idx">#</th><th>Name</th><th>Plan</th><th>Team</th>
+      <th>Manager</th><th>Recruited by</th><th class="r">2026 commission</th><th></th>
+      <th class="r">Vivid Adder<div class="sub">${qLabel(addQ)}</div></th><th>Status</th></tr></thead>
+      <tbody>${list.slice(0, 200).map((e, i) => `<tr class="clickable" data-focus="${esc(e.name)}" tabindex="0">
+        <td class="idx">${i + 1}</td>
+        <td>${who2(e.name)}<div class="sub">since ${dshort(e.start)}</div></td>
+        <td>${(e.tags || '').split(',').filter(Boolean).map(t => `<span class="pill plain">${esc(t.trim())}</span>`).join(' ') || '<span class="dash">--</span>'}</td>
+        <td class="muted">${esc(e.team || '&mdash;')}</td>
+        <td class="muted">${esc(e.manager || '&mdash;')}</td>
+        <td class="muted">${esc(e.ref1 || '&mdash;')}${e.ref2 ? `<div class="sub">L2 ${esc(e.ref2)}</div>` : ''}</td>
+        <td class="n r">${ytd.get(e.name) ? fmt0(ytd.get(e.name)) : '<span class="dash">--</span>'}</td>
+        <td style="width:80px"><div class="bar"><i style="width:${Math.round((ytd.get(e.name) || 0) / top * 100)}%"></i></div></td>
+        <td class="n r">${addM.has(e.name) ? '<b style="color:var(--c2)">' + fmt0(addM.get(e.name).amount)
+          + '</b><div class="sub">' + adders(addM.get(e.name).count) + '</div>' : '<span class="dash">--</span>'}</td>
+        <td>${e.active ? '<span class="pill good">Active</span>' : '<span class="pill plain">Inactive</span>'}</td></tr>`).join('')}</tbody>
+      ${list.length > 200 ? `<tfoot><tr><td colspan="10">Showing 200 of ${list.length}</td></tr></tfoot>` : ''}
+    </table></div></div>`;
+};
+
+/* ---- plans ---- */
+V.plans = () => `
+  <p class="hint">Every rate the system uses lives here instead of inside a formula. Change one and every screen
+  recalculates. In the real build each edit is versioned with an effective date, so an approved run keeps the rate
+  it was paid at.</p>
+  <div class="row two">
+    <div class="card pad"><h2>Commission</h2>
+      <div class="rate"><div class="rl"><b>Closer</b><div class="sub">Of contract value, on every won deal</div></div>
+        <input type="number" step="0.25" value="${(S.rates.closer * 100).toFixed(2)}" data-rate="closer" aria-label="Closer rate"><span class="unit">%</span></div>
+      <div class="rate"><div class="rl"><b>Setter</b><div class="sub">Commission-only setters</div></div>
+        <input type="number" step="0.25" value="${(S.rates.canvasser * 100).toFixed(2)}" data-rate="canvasser" aria-label="Setter rate"><span class="unit">%</span></div>
+      <div class="rate"><div class="rl"><b>Setter on hourly</b>
+        <div class="sub">Tagged <b>Setter, Hourly</b>. Anyone tagged <b>Hourly-2-Commission</b> earns the full setter rate.</div></div>
+        <input type="number" step="0.25" value="${(S.rates.hourly * 100).toFixed(2)}" data-rate="hourly" aria-label="Hourly setter rate"><span class="unit">%</span></div>
+      <div class="rate"><div class="rl"><b>Self-generated</b><div class="sub">Same person sets and closes, so they earn both legs</div></div>
+        <span class="pill info">${pct(S.rates.canvasser + S.rates.closer)}</span></div>
+      <div class="rate"><div class="rl"><b>Manager override</b>
+        <div class="sub">Three tiers, each on its own rate. Set the seats and rates in Leadership below.</div></div>
+        <span class="pill info">${TIERS.map(t => pct(t.rate)).join(' / ')}</span></div>
+    </div>
+    <div class="card pad"><h2>Recruiting bonus</h2>
+      <div class="grouplabel">Level 1 &middot; people they recruited</div>
+      ${[['self', 'Recruit closed their own deal'], ['closer', 'Recruit closed it'], ['setter', 'Recruit set it']]
+        .map(x => `<div class="rate"><div class="rl"><b>${x[1]}</b></div>
+        <input type="number" step="0.05" value="${(S.recruit.l1[x[0]] * 100).toFixed(2)}" data-rec="l1.${x[0]}" aria-label="Level 1 ${x[0]}"><span class="unit">%</span></div>`).join('')}
+      <div class="grouplabel">Level 2 &middot; their recruits&rsquo; recruits</div>
+      ${[['self', 'Recruit closed their own deal'], ['closer', 'Recruit closed it'], ['setter', 'Recruit set it']]
+        .map(x => `<div class="rate"><div class="rl"><b>${x[1]}</b></div>
+        <input type="number" step="0.05" value="${(S.recruit.l2[x[0]] * 100).toFixed(2)}" data-rec="l2.${x[0]}" aria-label="Level 2 ${x[0]}"><span class="unit">%</span></div>`).join('')}
+    </div>
+    <div class="card pad"><h2>Summer weekly bonus</h2>
+      <p class="hint" style="margin:6px 0 10px">Setters only. A Sun-Sat week counts when they have two or more
+      closed deals in it. The tier rate is added <b>on top of</b> the setter commission already paid on those deals,
+      on the same contract value, and lands in the following month&rsquo;s bonus run.</p>
+      <div class="rate"><div class="rl"><b>Programme running</b>
+        <div class="sub">Weeks are attributed to the month their Sunday falls in</div></div>
+        <select class="pick" id="summerOn" aria-label="Summer bonus on" style="min-width:110px">
+          <option value="1" ${SUMMER.on ? 'selected' : ''}>On</option>
+          <option value="0" ${SUMMER.on ? '' : 'selected'}>Off</option></select></div>
+      <div class="rate"><div class="rl"><b>Starts</b><div class="sub">Deals closing on or after this date</div></div>
+        <input type="date" id="summerStart" value="${SUMMER.start}" aria-label="Start date"
+          style="background:var(--card);border:1px solid var(--line-2);border-radius:4px;padding:8px 10px"></div>
+      <div class="rate"><div class="rl"><b>Ends</b><div class="sub">Leave empty to keep running</div></div>
+        <input type="date" id="summerEnd" value="${SUMMER.end}" aria-label="End date"
+          style="background:var(--card);border:1px solid var(--line-2);border-radius:4px;padding:8px 10px"></div>
+      <div class="rate"><div class="rl"><b>2 deals in a week</b>
+        <div class="sub">On top of the base setter rate, so ${pct(S.rates.canvasser + SUMMER.tier2)} in all</div></div>
+        <input type="number" step="0.5" value="${(SUMMER.tier2 * 100).toFixed(2)}" data-summer="tier2" aria-label="Two deal rate"><span class="unit">%</span></div>
+      <div class="rate"><div class="rl"><b>3 or more deals</b>
+        <div class="sub">On top of the base setter rate, so ${pct(S.rates.canvasser + SUMMER.tier3)} in all</div></div>
+        <input type="number" step="0.5" value="${(SUMMER.tier3 * 100).toFixed(2)}" data-summer="tier3" aria-label="Three deal rate"><span class="unit">%</span></div>
+      <div class="rate"><div class="rl"><b>Qualifying so far</b>
+        <div class="sub">Setters with at least one qualifying week since ${dshort(SUMMER.start)}</div></div>
+        <b>${summerWeeks(null).filter(r => r.qualifying > 0).length}</b></div>
+    </div>
+    <div class="card pad"><h2>Other bonuses</h2>
+      <div class="rate"><div class="rl"><b>${esc(D.mavryckPlan.owner)} &mdash; ${pct(D.mavryckPlan.rate)} on named recruits</b>
+        <div class="sub">On top of the standard level 1 and 2 bonus, limited to ${D.mavryckPlan.members.map(esc).join(', ')}.</div></div>
+        <span class="pill warn">${pct(D.mavryckPlan.rate)}</span></div>
+      <div class="rate"><div class="rl"><b>Contests and bonuses</b>
+        <div class="sub">Added to a person for a specific run, with a reason that shows on their statement</div></div>
+        <button class="btn ghost" data-act="newadj">Add</button></div>
+      <div class="rate"><div class="rl"><b>Chargebacks</b>
+        <div class="sub">A cancellation after the 3-day ROC window claws the commission back</div></div>
+        <button class="btn ghost" data-act="newadj">Add</button></div>
+      <div class="rate"><div class="rl"><b>Open adjustments</b>
+        <div class="sub">${ADJ.filter(a => !a.approved).length} waiting on approval</div></div>
+        <button class="btn ghost" data-nav="runs">See runs</button></div>
+    </div>
+
+    <div class="card pad"><h2>Pay calendar</h2>
+      <div class="rate"><div class="rl"><b>Commission runs</b><div class="sub">Weekly</div></div><span class="pill info">Every Friday</span></div>
+      <div class="rate"><div class="rl"><b>Holdback</b>
+        <div class="sub">A deal pays on the first Friday at least 10 days after it closes, so each run covers
+        a Wednesday-to-Tuesday week of closings</div></div>
+        <b>10 days</b></div>
+      <div class="rate"><div class="rl"><b>Next pay date</b>
+        <div class="sub">${firstOpenRun() ? 'Covers ' + windowLabel(firstOpenRun()) : 'Every run is frozen'}</div></div>
+        <b>${firstOpenRun() ? dday(firstOpenRun()) : '&mdash;'}</b></div>
+      <div class="rate"><div class="rl"><b>Recruiting and override</b>
+        <div class="sub">A month&rsquo;s bonuses pay on the first Friday after the 10th of the next month</div></div>
+        <span class="pill info">Monthly</span></div>
+      <div class="rate"><div class="rl"><b>Freeze</b>
+        <div class="sub">How long before the Friday payday the run locks. Nothing can be edited after this.</div></div>
+        <select class="pick" id="freezeDays" aria-label="Freeze day" style="min-width:130px">
+          <option value="1" ${S.freezeDays === 1 ? 'selected' : ''}>Thursday</option>
+          <option value="2" ${S.freezeDays === 2 ? 'selected' : ''}>Wednesday</option>
+        </select>
+        <select class="pick" id="freezeTime" aria-label="Freeze time" style="min-width:110px">
+          ${['06:00', '07:00', '08:00', '09:00', '17:00', '20:00', '22:00'].map(t => {
+            const hh = +t.slice(0, 2);
+            return `<option value="${t}" ${S.freezeTime === t ? 'selected' : ''}>${(hh % 12 || 12)}:00 ${hh < 12 ? 'AM' : 'PM'}</option>`;
+          }).join('')}</select></div>
+      <div class="rate"><div class="rl"><b>Time zone</b>
+        <div class="sub">Every freeze and payday is Mountain Time, shifting with daylight saving on its own</div></div>
+        <b>${tzAbbr(TODAY_D)}</b></div>
+      <div class="rate"><div class="rl"><b>Next freeze</b>
+        <div class="sub">${firstOpenRun() ? 'For the ' + dshort(firstOpenRun()) + ' payday' : 'Every run is frozen'}</div></div>
+        <b>${firstOpenRun() ? freezeLabel(firstOpenRun()) : '&mdash;'}</b></div>
+      <div class="rate"><div class="rl"><b>After the freeze</b>
+        <div class="sub">Late change orders, holds and adjustments roll into the next open run</div></div>
+        <span class="pill info">Roll forward</span></div>
+      <div class="rate"><div class="rl"><b>Change orders</b>
+        <div class="sub">Only the difference is paid: commission in the next open run, recruiting and override in the next bonus run</div></div>
+        <span class="pill info">True-up</span></div>
+    </div>
+  </div>
+  ${adderCard()}
+  ${leadershipCard()}
+  ${adminCard()}`;
+
+/* ---- Vivid Adder balances ---- */
+function adderCard() {
+  const q = QUARTERS.includes(S.adderQ) ? S.adderQ : THIS_Q;
+  const rows = adderLeaders(q);
+  const count = rows.reduce((a, x) => a + x.count, 0);
+  const total = count * S.adderRate;
+  const deals = DEALS.filter(d => d.won && (+d.adder || 0) !== 0 && quarterOf(d.close) === q).length;
+  const qTot = QUARTERS.map(k => {
+    const n = DEALS.filter(d => d.won && quarterOf(d.close) === k)
+      .reduce((a, d) => a + (+d.adder || 0), 0);
+    return { q: k, count: n, amount: n * S.adderRate };
+  });
+  const grand = qTot.reduce((a, x) => a + x.amount, 0);
+  return `<div class="card" style="margin-top:20px">
+    <div class="chead"><h2>Vivid Adder</h2>
+      <span class="pill info">${count} adders</span>
+      <span class="pill good">${fmt0(total)} in ${qLabel(q)}</span>
+      <span class="pill ${adderPaid(q) ? 'good' : 'info'}">${adderPaid(q) ? 'Paid' : 'Pays'} ${dshort(adderPayday(q))}</span>
+      <div class="spacer"></div>
+      <span class="mlabel">A count from Odoo &middot; not commission</span></div>
+    <div class="cbody">
+    <p class="hint" style="margin:0 0 18px">Odoo carries a <b>VIVID Adder</b> count on some won deals &mdash;
+    a number of adders, not a dollar figure. Each one is worth a fixed amount and accrues to whoever closed the
+    deal. Balances are kept <b>per calendar quarter</b> of the closing date, so each quarter starts from zero,
+    and a quarter pays out <b>two quarters later</b> &mdash; on the first Friday after the 10th of that
+    quarter's first month. Q1 pays in July, Q2 in October, Q3 the following January, Q4 the following April.
+    It is not commission: no percentage applies to it, it is not tied to the weekly commission run, and it is
+    not in any payable total.</p>
+    <div class="seg" style="margin-bottom:18px">${QUARTERS.map(k =>
+      `<button data-adderq="${k}" aria-pressed="${k === q}">${qLabel(k)}</button>`).join('')}</div>
+    <div class="row two split"><div>
+    <div class="rate"><div class="rl"><b>Worth per adder</b>
+      <div class="sub">Change this and every balance recalculates</div></div>
+      <span class="unit">$</span>
+      <input type="number" step="25" min="0" value="${S.adderRate}" data-adderrate="1" aria-label="Value of one adder"></div>
+    <div class="rate"><div class="rl"><b>Adders in ${qLabel(q)}</b>
+      <div class="sub">${windowOf(q)} &middot; ${deals} won deal${deals === 1 ? '' : 's'} carried one</div></div>
+      <b>${count}</b></div>
+    <div class="rate"><div class="rl"><b>Closers with a balance</b>
+      <div class="sub">this quarter</div></div>
+      <b>${rows.length}</b></div>
+    <div class="rate"><div class="rl"><b>${qLabel(q)} balance</b>
+      <div class="sub">${count} &times; ${fmt0(S.adderRate)}</div></div>
+      <b class="n" style="color:var(--c2)">${fmt0(total)}</b></div>
+    <div class="grouplabel">Every quarter</div>
+    ${qTot.map(x => `<div class="rate"><div class="rl"><b>${qLabel(x.q)}</b>
+      <div class="sub">${windowOf(x.q)}${x.q === THIS_Q ? ' &middot; current' : ''}</div>
+      <div class="sub">${adderPaid(x.q) ? 'paid' : 'pays'} ${dday(adderPayday(x.q))}</div></div>
+      <span class="mlabel">${x.count} adders</span>
+      <b class="n">${fmt0(x.amount)}</b></div>`).join('')}
+    <div class="rate"><div class="rl"><b>All quarters</b>
+      <div class="sub">Every won deal since 1 Jan 2026</div></div>
+      <b class="n">${fmt0(grand)}</b></div>
+    </div><div>
+    <div class="grouplabel">Balances &middot; ${qLabel(q)}</div>
+    <p class="hint" style="margin:0 0 12px">Closings ${windowOf(q)}.
+      ${adderPaid(q) ? 'Paid out' : 'Pays out'} <b>${dday(adderPayday(q))}</b>,
+      in ${qLabel(adderPayQuarter(q))}.</p>
+    <div class="scroll"><table>
+      <thead><tr><th>Closer</th><th>Team</th><th class="r">Deals</th><th class="r">Adders</th>
+        <th class="r">Balance</th></tr></thead>
+      <tbody>${rows.map(x => { const e = byName.get(x.name) || {};
+        return `<tr class="clickable" data-focus="${esc(x.name)}" tabindex="0">
+          <td>${who2(x.name)}</td><td class="muted">${esc(e.team || '&mdash;')}</td>
+          <td class="n r muted">${x.deals}</td>
+          <td class="n r">${x.count}</td>
+          <td class="n r"><b style="color:var(--c2)">${fmt0(x.amount)}</b></td></tr>`; }).join('')
+      || `<tr><td colspan="5" class="muted">No adders on deals closing in ${qLabel(q)}.</td></tr>`}</tbody>
+      <tfoot><tr><td colspan="3">All closers</td><td class="r">${count}</td>
+        <td class="r">${fmt0(total)}</td></tr></tfoot>
+    </table></div>
+    </div></div>
+  </div></div>`;
+}
+
+function adminCard() {
+  const can = ['Change every rate and plan', 'Assign leadership seats', 'Freeze a run for payroll',
+    'Hold and release commission', 'Enter and remove adjustments', 'Apply change orders',
+    'Add and edit people', 'See every rep in every region'];
+  return `<div class="card" style="margin-top:20px">
+    <div class="chead"><h2>Who has access</h2>
+      <span class="pill info">${ADMINS.length} full admins</span>
+      <span class="pill">${VIEWERS.length} read-only</span>
+      <div class="spacer"></div>
+      <span class="mlabel">Back office &middot; not on the sales roster</span></div>
+    <div class="cbody">
+      <p class="hint" style="margin:0 0 18px">Full rights are held by two accounts. Three more accounts see the
+      whole ledger and can change nothing. Everyone else sees the dashboard through a leadership seat or as
+      themselves &mdash; managers over their regions, reps only their own pay. Anything that moves money records
+      who did it.</p>
+      <div class="grouplabel">Full admin &middot; can change money</div>
+      <div class="row two" style="margin-bottom:20px">
+        ${ADMINS.map(n => `<div class="card pad" style="box-shadow:none">
+          <div class="who" style="gap:12px">${avatar(n, true)}
+            <div><b style="color:var(--ink-strong);font-size:15px">${esc(n)}</b>
+              <div class="sub">Full admin${S.role === 'admin' && n === S.admin ? ' &middot; signed in' : ''}</div></div></div>
+        </div>`).join('')}
+      </div>
+      <div class="grouplabel">Read-only &middot; sees everything, changes nothing</div>
+      <div class="row three" style="margin-bottom:20px">
+        ${VIEWERS.map(n => `<div class="card pad" style="box-shadow:none">
+          <div class="who" style="gap:12px">${avatar(n, true)}
+            <div><b style="color:var(--ink-strong);font-size:15px">${esc(n)}</b>
+              <div class="sub">Read-only${S.role === 'viewer' && n === S.viewer ? ' &middot; signed in' : ''}</div></div></div>
+        </div>`).join('')}
+      </div>
+      <div class="grouplabel">What each account can do</div>
+      <div class="scroll"><table>
+        <thead><tr><th>Ability</th><th class="r">Full admin</th><th class="r">Read-only</th></tr></thead>
+        <tbody>${can.map(c => `<tr><td>${c}</td>
+          <td class="r"><span class="pill good">Yes</span></td>
+          <td class="r">${/^See every rep/.test(c) ? '<span class="pill good">Yes</span>'
+            : '<span class="pill">View only</span>'}</td></tr>`).join('')}
+          <tr><td>Export a run to CSV</td>
+            <td class="r"><span class="pill good">Yes</span></td>
+            <td class="r"><span class="pill good">Yes</span></td></tr>
+        </tbody></table></div>
+    </div></div>`;
+}
+
+function leadershipCard() {
+  const month = effectiveMonth();
+  const admin = S.role === 'admin';
+  const staff = EMP.filter(e => e.active).map(e => e.name).sort();
+  const rowsFor = overrideRows(month);
+  const cost = k => rowsFor.filter(r => r.tierKey === k).reduce((a, r) => a + r.amount, 0);
+  const picker = (tier, region) => {
+    const seat = seatOf(tier, region);
+    const now = seatPerson(tier, region, month);
+    const past = seat && seat.history.filter(h => h.person && h.person !== now);
+    const trail = past && past.length
+      ? `<div class="sub">was ${past.map(h => esc(h.person)).join(', ')}</div>` : '';
+    if (!admin) return (now ? who2(now) : '<span class="dash">--</span>') + trail;
+    return `<select class="pick" data-seat="${tier}:${esc(region)}" aria-label="${tier} for ${esc(region)}"
+        style="min-width:148px">
+      <option value="">Unassigned</option>
+      ${staff.map(n => `<option ${now === n ? 'selected' : ''}>${esc(n)}</option>`).join('')}
+    </select>${trail}`;
+  };
+  return `<div class="card" style="margin-top:20px">
+    <div class="chead"><h2>Leadership and override plans</h2>
+      <div class="spacer"></div><span class="mlabel">Cost shown for ${monLabel(month)}</span></div>
+    <div class="cbody">
+      <p class="hint" style="margin:0 0 18px">Each tier earns its own percentage of its region&rsquo;s won revenue,
+      for the month a deal closed. One person can hold more than one seat and earns on each &mdash; the Team Manager
+      and the Director can be the same person or two different people, per region. Leave a seat unassigned and nothing
+      is paid for it. <b>A change takes effect from ${monLabel(month)}</b>, the earliest month whose bonus run has not
+      frozen; months already paid keep whoever held the seat then.</p>
+      <div class="row three" style="margin-bottom:22px">
+        ${TIERS.map(t => `<div class="card pad" style="box-shadow:none">
+          <div class="metric"><span class="mlabel">${t.name}</span>
+            <div style="display:flex;align-items:baseline;gap:10px">
+              <input type="number" step="0.25" min="0" value="${(t.rate * 100).toFixed(2)}"
+                data-tier="${t.key}" aria-label="${t.name} rate" ${admin ? '' : 'disabled'}
+                style="width:86px;text-align:right;background:var(--card);border:1px solid var(--line-2);
+                border-radius:4px;padding:8px 10px;font-weight:600">
+              <span class="mlabel">% of won revenue</span></div>
+            <span class="mlabel">${t.note}</span>
+            <span class="mlabel">${REGIONS.filter(r => seatPerson(t.key, r, month)).length} of ${REGIONS.length} seats
+              &middot; ${fmt0(cost(t.key))} in ${monLabel(month)}</span>
+          </div></div>`).join('')}
+      </div>
+      <div class="scroll"><table>
+        <thead><tr><th>Region</th>${TIERS.map(t => `<th>${t.name} &middot; ${pct(t.rate)}</th>`).join('')}
+          <th class="r">${monLabel(month)} revenue</th><th class="r">Override cost</th></tr></thead>
+        <tbody>${REGIONS.map(region => {
+          const rev = regionRevenue(month, region);
+          const c = rowsFor.filter(r => r.region === region).reduce((a, r) => a + r.amount, 0);
+          return `<tr><td class="name">${esc(region)}</td>
+            ${TIERS.map(t => `<td>${picker(t.key, region)}</td>`).join('')}
+            <td class="n r muted">${fmt0(rev)}</td>
+            <td class="n r">${c ? `<b>${fmt(c)}</b>` : '<span class="dash">--</span>'}</td></tr>`;
+        }).join('')}</tbody>
+        <tfoot><tr><td colspan="${TIERS.length + 1}">Total for ${monLabel(month)}</td>
+          <td class="n r">${fmt0(REGIONS.reduce((a, r) => a + regionRevenue(month, r), 0))}</td>
+          <td class="r">${fmt(rowsFor.reduce((a, r) => a + r.amount, 0))}</td></tr></tfoot>
+      </table></div>
+      <div class="grouplabel">Who earns what</div>
+      <div class="scroll"><table><thead><tr><th>Person</th><th>Seats held</th>
+        <th class="r">${monLabel(month)} override</th></tr></thead>
+        <tbody>${overrideByPerson(month).map(p => `<tr class="clickable" data-focus="${esc(p.name)}" tabindex="0">
+          <td>${who2(p.name)}</td>
+          <td class="muted">${p.parts.map(x => esc(x.tier) + ' &middot; ' + esc(x.region) + ' at ' + pct(x.rate)).join('<br>')}</td>
+          <td class="n r"><b>${fmt(p.amount)}</b></td></tr>`).join('')
+        || '<tr><td colspan="3" class="muted">No seats assigned yet.</td></tr>'}</tbody>
+      </table></div>
+    </div></div>`;
+}
+
+/* ---- checks ---- */
+V.checks = () => `
+  <p class="hint">Found by recomputing your workbook rather than reading it. The first two changed what people
+  were actually paid.</p>
+  ${checks().map(q => `<div class="card" style="margin-bottom:20px">
+    <div class="chead"><h2>${q.title}</h2>
+      <span class="pill ${q.sev === 'crit' ? 'crit' : 'warn'}">${q.n} affected</span></div>
+    <div class="cbody"><p style="margin:0 0 18px;max-width:84ch;color:var(--ink-2)">${q.what}</p>
+    ${q.rows && q.rows.length ? `<div class="scroll"><table><thead><tr><th>Opportunity</th><th>Closed</th>
+      <th>Setter</th><th>Closer</th><th class="r">Contract</th><th class="r">Paid on</th><th class="r">Gap</th></tr></thead>
+      <tbody>${q.rows.slice(0, 6).map(d => `<tr class="clickable" data-deal="${d.id}" tabindex="0"><td>${esc(d.opp)}</td>
+        <td class="n muted">${dtiny(d.close)}</td><td>${esc(d.canvasser)}</td><td>${esc(d.closer)}</td>
+        <td class="n r">${fmt0(d.value)}</td><td class="n r muted">${fmt0(d.baseImplied)}</td>
+        <td class="n r"><b style="color:${d.variance < 0 ? 'var(--crit)' : 'var(--good)'}">${fmt0(d.variance)}</b></td></tr>`).join('')}</tbody>
+      ${q.rows.length > 6 ? `<tfoot><tr><td colspan="7">Showing 6 of ${q.rows.length}</td></tr></tfoot>` : ''}</table></div>` : ''}
+    </div></div>`).join('')}`;
+
+/* ---- one deal ---- */
+function dealPanel(id) {
+  const d = DEALS[id];
+  const rows = [
+    ['Status', d.won ? '<span class="pill good">Won</span>' : '<span class="pill crit">Lost</span>'],
+    ['Sales team', esc(d.team || '&mdash;')], ['Stage', esc(d.stage || '&mdash;')],
+    ['Closed', dday(d.close)],
+    ['Commission pays', dday(d.run) + ' <span class="pill ' + (d.state === 'paid' ? 'good' : d.state === 'open' ? 'warn' : 'plain') + '">'
+      + (d.state === 'paid' ? 'Paid' : d.state === 'open' ? 'Open' : 'Scheduled') + '</span>'
+      + '<div class="sub">that run covers ' + windowLabel(d.run) + ', and freezes ' + freezeLabel(d.run) + '</div>'],
+    ['Bonuses pay', d.month && BONUS_OF.get(d.month)
+      ? dday(BONUS_OF.get(d.month)) + '<div class="sub">' + monLabel(d.month)
+        + ' recruiting, override and summer bonus</div>' : '&mdash;'],
+    ['Contract value', fmt(d.value)],
+    ['Units', d.units + ' windows / doors' + (d.adder ? ' &middot; ' + d.adder + ' adder' : '')],
+    ['Setter', who2(d.canvasser) + (d.hourly ? ' <span class="pill plain">Hourly &middot; 1%</span>' : '')],
+    ['Closer', who2(d.closer) + (d.selfGen ? ' <span class="pill info">Self-gen</span>' : '')]
+  ];
+  return `<div class="row two">
+    <div class="card pad"><h2 style="margin-bottom:16px">Deal</h2>
+      <table>${rows.map(r => `<tr><td class="muted" style="width:150px;border:0;padding:9px 0">${r[0]}</td>
+        <td style="border:0;padding:9px 0">${r[1]}</td></tr>`).join('')}</table></div>
+    <div class="card pad"><h2 style="margin-bottom:16px">Commission on this deal</h2>
+      <table><tbody>
+        <tr><td>Setter${d.hourly ? ' &middot; hourly' : ''}</td>
+          <td class="n r muted">${pct(d.hourly ? S.rates.hourly : S.rates.canvasser)}</td>
+          <td class="n r">${fmt(d.canvPay)}</td></tr>
+        <tr><td>Closer</td><td class="n r muted">${pct(S.rates.closer)}</td><td class="n r">${fmt(d.closerPay)}</td></tr>
+      </tbody><tfoot><tr><td colspan="2">Total</td><td class="r">${fmt(d.total)}</td></tr></tfoot></table>
+      ${d.flagged ? `<div class="note" style="margin:22px 0 0"><span class="tag">Value changed after it was paid</span>
+        Commission was worked out on a contract value of <b>${fmt(d.baseImplied)}</b>, but the deal now reads
+        <b>${fmt(d.value)}</b> &mdash; a gap of ${fmt(d.variance)}. Nobody was paid on the difference.</div>` : ''}
+      ${d.notes ? `<div class="grouplabel">Notes</div><p style="margin:0">${esc(d.notes)}</p>` : ''}
+    </div></div>
+  ${CO.has(d.id) ? coDealCard(d) : ''}
+  ${d.won && (d.canvPay || d.closerPay) ? holdCard(d) : ''}`;
+}
+
+function coDealCard(d) {
+  const co = CO.get(d.id), e = coEffect(d), admin = S.role === 'admin';
+  const bon = e.total - e.setter - e.closer;
+  const row = (what, who, amt) => `<tr><td>${what}</td><td class="muted">${esc(who)}</td>
+    <td class="n r"><b style="color:${amt < 0 ? 'var(--crit)' : 'var(--good)'}">${fmt(amt)}</b></td></tr>`;
+  return `<div class="card pad" style="margin-top:20px">
+    <h2>Change order</h2>
+    <p class="hint" style="margin:6px 0 16px">The contract value moved after this deal was paid on.
+    ${co.state === 'applied' ? 'It has been applied, so only the difference is paid out.'
+      : 'Nothing has been paid on the difference yet.'}</p>
+    <div class="metricgrid" style="margin-bottom:20px">
+      <div class="metric"><span class="mlabel">Paid on</span><span class="mval xs">${fmt0(d.baseImplied)}</span></div>
+      <div class="metric"><span class="mlabel">Contract value now</span><span class="mval xs">${fmt0(d.value)}</span></div>
+      <div class="metric"><span class="mlabel">Change</span>
+        <span class="mval xs" style="color:${co.delta < 0 ? 'var(--crit)' : 'var(--good)'}">${fmt0(co.delta)}</span></div>
+      <div class="metric"><span class="mlabel">Status</span>
+        <span style="margin-top:8px"><span class="pill ${co.state === 'applied' ? 'info' : 'warn'}">${co.state === 'applied' ? 'Applied' : 'Not applied'}</span></span></div>
+    </div>
+    <div class="scroll"><table><thead><tr><th>What it changes</th><th>Who</th><th class="r">Amount</th></tr></thead>
+      <tbody>
+        ${e.setter ? row('Setter commission at ' + pct(d.hourly ? S.rates.hourly : S.rates.canvasser), d.canvasser, e.setter) : ''}
+        ${e.closer ? row('Closer commission at ' + pct(S.rates.closer), d.closer, e.closer) : ''}
+        ${e.recruit.map(l => row('Recruiting ' + l.lvl + ' on ' + esc(l.on), l.to, l.amt)).join('')}
+        ${e.override.map(l => row('Override &middot; ' + esc(l.tier) + ', ' + esc(l.region), l.to, l.amt)).join('')}
+      </tbody>
+      <tfoot><tr><td colspan="2">Total effect &middot; ${fmt(e.setter + e.closer)} commission, ${fmt(bon)} bonuses</td>
+        <td class="r">${fmt(e.total)}</td></tr></tfoot></table></div>
+    ${co.state === 'applied' ? `<p class="hint" style="margin:16px 0 0">Commission
+      ${co.commRun ? 'trues up in the ' + dshort(co.commRun) + ' run' : 'is folded into the ' + dshort(d.run) + ' run, which has not gone out yet'}.
+      Bonuses ${co.bonusRun ? 'true up in the ' + dshort(co.bonusRun) + ' bonus run'
+        : BONUS_OF.get(d.month) ? 'are folded into the ' + dshort(BONUS_OF.get(d.month)) + ' bonus run, which has not gone out yet' : 'are unaffected'}.</p>` : ''}
+    ${admin ? `<div style="display:flex;gap:10px;margin-top:18px">
+      ${co.state === 'applied' ? `<button class="btn ghost" data-co="undo:${d.id}">Undo</button>`
+        : `<button class="btn" data-co="apply:${d.id}">Apply change order</button>`}</div>` : ''}
+  </div>`;
+}
+
+
+/* ---- summer weekly bonus, on the run and as an office leaderboard ---- */
+function summerCard(sh) {
+  const months = summerMonthsFor(sh.date);
+  if (!SUMMER.on) return '';
+  const inRun = months.length;
+  const rows = [];
+  months.forEach(m => summerWeeks(m).forEach(x => { if (x.total) rows.push(Object.assign({ month: m }, x)); }));
+  const mine = rows.filter(r => scopeName(r.name));
+  const total = mine.reduce((a, r) => a + r.total, 0);
+
+  /* program-wide leaderboard, grouped by office */
+  const all = summerWeeks(null).filter(r => r.qualifying > 0 && scopeName(r.name));
+  const offices = [...new Set(all.map(r => (byName.get(r.name) || {}).team || 'Unassigned'))].sort();
+  return `<div class="card">
+    <div class="chead"><h2>Summer weekly bonus</h2>
+      ${inRun ? `<span class="pill info">${fmt0(total)} in this run</span>` : '<span class="pill plain">Not in this run</span>'}
+      <div class="spacer"></div>
+      <span class="mlabel">2 deals in a Sun-Sat week adds ${pct(SUMMER.tier2)} &middot; 3 or more adds ${pct(SUMMER.tier3)}</span></div>
+    <div class="cbody" style="padding-top:0">
+      <p class="hint" style="margin:0 0 16px">Setters only, on the deals they set. A week counts when the setter has
+      two or more closed deals in it, Sunday to Saturday. The bonus is that week&rsquo;s contract value at the tier rate,
+      <b>on top of the setter commission they were already paid</b> &mdash; so a three-deal week is
+      ${pct(S.rates.canvasser)} plus ${pct(SUMMER.tier3)}, ${pct(S.rates.canvasser + SUMMER.tier3)} in all.
+      Weeks with one deal or none pay nothing. Self-generated deals still count as a set.
+      A month&rsquo;s weeks are payable in the following month&rsquo;s bonus run &mdash; ${monLabel(months[0] || MONTHS[0])}
+      pays ${months.length ? dshort(sh.date) : 'in its own run'}.</p>
+      ${inRun ? `<div class="scroll"><table>
+        <thead><tr><th class="idx">#</th><th>Setter</th><th>Office</th><th>Month</th>
+          <th class="r">Qualifying weeks</th><th class="r">Deals earning</th><th class="r">Bonus</th><th></th></tr></thead>
+        <tbody>${mine.map((r, i) => { const e = byName.get(r.name) || {}; return `<tr class="clickable"
+          data-setter="${esc(r.name + '|' + r.month)}" tabindex="0">
+          <td class="idx">${i + 1}</td><td>${who2(r.name)}</td>
+          <td class="muted">${esc(e.team || '&mdash;')}</td>
+          <td class="muted">${monLabel(r.month)}</td>
+          <td class="n r">${r.qualifying}</td><td class="n r">${r.deals}</td>
+          <td class="n r"><b>${fmt(r.total)}</b></td>
+          <td class="r muted">${S.openSetter === r.name + '|' + r.month ? 'hide' : 'weeks'}</td></tr>
+          ${S.openSetter === r.name + '|' + r.month ? `<tr><td></td><td colspan="7" style="background:var(--card-2)">
+            <table style="margin:6px 0"><thead><tr><th>Opportunity</th><th>Closed</th><th>Qualifying week</th>
+              <th class="r">Contract value</th><th class="r">Base paid</th><th class="r">Bonus tier</th>
+              <th class="r">Extra earned</th></tr></thead>
+            <tbody>${r.weeks.filter(w => w.qualifying).flatMap(w => w.deals.map(d => `<tr class="clickable"
+              data-deal="${d.id}" tabindex="0">
+              <td>${esc(d.opp)}</td>
+              <td class="n muted">${dshort(d.close)}</td>
+              <td class="muted">${weekLabel(w.week)}<div class="sub">${w.count} deals set that week</div></td>
+              <td class="n r">${fmt0(comBase(d))}</td>
+              <td class="n r muted">${fmt(d.canvPay)} at ${pct(w.baseRate)}</td>
+              <td class="n r"><span class="pill ${w.count >= 3 ? 'warn' : 'good'}">+${pct(w.rate)}</span></td>
+              <td class="n r"><b>${fmt(comBase(d) * w.rate)}</b></td></tr>`)).join('')}</tbody>
+            <tfoot><tr><td colspan="6">${r.deals} deals across ${r.qualifying} qualifying weeks</td>
+              <td class="r">${fmt(r.total)}</td></tr></tfoot></table></td></tr>` : ''}`;
+        }).join('')}</tbody>
+        <tfoot><tr><td colspan="6">${mine.length} setter${mine.length === 1 ? '' : 's'}</td>
+          <td class="r">${fmt(total)}</td><td></td></tr></tfoot></table></div>`
+      : `<p class="muted" style="margin:0 0 8px">This run carries no summer bonus. It pays with the monthly bonuses
+         &mdash; next in the ${nextBonusRun() ? dshort(nextBonusRun()) : 'next'} run.</p>`}
+
+    </div></div>`;
+}
+
+function summerLeaderboard() {
+  const all = summerWeeks(null).filter(r => r.qualifying > 0 && scopeName(r.name));
+  const offices = [...new Set(all.map(r => (byName.get(r.name) || {}).team || 'Unassigned'))].sort();
+  if (!SUMMER.on || !all.length) return '';
+  return `<div class="card" style="margin-bottom:20px">
+    <div class="chead"><h2>Summer bonus leaderboard</h2>
+      <span class="pill info">${all.length} qualifying</span>
+      <div class="spacer"></div>
+      <span class="mlabel">Since ${dshort(SUMMER.start)} &middot; ranked by qualifying weeks</span></div>
+    <div class="cbody"><div class="row three" style="margin-bottom:0">
+      ${offices.map(off => {
+        const list = all.filter(r => ((byName.get(r.name) || {}).team || 'Unassigned') === off);
+        return `<div class="card pad" style="box-shadow:none">
+          <div class="mlabel" style="margin-bottom:4px">${esc(off)}</div>
+          <div class="mval xs" style="margin-bottom:10px">${list.length}
+            <span class="mlabel" style="font-size:12px">qualifying</span></div>
+          ${list.slice(0, 8).map(r => `<div class="trow" style="padding:6px 0">
+            ${who2(r.name)}<span class="lvl">${r.qualifying} wk</span>
+            <span class="amt">${fmt0(r.total)}</span></div>`).join('')}
+          ${list.length > 8 ? `<div class="sub">and ${list.length - 8} more</div>` : ''}
+        </div>`;
+      }).join('')}
+    </div></div></div>`;
+}
+
+/* ---- what has to be settled before Thursday ---- */
+function freezeCard(sh) {
+  const next = firstOpenRun();
+  if (sh.state !== 'open') {
+    return `<div class="note ${sh.state === 'paid' ? 'good' : ''}">
+      <span class="tag">${sh.state === 'paid' ? 'Paid ' + dshort(sh.date) : 'Frozen ' + freezeLabel(sh.date)}</span>
+      This run is locked${sh.state === 'frozen' ? ' and pays ' + dshort(sh.date) : ''}. Change orders, holds and
+      adjustments entered now go into the <b>${next ? dshort(next) : 'next'}</b> run instead &mdash; nothing here
+      can be rewritten after the freeze.</div>`;
+  }
+  const pend = coPending().length;
+  const holds = allHolds().length;
+  const adjs = ADJ.filter(a => a.run === sh.date).length;
+  const left = untilFreeze(sh.date);
+  const item = (label, n, ok, action) => `<div class="rate"><div class="rl">
+      <b>${label}</b><div class="sub">${ok}</div></div>
+    <span class="pill ${n ? 'warn' : 'good'}">${n || 'Clear'}</span>
+    ${n && action ? `<button class="btn ghost" data-nav="${action}">Open</button>` : ''}</div>`;
+  return `<div class="card pad" style="border-left:3px solid var(--warn)">
+    <div style="display:flex;align-items:baseline;gap:14px;flex-wrap:wrap">
+      <h2>Before the freeze</h2>
+      <span class="pill warn">${left ? 'Freezes in ' + left : 'Freezes now'}</span>
+      <span class="mlabel">${freezeLabel(sh.date)}, ahead of the ${dshort(sh.date)} payday</span>
+      <div style="flex:1"></div>
+      <button class="btn" data-act="approve">Freeze now</button></div>
+    <p class="hint" style="margin:10px 0 6px">Everything below still moves this run&rsquo;s numbers. After the freeze
+    it cannot &mdash; late entries roll to the next run and show up there as a true-up.</p>
+    ${item('Change orders waiting', pend, pend ? 'Applying them moves commission into this run' : 'Nothing waiting')}
+    ${item('Commission on hold', holds, holds ? fmt0(allHolds().reduce((a, h) => a + h.amt, 0)) + ' withheld across every run' : 'Nothing withheld')}
+    ${item('Adjustments entered', adjs, adjs ? fmt0(ADJ.filter(a => a.run === sh.date).reduce((a, x) => a + x.amount, 0)) + ' net in this run' : 'None entered')}
+    <div class="rate"><div class="rl"><b>Deals in this run</b>
+      <div class="sub">Closed 10 or more days before ${dshort(sh.date)}</div></div>
+    <span class="pill good">${sh.deals.length}</span></div>
+    ${sh.bonusMonth ? `<div class="rate"><div class="rl"><b>${monLabel(sh.bonusMonth)} recruiting and override</b>
+      <div class="sub">This run carries the monthly bonuses</div></div>
+      <span class="pill info">${fmt0(sh.rows.reduce((a, r) => a + r.bonus, 0))}</span></div>` : ''}
+  </div>`;
+}
+
+/* ---- change orders waiting to be applied ---- */
+function coCard() {
+  const wr = canEditAll();   /* read-only viewers get the table, not the buttons */
+  const pend = coPending(), app = coApplied();
+  const net = pend.reduce((a, x) => a + (coEffect(x.d) || { total: 0 }).total, 0);
+  const show = S.coAll ? pend : pend.slice(0, 8);
+  return `<div class="card">
+    <div class="chead"><h2>Change orders</h2>
+      ${pend.length ? `<span class="pill warn">${pend.length} not applied</span>` : '<span class="pill good">All applied</span>'}
+      ${app.length ? `<span class="pill info">${app.length} applied</span>` : ''}
+      <div class="spacer"></div>
+      <span class="mlabel">Commission pays in the next open run &middot; bonuses in the next bonus run</span></div>
+    <div class="cbody" style="padding-top:0">
+      <p class="hint" style="margin:0 0 16px">A change order moves the contract value up or down after the deal was
+      already paid on. Applying it recalculates the setter and closer commission, the level 1 and 2 recruiting bonus
+      on both reps, and the regional and VP override &mdash; and pays or claws back only the difference, so runs that
+      already went out are never rewritten.</p>
+      ${pend.length ? `<div class="scroll"><table>
+        <thead><tr><th class="idx">#</th><th>Opportunity</th><th>Team</th><th class="r">Paid on</th>
+          <th class="r">Now</th><th class="r">Change</th><th class="r">Commission</th><th class="r">Bonuses</th>
+          <th class="r">Total effect</th>${wr ? '<th></th>' : ''}</tr></thead>
+        <tbody>${show.map((x, i) => { const e = coEffect(x.d); const bon = e.total - e.setter - e.closer;
+          return `<tr class="clickable" data-deal="${x.d.id}" tabindex="0">
+          <td class="idx">${i + 1}</td>
+          <td>${esc(x.d.opp)}<div class="sub">closed ${dshort(x.d.close)}</div></td>
+          <td class="muted">${esc(x.d.team || '&mdash;')}</td>
+          <td class="n r muted">${fmt0(x.d.baseImplied)}</td>
+          <td class="n r">${fmt0(x.d.value)}</td>
+          <td class="n r"><b style="color:${x.co.delta < 0 ? 'var(--crit)' : 'var(--good)'}">${fmt0(x.co.delta)}</b></td>
+          <td class="n r">${fmt(e.setter + e.closer)}</td>
+          <td class="n r">${fmt(bon)}</td>
+          <td class="n r"><b style="color:${e.total < 0 ? 'var(--crit)' : 'var(--c4)'}">${fmt(e.total)}</b></td>
+          ${wr ? `<td class="r"><button class="btn" data-co="apply:${x.d.id}">Apply</button></td>` : ''}</tr>`; }).join('')}</tbody>
+        <tfoot><tr><td colspan="8">${pend.length} waiting${pend.length > show.length ? ' &middot; showing ' + show.length : ''}</td>
+          <td class="r">${fmt(net)}</td>
+          <td class="r"${wr ? '' : ' colspan="2"'}>${pend.length > 8 ? `<button class="btn ghost" data-co="${S.coAll ? 'less' : 'all'}">${S.coAll ? 'Show less' : 'Show all'}</button>` : ''}</td></tr></tfoot>
+      </table></div>` : '<p class="muted" style="margin:0">Nothing waiting.</p>'}
+      ${app.length ? `<div class="grouplabel">Applied</div><div class="scroll"><table>
+        <thead><tr><th>Opportunity</th><th class="r">Change</th><th>Commission pays</th><th>Bonuses pay</th>
+          <th class="r">Total effect</th>${wr ? '<th></th>' : ''}</tr></thead>
+        <tbody>${app.map(x => { const e = coEffect(x.d); return `<tr class="clickable" data-deal="${x.d.id}" tabindex="0">
+          <td>${esc(x.d.opp)}</td>
+          <td class="n r"><b style="color:${x.co.delta < 0 ? 'var(--crit)' : 'var(--good)'}">${fmt0(x.co.delta)}</b></td>
+          <td class="n muted">${x.co.commRun ? dshort(x.co.commRun) : 'folded into ' + dshort(x.d.run)}</td>
+          <td class="n muted">${x.co.bonusRun ? dshort(x.co.bonusRun) : (BONUS_OF.get(x.d.month) ? 'folded into ' + dshort(BONUS_OF.get(x.d.month)) : '&mdash;')}</td>
+          <td class="n r"><b style="color:var(--c4)">${fmt(e.total)}</b></td>
+          ${wr ? `<td class="r"><button class="btn ghost" data-co="undo:${x.d.id}">Undo</button></td>` : ''}</tr>`; }).join('')}</tbody>
+      </table></div>` : ''}
+    </div></div>`;
+}
+
+/* ---- adjustments: enter money for one rep before the run is approved ---- */
+function adjCard(runDate, lockedPerson) {
+  const list = ADJ.filter(a => a.run === runDate && (!lockedPerson || a.who === lockedPerson))
+    .filter(a => seesAll() || a.who === me());
+  const locked = isApproved(runDate);
+  const target = locked ? firstOpenRun() : runDate;   /* late entries roll forward */
+  const canEdit = S.role === 'admin' && !!target;
+  const people = [...new Set(EMP.filter(e => e.active).map(e => e.name)
+    .concat(sheet(runDate).rows.map(r => r.name)))].sort();
+  const open = S.addAdj === (lockedPerson || runDate);
+  return `<div class="card">
+    <div class="chead"><h2>Adjustments${lockedPerson ? '' : ' in this run'}</h2>
+      ${list.length ? `<span class="pill ${list.reduce((s2, a) => s2 + a.amount, 0) < 0 ? 'crit' : 'good'}">${fmt0(list.reduce((s2, a) => s2 + a.amount, 0))} net</span>` : ''}
+      ${locked ? `<span class="pill plain">${runStatus(runDate) === 'paid' ? 'Paid' : 'Frozen'} &middot; locked</span>` : ''}
+      <div class="spacer"></div>
+      ${canEdit && !open ? `<button class="btn" data-act="adjopen:${esc(lockedPerson || runDate)}">Add adjustment${locked ? ' to ' + dshort(target) : ''}</button>` : ''}</div>
+    ${canEdit && open ? `<div style="padding:0 24px 4px"><div class="adjform">
+        ${lockedPerson ? `<label>Rep<input value="${esc(lockedPerson)}" disabled></label>`
+          : `<label>Rep<select id="adjPerson">${people.map(n => `<option>${esc(n)}</option>`).join('')}</select></label>`}
+        <label>Type<select id="adjKind">${ADJ_KINDS.map(k => `<option>${k[0]}</option>`).join('')}</select></label>
+        <label>Amount<input id="adjAmount" type="number" min="0" step="0.01" placeholder="0.00"></label>
+        <label>Reason<input id="adjNote" type="text" placeholder="Shows on their statement"></label>
+        <div class="actions">
+          <button class="btn" data-act="adjsave:${esc(lockedPerson || runDate)}">Add to ${dshort(target)}</button>
+          <button class="btn ghost" data-act="adjcancel">Cancel</button></div>
+      </div>${S.adjError ? `<div class="err">${esc(S.adjError)}</div>` : ''}
+      <p class="hint" style="margin:12px 0 0">A chargeback, deduction or advance repayment goes in as a negative.
+      ${locked ? `The ${dshort(runDate)} run is already frozen, so this lands in the <b>${dshort(target)}</b> run.`
+        : `This lands in the ${dshort(runDate)} run and can be changed until it freezes on ${freezeLabel(runDate)}.`}</p></div>` : ''}
+    <div class="scroll"><table>
+      <thead><tr><th class="idx">#</th>${lockedPerson ? '' : '<th>Rep</th>'}<th>Type</th><th>Reason</th>
+        <th class="r">Amount</th>${canEdit && !locked ? '<th></th>' : ''}</tr></thead>
+      <tbody>${list.map((a, i) => `<tr>
+        <td class="idx">${i + 1}</td>
+        ${lockedPerson ? '' : `<td>${who2(a.who)}</td>`}
+        <td><span class="pill ${a.amount < 0 ? 'crit' : 'good'}">${esc(a.kind)}</span></td>
+        <td>${esc(a.label)}${a.note ? `<div class="sub">${esc(a.note)}</div>` : ''}</td>
+        <td class="n r"><b style="color:${a.amount < 0 ? 'var(--crit)' : 'var(--good)'}">${fmt(a.amount)}</b></td>
+        ${canEdit && !locked ? `<td class="r"><button class="btn ghost" data-adjdel="${a.id}">Remove</button></td>` : ''}</tr>`).join('')
+      || `<tr><td colspan="${(lockedPerson ? 4 : 5) + (canEdit && !locked ? 1 : 0)}" class="muted">No adjustments in this run${canEdit ? '. Add one above.' : '.'}</td></tr>`}</tbody>
+      ${list.length ? `<tfoot><tr><td colspan="${lockedPerson ? 3 : 4}">Net</td>
+        <td class="r">${fmt(list.reduce((s2, a) => s2 + a.amount, 0))}</td>${canEdit && !locked ? '<td></td>' : ''}</tr></tfoot>` : ''}
+    </table></div></div>`;
+}
+
+/* ---- hold controls for one deal ---- */
+function holdCard(d) {
+  const h = HOLDS.get(d.id) || {};
+  const admin = S.role === 'admin';
+  const leg = (name, key) => {
+    const st = legState(d, key), amt = legAmt(d, key), person = legWho(d, key);
+    if (!amt) return '';
+    return `<div class="rate"><div class="rl">
+        <b>${name} &mdash; ${esc(person)}</b>
+        <div class="sub">${st === 'held' ? 'Withheld from every run since ' + dshort(h.at) + (h.by ? ' by ' + esc(h.by) : '') + (h.reason ? ' &middot; ' + esc(h.reason) : '')
+          : st === 'released' ? 'Released &mdash; pays in the ' + dshort(legRun(d, key)) + ' run'
+          : 'Pays in the ' + dshort(d.run) + ' run'}</div></div>
+      <b class="n" style="${st === 'held' ? 'color:var(--crit)' : ''}">${fmt(amt)}</b>
+      <span class="pill ${st === 'held' ? 'crit' : st === 'released' ? 'info' : 'good'}">${st === 'held' ? 'On hold' : st === 'released' ? 'Released' : 'Payable'}</span>
+      ${admin && firstOpenRun() ? (st === 'held'
+        ? `<button class="btn ghost" data-release="${d.id}:${key}">Release</button>`
+        : `<button class="btn ghost" data-hold="${d.id}:${key}">Hold</button>`) : ''}</div>`;
+  };
+  return `<div class="card pad" style="margin-top:20px">
+    <h2>Commission hold</h2>
+    <p class="hint" style="margin:6px 0 8px">Holding a leg keeps it out of every pay run and flags it as not paid for
+    that person. The setter and the closer are held separately. Releasing pays it in the next open run rather than
+    back-dating it into a run that has frozen. A hold placed after the freeze takes effect from the
+    ${firstOpenRun() ? dshort(firstOpenRun()) : 'next'} run.</p>
+    ${admin ? `<div class="rate" style="border-bottom:1px solid var(--line-2)">
+      <div class="rl"><b>Reason</b><div class="sub">Shows on the hold list and on their statement</div></div>
+      <select class="pick" id="holdReason" aria-label="Hold reason">
+        ${HOLD_REASONS.map(r => `<option ${h.reason === r ? 'selected' : ''}>${esc(r)}</option>`).join('')}</select>
+    </div>` : ''}
+    ${leg('Setter commission', 'setter')}
+    ${leg('Closer commission', 'closer')}
+    ${admin && !h.setter && !h.closer && d.canvPay && d.closerPay
+      ? `<div style="padding-top:14px"><button class="btn" data-hold="${d.id}:both">Hold both legs</button></div>` : ''}
+  </div>`;
+}
+
+/* ====================== wiring ====================== */
+/* on a phone each row becomes a stacked card, so every cell needs its column name */
+function labelTables() {
+  view.querySelectorAll('table').forEach(t => {
+    const ths = [...t.querySelectorAll('thead th')].map(th => th.textContent.replace(/\s+/g, ' ').trim());
+    if (!ths.length) return;
+    t.classList.add('stacked');
+    t.querySelectorAll('tbody tr').forEach(tr => {
+      const tds = [...tr.children];
+      if (tds.length === 1 && tds[0].hasAttribute('colspan')) return;
+      let lead = -1;
+      tds.forEach((td, i) => {
+        const label = ths[i] || '';
+        td.setAttribute('data-label', /^[#\s]*$/.test(label) ? '' : label);
+        if (lead < 0 && !td.classList.contains('idx') && td.textContent.trim()) lead = i;
+      });
+      if (lead >= 0) tds[lead].classList.add('lead');
+    });
+  });
+}
+
+/* one gate for everything that writes: only a full admin gets live controls */
+function lockControls() {
+  if (canEditAll()) return;
+  view.querySelectorAll('input,select,textarea').forEach(el => {
+    if (el.classList.contains('search')) return;
+    el.disabled = true;
+    el.setAttribute('aria-disabled', 'true');
+    el.title = 'Read-only access';
+  });
+}
+function render() {
+  recompute(); sheetCache.clear();
+  renderNav(); renderContext();
+  if (S.dealFocus != null) view.innerHTML = dealPanel(S.dealFocus);
+  else if (S.focus) view.innerHTML = V.person();
+  else if (S.role === 'rep' && S.view === 'runs') { S.focus = S.rep; renderContext(); view.innerHTML = V.person(); }
+  else view.innerHTML = (V[S.view] || V.runs)();
+  labelTables(); lockControls();
+  window.scrollTo({ top: 0 });
+}
+document.addEventListener('click', ev => {
+  const t = ev.target.closest ? ev.target.closest('[data-nav],[data-df],[data-focus],[data-deal],[data-act],[data-step],[data-hold],[data-release],[data-adjdel],[data-co],[data-setter],[data-panel],[data-ptab],[data-adderq]') : null;
+  if (!t) return;
+  ev.preventDefault();
+  if (t.dataset.nav) { S.focus = null; S.dealFocus = null; S.view = t.dataset.nav; S.q = ''; return render(); }
+  if (t.dataset.step) {
+    const n = +t.dataset.step;
+    if (n < 0 || n >= RUNDATES2.length) return;
+    S.run = RUNDATES2[n]; return render();
+  }
+  if (t.dataset.df) { S.dealFilter = t.dataset.df; return render(); }
+  if (t.dataset.ptab) { S.ptab = t.dataset.ptab; S.addAdj = null; return render(); }
+  if (t.dataset.adderq) { S.adderQ = t.dataset.adderq; S.ptab = 'adder'; return render(); }
+  if (t.dataset.panel !== undefined) {
+    S.panel = S.panel === t.dataset.panel || !t.dataset.panel ? null : t.dataset.panel;
+    S.addAdj = null;
+    return render();
+  }
+  if (t.dataset.setter) {
+    S.openSetter = S.openSetter === t.dataset.setter ? null : t.dataset.setter;
+    return render();
+  }
+  if (t.dataset.co) {
+    const v = t.dataset.co;
+    if (v === 'all') { S.coAll = true; return render(); }
+    if (v === 'less') { S.coAll = false; return render(); }
+    if (S.role !== 'admin') return;
+    const p = v.split(':');
+    const id = +p[1], d = DEALS[id];
+    if (!d) return;
+    const before = CO.get(id) ? Object.assign({}, CO.get(id)) : null;
+    applyCO(id, p[0] === 'apply' ? 'applied' : 'pending');
+    render();
+    save(p[0] === 'apply' ? 'changeorder.apply' : 'changeorder.undo', dealKey(d), {},
+      () => { if (before) CO.set(id, before); });
+    return;
+  }
+  if (t.dataset.adjdel) {
+    if (S.role !== 'admin') return;
+    const i = ADJ.findIndex(a => a.id === t.dataset.adjdel);
+    if (i < 0 || isApproved(ADJ[i].run)) return render();
+    const gone = ADJ[i], at = i;
+    ADJ.splice(i, 1);
+    render();
+    /* only a saved adjustment has an event to remove; a seeded one is dataset */
+    if (String(gone.id).charAt(0) === 'e') {
+      save('adjustment.remove', String(gone.id).slice(1), {}, () => ADJ.splice(at, 0, gone));
+    }
+    return;
+  }
+  const act = t.dataset.act || '';
+  if (act.indexOf('adjopen:') === 0) { S.addAdj = act.slice(8); S.adjError = null; return render(); }
+  if (act === 'adjcancel') { S.addAdj = null; S.adjError = null; return render(); }
+  if (act.indexOf('adjsave:') === 0) {
+    if (S.role !== 'admin') return;
+    const key = act.slice(8);
+    let runDate = RUNDATES2.indexOf(key) >= 0 ? key : S.run;
+    if (isApproved(runDate)) runDate = firstOpenRun();
+    const locked = RUNDATES2.indexOf(key) >= 0 ? null : key;
+    const sel = document.getElementById('adjPerson');
+    const person = locked || (sel && sel.value);
+    const kind = (document.getElementById('adjKind') || {}).value || ADJ_KINDS[0][0];
+    const amt = Math.abs(parseFloat((document.getElementById('adjAmount') || {}).value) || 0);
+    const note = (((document.getElementById('adjNote') || {}).value) || '').trim();
+    if (!person) { S.adjError = 'Pick a rep.'; return render(); }
+    if (!amt) { S.adjError = 'Enter an amount greater than zero.'; return render(); }
+    if (!runDate || isApproved(runDate)) { S.adjError = 'Every run is frozen. Nothing can be added right now.'; return render(); }
+    const row = { id: 'a' + (adjSeq++), who: person, kind, label: note || kind,
+      note: 'Added ' + dshort(D.frozenAt) + ' by ' + ADMIN_NOW, amount: adjSign(kind) * amt, run: runDate };
+    ADJ.push(row);
+    S.addAdj = null; S.adjError = null;
+    render();
+    save('adjustment', person, { type: kind, amount: amt, run: runDate, note: note },
+      () => { const i = ADJ.indexOf(row); if (i >= 0) ADJ.splice(i, 1); })
+      .then(ev => {
+        if (!ev) return;
+        row.id = 'e' + ev.id;                       /* so it can be removed later */
+        row.note = 'Added ' + dshort(String(ev.at).slice(0, 10)) + ' by ' + ev.actor;
+        toast('Adjustment saved');
+        render();
+      });
+    return;
+  }
+  if (t.dataset.hold || t.dataset.release) {
+    if (S.role !== 'admin' || !firstOpenRun()) return;
+    const p = (t.dataset.hold || t.dataset.release).split(':');
+    const id = +p[0], state = t.dataset.hold ? 'held' : 'released';
+    const sel = document.getElementById('holdReason');
+    const reason = sel ? sel.value : '';
+    const d = DEALS[id];
+    if (!d) return;
+    const snap = holdSnapshot(id);
+    const legs = p[1] === 'both' ? ['setter', 'closer'] : [p[1]];
+    legs.forEach(leg => setHold(id, leg, state, reason));
+    render();
+    const undo = () => holdRestore(id, snap);
+    legs.forEach(leg => save(state === 'held' ? 'hold' : 'release', dealKey(d),
+      { leg: leg, reason: reason }, undo));
+    return;
+  }
+  if (t.dataset.focus) { S.dealFocus = null; S.focus = t.dataset.focus; return render(); }
+  if (t.dataset.deal) { S.dealFocus = +t.dataset.deal; return render(); }
+  if (t.dataset.act === 'unfocus') {
+    S.dealFocus = null;
+    if (S.role === 'rep') { S.focus = S.rep; S.view = 'runs'; } else S.focus = null;
+    return render();
+  }
+  if (t.dataset.act === 'theme') {
+    const cur = document.documentElement.dataset.theme;
+    const dark = cur ? cur === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+    document.documentElement.dataset.theme = dark ? 'light' : 'dark';
+    return;
+  }
+  if (act === 'approve') {
+    if (S.role !== 'admin') return;
+    const run = S.run;
+    FROZEN.add(run); S.addAdj = null;
+    save('run.freeze', run, {}, () => FROZEN.delete(run));
+    const next = firstOpenRun();
+    render();
+    view.insertAdjacentHTML('afterbegin', `<div class="note good"><span class="tag">Run frozen</span>
+      The ${dshort(S.run)} run is locked ahead of Friday. Rates, contract values, holds and adjustments are captured
+      as they stand and can no longer be edited. Anything entered from here rolls into the
+      ${next && next !== S.run ? dshort(next) : 'next'} run.</div>`);
+    return;
+  }
+  const msg = {
+    approveX: 'Approving locks the run. Rates, contract values and adjustments are captured as paid, a payroll file is generated, and the run becomes read-only. A later edit to a contract value then shows up as a variance instead of quietly changing what was paid.',
+    export: 'Downloads this run as a CSV for payroll, one row per person with commission, bonuses and adjustments broken out.',
+    newadj: 'Opens a short form: who it is for, what kind (spiff, chargeback, manual commission, deduction), the amount, the run it lands in, and a reason that shows on their statement.',
+    newuser: 'Opens the new-person form: plan, team, manager, and who recruited them at level 1 and level 2.'
+  }[t.dataset.act];
+  if (msg) {
+    view.insertAdjacentHTML('afterbegin', `<div class="note"><span class="tag">Prototype</span>${msg}</div>`);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && e.target.matches && e.target.matches('tr.clickable')) e.target.click();
+  if (e.key === 'Escape' && (S.focus || S.dealFocus != null) && S.role !== 'rep') { S.focus = null; S.dealFocus = null; render(); }
+});
+document.addEventListener('change', e => {
+  const t = e.target;
+  if (t.id === 'viewAs') {
+    if (LIVE) return;
+    const p = t.value.split(':');
+    S.role = p[0]; S.focus = null; S.dealFocus = null; S.q = '';
+    if (p[0] === 'admin' && p[1]) { S.admin = p[1]; ADMIN_NOW = p[1]; }
+    if (p[0] === 'viewer' && p[1]) S.viewer = p[1];
+    if (p[0] === 'manager') S.actor = p[1];
+    if (p[0] === 'rep') S.rep = p[1];
+    const ok = NAV[S.role].map(i => i[0]);
+    if (!ok.includes(S.view)) S.view = ok[0];
+    return render();
+  }
+  if (!canEditAll()) return;          /* every branch below writes; viewers stop here */
+  if (t.dataset.seat) {
+    const p = t.dataset.seat.split(':');
+    setSeat(p[0], p.slice(1).join(':'), t.value || null);
+    return render();
+  }
+  if (t.id === 'summerOn') { SUMMER.on = t.value === '1'; return render(); }
+  if (t.id === 'summerStart') { SUMMER.start = t.value; return render(); }
+  if (t.id === 'summerEnd') { SUMMER.end = t.value; return render(); }
+  if (t.dataset.summer) { SUMMER[t.dataset.summer] = (+t.value || 0) / 100; return render(); }
+  if (t.dataset.tier) {
+    if (S.role !== 'admin') return;
+    tierOf(t.dataset.tier).rate = (+t.value || 0) / 100;
+    return render();
+  }
+  if (t.id === 'freezeDays') { S.freezeDays = +t.value; return render(); }
+  if (t.id === 'freezeTime') { S.freezeTime = t.value; return render(); }
+  if (t.dataset.adderrate) { S.adderRate = Math.max(0, +t.value || 0); return render(); }
+  if (t.dataset.rate) { S.rates[t.dataset.rate] = (+t.value || 0) / 100; return render(); }
+  if (t.dataset.rec) { const p = t.dataset.rec.split('.'); S.recruit[p[0]][p[1]] = (+t.value || 0) / 100; return render(); }
+});
+document.addEventListener('input', e => {
+  if (e.target.id === 'dealQ' || e.target.id === 'peopleQ') {
+    const id = e.target.id, pos = e.target.selectionStart;
+    S.q = e.target.value;
+    view.innerHTML = S.focus ? V.person() : V[S.view]();
+    labelTables();
+    const f = document.getElementById(id);
+    if (f) { f.focus(); try { f.setSelectionRange(pos, pos); } catch (err) { } }
+  }
+});
+document.addEventListener('mousemove', e => {
+  const m = e.target && e.target.closest ? e.target.closest('[data-tip]') : null;
+  if (m) {
+    tip.innerHTML = m.getAttribute('data-tip');
+    tip.classList.add('on');
+    tip.style.left = Math.min(e.clientX + 14, innerWidth - tip.offsetWidth - 12) + 'px';
+    tip.style.top = Math.max(e.clientY - 36, 8) + 'px';
+  } else tip.classList.remove('on');
+});
+render();
+
+
+  }
+})();
+</script>
+
+</body>
+</html>

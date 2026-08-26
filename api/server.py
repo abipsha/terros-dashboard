@@ -32,6 +32,15 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import terros
 import odoo
 
+# The commission ledger. Imported defensively: it runs in this same process, so
+# nothing in it is allowed to stop the CRM dashboard from starting.
+try:
+    import commissions
+except Exception as _e:
+    commissions = None
+    print(f"[commissions] could not be imported: {_e}")
+    print("[commissions] /commissions is unavailable. The rest of this service is unaffected.")
+
 PORT          = int(os.environ.get("PORT", 8000))  # Render sets PORT automatically
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "")
 ROOT_DIR      = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # terros-dashboard/
@@ -454,6 +463,9 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 elif path == "/api/playbook":
                     self._json(_read_playbook())
 
+                elif commissions and commissions.handles(path):
+                    commissions.handle_get(self, path, _get_session(self.headers))
+
                 elif path == "/crm":
                     if os.path.exists(CRM_HTML_FILE):
                         with open(CRM_HTML_FILE, "rb") as f: content = f.read()
@@ -531,6 +543,9 @@ class Handler(http.server.BaseHTTPRequestHandler):
                             pb["admins"].append(email)
                     _write_playbook(pb)
                 self._json({"ok": True, "data": pb})
+
+            elif commissions and path.rstrip("/") == "/commissions/events":
+                commissions.handle_post(self, path, self._read_body(), _get_session(self.headers))
 
             else:
                 self._json({"error": "Not found"}, status=404)

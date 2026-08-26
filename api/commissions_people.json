@@ -1,0 +1,8 @@
+{
+  "abipsha.joshi@vividwindows.com":  { "name": "Abipsha Joshi",   "role": "admin"  },
+  "biss.larsen@vividwindows.com":    { "name": "Biss Larsen",     "role": "admin"  },
+
+  "brock.morrison@vividwindows.com": { "name": "Brock Morrison",  "role": "viewer" },
+  "tyler.mickelsen@vividwindows.com":{ "name": "Tyler Mickelsen", "role": "viewer" },
+  "jake.boyce@vividwindows.com":     { "name": "Jake Boyce",      "role": "viewer" }
+}
