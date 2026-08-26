@@ -540,10 +540,13 @@ const DEALS = D.deals.filter(d => d.close && d.close >= CUTOFF).map((d, i) => {
   return o;
 });
 /* ---- Vivid Adder ----------------------------------------------------------
-   Odoo carries a VIVID Adder amount on a won deal. It is not commission and it
-   does not move with a pay run: it accrues to whoever closed the deal and shows
-   as a running balance on their profile. Same 2026-onward scope as everything
-   else on the dashboard. */
+   Odoo carries a VIVID Adder count on a won deal. It is not commission: it
+   accrues to whoever closed the deal, is totalled per calendar quarter, and
+   pays as an adjustment line in the first bonus run two quarters later. The
+   line is generated from the deals rather than entered by hand, so a quarter
+   whose payday has already passed carries its line in that run, paid. Same
+   2026-onward scope as everything else on the dashboard. */
+const ADDER_RATE = 500;               /* what one VIVID Adder is worth */
 function adderDeals(person) {
   return DEALS.filter(d => d.won && d.closer === person && (+d.adder || 0) !== 0)
     .slice().sort((a, b) => (b.close || '').localeCompare(a.close || ''));
@@ -591,6 +594,28 @@ function adderByQuarter(person) {
   });
   return [...m.values()].sort((a, b) => b.q.localeCompare(a.q))
     .map(e => Object.assign(e, { amount: e.count * S.adderRate }));
+}
+/* one adjustment line per closer per quarter, landing in that quarter's payday
+   run. Generated, not entered: nobody has to remember to add it, and a quarter
+   that has already been paid shows the line sitting in the run that paid it. */
+function adderAdjustments() {
+  const m = new Map();
+  DEALS.forEach(d => {
+    const n = +d.adder || 0;
+    if (!d.won || !d.closer || !n || !d.close) return;
+    const q = quarterOf(d.close), k = d.closer + '|' + q;
+    if (!m.has(k)) m.set(k, { who: d.closer, q: q, count: 0, deals: 0 });
+    const e = m.get(k); e.count += n; e.deals += 1;
+  });
+  return [...m.values()]
+    .sort((a, b) => a.q.localeCompare(b.q) || a.who.localeCompare(b.who))
+    .map(e => ({
+      id: 'a' + (adjSeq++), who: e.who, kind: 'Vivid Adder', auto: true, q: e.q,
+      label: 'Vivid Adder - ' + qLabel(e.q),
+      note: adders(e.count) + ' at ' + fmt0(ADDER_RATE) + ' on ' + e.deals + ' deal'
+        + (e.deals === 1 ? '' : 's') + ' closed ' + windowOf(e.q),
+      amount: e.count * ADDER_RATE, run: adderPayday(e.q)
+    }));
 }
 const closedAny = person => DEALS.some(d => d.won && d.closer === person);
 function adderLeaders(q) {
@@ -642,7 +667,7 @@ const ADJ = D.adjustments.map(a => ({
   { id: 'a' + (adjSeq++), who: 'Kerrigan Simpson', kind: 'Bonus',
     label: 'August self-gen bonus', note: '10 or more self-generated units in one run',
     amount: 500, run: OPEN_RUN }
-]);
+]).concat(adderAdjustments());
 const ADJ_KINDS = [['Bonus', 1], ['Manual commission', 1], ['Reimbursement', 1],
   ['Chargeback', -1], ['Deduction', -1], ['Advance repayment', -1]];
 const adjSign = k => (ADJ_KINDS.find(x => x[0] === k) || ['', 1])[1];
@@ -824,6 +849,11 @@ MONTHS.forEach(m => {
   BONUS_RUN.set(pay, m); BONUS_OF.set(m, pay);
 });
 [...BONUS_RUN.keys()].forEach(d => {
+  if (!RUNS.some(r => r.date === d)) RUNS.push({ date: d, deals: [], total: 0, value: 0, state: d <= LAST_PAID ? 'paid' : 'next' });
+});
+/* a Vivid Adder quarter can land on a payday no other run uses - the run still
+   has to exist, or the money would have nowhere to be paid from */
+[...new Set(ADJ.filter(a => a.kind === 'Vivid Adder').map(a => a.run))].forEach(d => {
   if (!RUNS.some(r => r.date === d)) RUNS.push({ date: d, deals: [], total: 0, value: 0, state: d <= LAST_PAID ? 'paid' : 'next' });
 });
 RUNS.sort((a, b) => b.date.localeCompare(a.date));
@@ -1216,7 +1246,7 @@ const S = {
   view: 'runs', focus: null, dealFocus: null,
   run: OPEN_RUN, q: '', dealFilter: 'all', strictYear: true,
   freezeDays: 1, freezeTime: '08:00',      /* Thursday 8am ahead of a Friday payday */
-  adderRate: 500,                          /* what one VIVID Adder is worth */
+  adderRate: ADDER_RATE,                   /* what one VIVID Adder is worth */
   adderQ: null,                            /* which quarter's balance is on screen */
   rates: Object.assign({}, RATES),
   recruit: JSON.parse(JSON.stringify(RECRUIT))
@@ -1687,11 +1717,12 @@ V.person = () => {
       <tfoot><tr><td colspan="3">Held back</td><td class="r">${fmt(r.heldBack)}</td></tr></tfoot></table></div>`,
 
     adder: `<p class="hint" style="margin:0 0 14px">Won deals that carried a <b>VIVID Adder</b> count in Odoo,
-      with ${esc(name)} as the closer. Each adder is worth <b>${fmt0(S.adderRate)}</b>, and the balance is
-      kept per calendar quarter of the closing date. A quarter pays out <b>two quarters later</b>, on the first
-      Friday after the 10th of that quarter's first month &mdash; so ${qLabel(addQ)} pays
-      <b>${dday(adderPayday(addQ))}</b>. It rides its own schedule, not the weekly commission run, and is not
-      part of the total above.</p>
+      with ${esc(name)} as the closer. Each adder is worth <b>${fmt0(S.adderRate)}</b>, totalled per calendar
+      quarter of the closing date. A quarter is paid <b>two quarters later</b>, as a single line on the
+      adjustments of the first bonus run of that quarter &mdash; the first Friday after the 10th of its first
+      month. ${qLabel(addQ)} ${adderPaid(addQ) ? 'was paid' : 'pays'} in the
+      <b>${dday(adderPayday(addQ))}</b> run${adderPaid(addQ) ? '' : ', and the line is already sitting in it'}.
+      This page is the working behind that line, not a separate balance.</p>
       <div class="seg" style="margin-bottom:16px">${addQs.map(x =>
         `<button data-adderq="${x.q}" aria-pressed="${x.q === addQ}">${qLabel(x.q)}
           <span class="pill plain">${fmt0(x.amount)}</span></button>`).join('')}</div>
@@ -1718,7 +1749,7 @@ V.person = () => {
       ${addQs.length > 1 ? `<div class="grouplabel" style="margin-top:22px">Every quarter</div>
         <div class="scroll"><table>
         <thead><tr><th>Quarter</th><th>Closings covered</th><th class="r">Deals</th>
-          <th class="r">Adders</th><th class="r">Balance</th><th>Pays</th></tr></thead>
+          <th class="r">Adders</th><th class="r">Amount</th><th>Paid in the run of</th></tr></thead>
         <tbody>${addQs.map(x => `<tr class="clickable" data-adderq="${x.q}" tabindex="0">
           <td><b>${qLabel(x.q)}</b>${x.q === THIS_Q ? ' <span class="pill info">Current</span>' : ''}</td>
           <td class="muted">${windowOf(x.q)}</td>
@@ -1726,7 +1757,8 @@ V.person = () => {
           <td class="n r">${x.count}</td>
           <td class="n r"><b style="color:var(--c2)">${fmt0(x.amount)}</b></td>
           <td class="n">${dday(adderPayday(x.q))}
-            <div class="sub">${adderPaid(x.q) ? 'paid' : 'in ' + qLabel(adderPayQuarter(x.q))}</div></td>
+            <div class="sub">${adderPaid(x.q) ? 'paid &middot; on that run&rsquo;s adjustments'
+              : 'scheduled &middot; ' + qLabel(adderPayQuarter(x.q))}</div></td>
           </tr>`).join('')}</tbody>
         <tfoot><tr><td colspan="3">All quarters</td>
           <td class="r">${addQs.reduce((a, x) => a + x.count, 0)}</td>
@@ -2472,7 +2504,9 @@ function adjCard(runDate, lockedPerson) {
         <td><span class="pill ${a.amount < 0 ? 'crit' : 'good'}">${esc(a.kind)}</span></td>
         <td>${esc(a.label)}${a.note ? `<div class="sub">${esc(a.note)}</div>` : ''}</td>
         <td class="n r"><b style="color:${a.amount < 0 ? 'var(--crit)' : 'var(--good)'}">${fmt(a.amount)}</b></td>
-        ${canEdit && !locked ? `<td class="r"><button class="btn ghost" data-adjdel="${a.id}">Remove</button></td>` : ''}</tr>`).join('')
+        ${canEdit && !locked ? (a.auto
+          ? '<td class="r"><span class="muted" title="Generated from the deals that carried the adder">Automatic</span></td>'
+          : `<td class="r"><button class="btn ghost" data-adjdel="${a.id}">Remove</button></td>`) : ''}</tr>`).join('')
       || `<tr><td colspan="${(lockedPerson ? 4 : 5) + (canEdit && !locked ? 1 : 0)}" class="muted">No adjustments in this run${canEdit ? '. Add one above.' : '.'}</td></tr>`}</tbody>
       ${list.length ? `<tfoot><tr><td colspan="${lockedPerson ? 3 : 4}">Net</td>
         <td class="r">${fmt(list.reduce((s2, a) => s2 + a.amount, 0))}</td>${canEdit && !locked ? '<td></td>' : ''}</tr></tfoot>` : ''}
