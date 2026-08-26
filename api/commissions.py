@@ -42,6 +42,11 @@ EVENT_MODEL = os.environ.get("ODOO_EVENT_MODEL", "x_commission_event")
 JOURNAL_ID  = int(os.environ.get("ODOO_JOURNAL_ID") or 0) or None
 NOTE_ON_EMPLOYEE = os.environ.get("ODOO_NOTE_EMPLOYEE", "") == "1"
 
+# Access. By default only the people named in commissions_people.json can open
+# the ledger at all. Set COMMISSIONS_REPS=1 to also let each rep open their own
+# statement (their own deals and their own pay, nothing about anyone else).
+REPS_ENABLED = os.environ.get("COMMISSIONS_REPS", "") == "1"
+
 # ── plan constants, kept in step with the page ───────────────────
 RATES   = {"closer": 0.09, "canvasser": 0.05, "hourly": 0.01}
 RECRUIT = {"l1": {"self": 0.015, "closer": 0.0075, "setter": 0.0075},
@@ -595,6 +600,8 @@ def identify(session):
     listed = PEOPLE.get(email)
     if listed and listed.get("name"):
         return {"email": email, "name": listed["name"], "role": listed.get("role")}
+    if not REPS_ENABLED:
+        return None          # locked to the allowlist above
     # not listed: match the local part against the roster, so a new rep works
     # without an edit here. Own statement only.
     guess = email.split("@")[0].replace(".", " ").replace("_", " ").replace("-", " ").lower()
@@ -732,8 +739,12 @@ def handle_get(handler, path, session):
         if path == "/commissions":
             _html(handler, _DENY_PAGE.format(
                 title="No commission record for this account",
-                body=f"You are signed in as <code>{email}</code>, but that account is not "
-                     "matched to anyone on the sales roster.<br><br>Ask Abipsha or Biss to add you."),
+                body=(f"You are signed in as <code>{email}</code>. The commission ledger "
+                      "is currently open to a limited group.<br><br>Ask Abipsha or Biss "
+                      "if you need access.")
+                     if not REPS_ENABLED else
+                     (f"You are signed in as <code>{email}</code>, but that account is not "
+                      "matched to anyone on the sales roster.<br><br>Ask Abipsha or Biss to add you.")),
                 status=403)
         else:
             handler._json({"error": "No commission record for this account."}, status=403)
