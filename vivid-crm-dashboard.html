@@ -1264,6 +1264,9 @@
     <button class="sb-nav-item" data-tab="incentives" onclick="switchMainTab('incentives')">
       <i class="ti ti-trophy"></i> Incentives Tracker
     </button>
+    <button class="sb-nav-item" data-tab="onboarding" onclick="switchMainTab('onboarding')">
+      <i class="ti ti-user-plus"></i> Onboarding
+    </button>
     <div class="sb-divider"></div>
     <button class="sb-nav-item sb-nav-disabled">
       <i class="ti ti-report-analytics"></i> Reports
@@ -1308,6 +1311,7 @@
   <button class="main-tab active" data-tab="revenue" onclick="switchMainTab('revenue')">Revenue Tracker</button>
   <button class="main-tab" data-tab="terros" onclick="switchMainTab('terros')">Terros Board</button>
   <button class="main-tab" data-tab="incentives" onclick="switchMainTab('incentives')">Incentives Tracker</button>
+  <button class="main-tab" data-tab="onboarding" onclick="switchMainTab('onboarding')">Onboarding</button>
   <button class="main-tab" data-tab="playbook" onclick="switchMainTab('playbook')" style="display:none">Playbook</button>
 </div>
 
@@ -1467,6 +1471,28 @@
   </div>
 
 </div><!-- /main-incentives -->
+
+<!-- ═══════════════════════════════════════════════════════════
+     PANEL 5 — Onboarding Tracker
+═══════════════════════════════════════════════════════════ -->
+<div class="main-panel" id="main-onboarding">
+  <div class="ob-wrapper">
+    <div class="ob-summary" id="obSummary"></div>
+    <div id="obContent">
+      <div style="color:var(--muted);font-size:13px;padding:10px 0"><div class="spinner" style="margin-bottom:8px;"></div>Loading…</div>
+    </div>
+  </div>
+  <div class="rev-footer">
+    <div class="rev-footer-status">
+      <span class="dot" id="obStatusDot"></span>
+      <span id="obStatusText">Loading…</span>
+    </div>
+    <div class="rev-footer-right">
+      <span class="range-label" id="obUpdated" style="font-size:10px;color:var(--muted);margin-right:6px;"></span>
+      <button class="footer-refresh-btn" id="obRefreshBtn" onclick="loadOnboarding(true)">Refresh</button>
+    </div>
+  </div>
+</div><!-- /main-onboarding -->
 
 <!-- ═══════════════════════════════════════════════════════════
      PANEL 4 — Playbook
@@ -1640,6 +1666,108 @@ function officeColor(name) {
   return '#888';
 }
 
+
+// ── Onboarding Tracker ───────────────────────────────────────
+// Reads /api/odoo/onboarding: everyone sitting in Pre-Boarding or Onboarding,
+// with their W-9 status (an open Gusto activity means it is still outstanding)
+// and any signature requests they have not completed.
+var _obLastLoaded = 0;
+
+function obEsc(v) {
+  return String(v == null ? '' : v).replace(/[&<>"]/g, function(c) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
+  });
+}
+function obDate(v) {
+  if (!v) return '';
+  var p = String(v).slice(0, 10).split('-');
+  if (p.length !== 3) return String(v);
+  var M = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return M[+p[1] - 1] + ' ' + (+p[2]) + ', ' + p[0];
+}
+
+async function loadOnboarding(force) {
+  if (!force && _obLastLoaded && (Date.now() - _obLastLoaded < 300000)) return;
+  var btn = document.getElementById('obRefreshBtn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Loading…'; }
+  document.getElementById('obStatusDot').className = 'dot loading';
+  document.getElementById('obStatusText').textContent = 'Fetching from Odoo…';
+  try {
+    var r = await fetch(LOCAL_API + '/api/odoo/onboarding' + (force ? '?force=1' : ''));
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    var data = await r.json();
+    renderOnboarding(data);
+    _obLastLoaded = Date.now();
+    var n = (data.employees || []).length;
+    document.getElementById('obStatusDot').className = data.stale ? 'dot error' : 'dot';
+    document.getElementById('obStatusText').textContent = data.stale
+      ? 'Odoo did not respond — showing the last good data'
+      : n + ' in onboarding · updated ' + new Date().toLocaleTimeString();
+    document.getElementById('obUpdated').textContent =
+      data.generated_at ? 'Odoo as of ' + String(data.generated_at).slice(11, 19) + ' UTC' : '';
+  } catch (err) {
+    document.getElementById('obStatusDot').className = 'dot error';
+    document.getElementById('obStatusText').textContent = 'Error: ' + err.message;
+    document.getElementById('obContent').innerHTML =
+      '<div class="ob-empty">Could not load onboarding data. ' + obEsc(err.message) + '</div>';
+  }
+  if (btn) { btn.disabled = false; btn.textContent = 'Refresh'; }
+}
+
+function obStat(v, label, color) {
+  return '<div class="ob-stat"><div class="ob-stat-val" style="color:' + color + '">' + v + '</div>'
+       + '<div class="ob-stat-label">' + label + '</div></div>';
+}
+
+function obRow(e) {
+  var docs = e.unsigned_docs || [];
+  var meta = [];
+  if (e.region) meta.push('<span class="ob-region" style="background:' + officeColor(e.region) + '"></span>' + obEsc(e.region));
+  if (e.start_date)  meta.push('Starts ' + obDate(e.start_date));
+  if (e.manager)     meta.push('Reports to ' + obEsc(e.manager));
+  if (e.referred_by) meta.push('Referred by ' + obEsc(e.referred_by));
+  return '<div class="ob-row">'
+    + '<div class="ob-row-top"><div class="ob-name">' + obEsc(e.name) + '</div>'
+    + '<span class="ob-badge ' + (e.w9_done ? 'ok' : 'warn') + '">W-9 ' + (e.w9_done ? 'done' : 'pending') + '</span></div>'
+    + (meta.length ? '<div class="ob-meta">' + meta.join(' &middot; ') + '</div>' : '')
+    + (docs.length ? '<div class="ob-docs">' + docs.map(function(d) {
+        return '<span class="ob-doc">' + obEsc(d) + '</span>'; }).join('') + '</div>' : '')
+    + '</div>';
+}
+
+function renderOnboarding(data) {
+  var emps = (data && data.employees) || [];
+  var pre   = emps.filter(function(e) { return e.stage_key === 'status1'; });
+  var on    = emps.filter(function(e) { return e.stage_key === 'status2'; });
+  var other = emps.filter(function(e) { return e.stage_key !== 'status1' && e.stage_key !== 'status2'; });
+  var w9Out   = emps.filter(function(e) { return !e.w9_done; }).length;
+  var docsOut = emps.filter(function(e) { return (e.unsigned_docs || []).length; }).length;
+
+  document.getElementById('obSummary').innerHTML =
+      obStat(emps.length, 'In pipeline', 'var(--ink)')
+    + obStat(pre.length, 'Pre-Boarding', 'var(--blue)')
+    + obStat(on.length, 'Onboarding', 'var(--amber)')
+    + obStat(w9Out, 'W-9 outstanding', w9Out ? 'var(--red)' : 'var(--green)')
+    + obStat(docsOut, 'Docs unsigned', docsOut ? 'var(--red)' : 'var(--green)');
+
+  if (!emps.length) {
+    document.getElementById('obContent').innerHTML =
+      '<div class="ob-section"><div class="ob-empty">Nobody is in Pre-Boarding or Onboarding right now.</div></div>';
+    return;
+  }
+
+  var groups = [{ title: 'Pre-Boarding', rows: pre }, { title: 'Onboarding', rows: on }];
+  if (other.length) groups.push({ title: 'Other stages', rows: other });
+
+  document.getElementById('obContent').innerHTML = '<div class="ob-grid">' + groups.map(function(g) {
+    return '<div class="ob-section">'
+      + '<div class="ob-sec-header"><div class="ob-sec-title">' + obEsc(g.title) + '</div>'
+      + '<div class="ob-sec-count">' + g.rows.length + ' ' + (g.rows.length === 1 ? 'person' : 'people') + '</div></div>'
+      + (g.rows.length ? g.rows.map(obRow).join('') : '<div class="ob-empty">Nobody at this stage.</div>')
+      + '</div>';
+  }).join('') + '</div>';
+}
+
 // ── Main tab switching ────────────────────────────────────────
 function switchMainTab(tab) {
   activeMainTab = tab;
@@ -1649,6 +1777,7 @@ function switchMainTab(tab) {
   document.querySelectorAll('.main-panel').forEach(function(p) { p.classList.toggle('active', p.id === 'main-' + tab); });
   if (tab === 'incentives') loadIncentivesData();
   if (tab === 'playbook') pbInit();
+  if (tab === 'onboarding') loadOnboarding();
 }
 
 // ── Date range (Revenue) ─────────────────────────────────────
@@ -3748,6 +3877,31 @@ document.addEventListener('click', function(e) {
   #aiChatBtn{bottom:70px;}
   #aiChatPanel{bottom:130px;right:10px;width:calc(100vw - 20px);}
 }
+
+  /* ── Onboarding Tracker ── */
+  .ob-wrapper { padding: 20px 28px 36px; }
+  .ob-summary { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
+  .ob-stat { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 12px 16px; min-width: 118px; }
+  .ob-stat-val { font-family: 'Roboto Condensed', sans-serif; font-size: 24px; font-weight: 800; line-height: 1; }
+  .ob-stat-label { font-family: 'Inter', sans-serif; font-size: 9px; color: var(--muted); letter-spacing: .06em; text-transform: uppercase; margin-top: 6px; }
+  .ob-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
+  .ob-section { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .ob-sec-header { padding: 14px 18px 12px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .ob-sec-title { font-family: 'Roboto Condensed', sans-serif; font-size: 17px; font-weight: 800; color: var(--white); letter-spacing: -.2px; }
+  .ob-sec-count { font-family: 'Inter', sans-serif; font-size: 10px; color: var(--muted); }
+  .ob-row { padding: 12px 18px; border-bottom: 1px solid var(--border-light); }
+  .ob-row:last-child { border-bottom: none; }
+  .ob-row-top { display: flex; align-items: center; gap: 10px; }
+  .ob-name { font-family: 'Inter', sans-serif; font-weight: 600; font-size: 13px; color: var(--ink); flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ob-meta { font-family: 'Inter', sans-serif; font-size: 10px; color: var(--muted); margin-top: 4px; }
+  .ob-badge { font-family: 'Inter', sans-serif; font-size: 9px; font-weight: 600; letter-spacing: .04em; padding: 3px 8px; border-radius: 4px; white-space: nowrap; flex-shrink: 0; }
+  .ob-badge.ok { background: var(--green-bg); color: var(--green); }
+  .ob-badge.warn { background: var(--amber-bg); color: var(--amber); }
+  .ob-docs { margin-top: 7px; display: flex; flex-wrap: wrap; gap: 3px; }
+  .ob-doc { display: inline-block; background: var(--red-bg); border-radius: 3px; padding: 2px 7px; font-family: 'Inter', sans-serif; font-size: 9px; color: var(--red); white-space: nowrap; }
+  .ob-empty { padding: 18px; color: var(--muted); font-size: 12px; font-family: 'Inter', sans-serif; }
+  .ob-region { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 5px; vertical-align: middle; }
+  @media (max-width: 900px) { .ob-grid { grid-template-columns: 1fr; } .ob-wrapper { padding: 16px 16px 30px; } }
 </style>
 
 <button id="aiChatBtn" onclick="toggleAiChat()" title="Ask AI about this data" aria-label="Open AI chat">
