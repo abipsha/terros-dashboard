@@ -3844,6 +3844,10 @@ document.addEventListener('click', function(e) {
     <i class="ti ti-trophy"></i>
     <span>Incentives</span>
   </button>
+  <button class="mobile-tab" data-tab="onboarding" onclick="switchMainTab('onboarding')">
+    <i class="ti ti-user-plus"></i>
+    <span>Onboarding</span>
+  </button>
 </nav>
 
 </div><!-- /main-content -->
@@ -3880,8 +3884,8 @@ document.addEventListener('click', function(e) {
 
   /* ── Onboarding Tracker ── */
   .ob-wrapper { padding: 20px 28px 36px; }
-  .ob-summary { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
-  .ob-stat { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 12px 16px; min-width: 118px; }
+  .ob-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(118px, 1fr)); gap: 10px; margin-bottom: 20px; }
+  .ob-stat { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 12px 16px; }
   .ob-stat-val { font-family: 'Roboto Condensed', sans-serif; font-size: 24px; font-weight: 800; line-height: 1; }
   .ob-stat-label { font-family: 'Inter', sans-serif; font-size: 9px; color: var(--muted); letter-spacing: .06em; text-transform: uppercase; margin-top: 6px; }
   .ob-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
@@ -3901,7 +3905,30 @@ document.addEventListener('click', function(e) {
   .ob-doc { display: inline-block; background: var(--red-bg); border-radius: 3px; padding: 2px 7px; font-family: 'Inter', sans-serif; font-size: 9px; color: var(--red); white-space: nowrap; }
   .ob-empty { padding: 18px; color: var(--muted); font-size: 12px; font-family: 'Inter', sans-serif; }
   .ob-region { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 5px; vertical-align: middle; }
-  @media (max-width: 900px) { .ob-grid { grid-template-columns: 1fr; } .ob-wrapper { padding: 16px 16px 30px; } }
+  @media (max-width: 900px) {
+    .ob-grid { grid-template-columns: 1fr; gap: 16px; }
+    .ob-wrapper { padding: 16px 16px 30px; }
+  }
+  @media (max-width: 600px) {
+    .ob-wrapper { padding: 14px 12px 26px; }
+    /* the headline number gets the full width, the rest pair off underneath */
+    .ob-summary { grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
+    .ob-summary > .ob-stat:first-child { grid-column: 1 / -1; }
+    .ob-stat { padding: 10px 14px; }
+    .ob-stat-val { font-size: 21px; }
+    .ob-grid { gap: 14px; }
+    .ob-sec-header { padding: 12px 14px 10px; }
+    .ob-sec-title { font-size: 15px; }
+    .ob-row { padding: 12px 14px; }
+    /* names wrap in full rather than truncating - on a phone the name is the point */
+    .ob-row-top { align-items: flex-start; }
+    .ob-name { white-space: normal; font-size: 14px; line-height: 1.35; }
+    .ob-meta { font-size: 11px; line-height: 1.65; margin-top: 5px; }
+    .ob-badge { padding: 4px 8px; }
+    .ob-docs { gap: 4px; margin-top: 8px; }
+    /* document names are long file names - let them break instead of overflowing */
+    .ob-doc { white-space: normal; overflow-wrap: anywhere; font-size: 10px; padding: 3px 8px; line-height: 1.35; }
+  }
 </style>
 
 <button id="aiChatBtn" onclick="toggleAiChat()" title="Ask AI about this data" aria-label="Open AI chat">
