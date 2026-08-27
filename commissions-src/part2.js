@@ -572,6 +572,16 @@ function legAmt(d, leg) { return leg === 'setter' ? d.canvPay : d.closerPay; }
 function legWho(d, leg) { return leg === 'setter' ? d.canvasser : d.closer; }
 /* a released leg pays in the next open run when its own run has already gone out */
 function legRun(d, leg) { return legState(d, leg) === 'released' && d.run <= LAST_PAID ? OPEN_RUN : d.run; }
+/* A hold only bears on a run that was still open when the hold was placed.
+   Holding a leg today cannot rewrite what a run paid out weeks ago: that money
+   has gone, the run is a record of it, and clawing it back is an adjustment.
+   Holds carried in the dataset have no placement date and are treated as having
+   always been there, which is what reconciling against the workbook expects. */
+function holdAppliesTo(id, runDate) {
+  const h = HOLDS.get(id);
+  if (!h || h.seeded || !h.at) return true;
+  return h.at <= freezeDate(runDate);
+}
 function setHold(id, leg, state, reason, by, at) {
   const h = HOLDS.get(id) || { setter: null, closer: null, reason: '', at: at || D.frozenAt, by: by || ADMIN_NOW };
   h[leg] = state;
@@ -600,6 +610,8 @@ function allHolds() {
   const d = DEALS.find(x => x.opp === h.opp && x.close === h.close);
   if (!d) return;                       /* the deal is outside this person's scope */
   (h.legs || []).forEach(leg => setHold(d.id, leg, 'held', h.reason));
+  const rec = HOLDS.get(d.id);
+  if (rec) rec.seeded = true;      /* has always been held; not placed on a date */
 });
 
 /* ===========================================================================
@@ -709,7 +721,9 @@ function runSheet(date) {
   consider.forEach(d => ['setter', 'closer'].forEach(leg => {
     const amt = legAmt(d, leg);
     if (!amt) return;
-    const st = legState(d, leg);
+    /* a hold placed after this run froze leaves it exactly as it paid */
+    const applies = holdAppliesTo(d.id, date);
+    const st = applies ? legState(d, leg) : 'pay';
     if (st === 'held') {
       if (d.run === date) {
         const r = touch(legWho(d, leg));
@@ -718,7 +732,7 @@ function runSheet(date) {
       }
       return;
     }
-    if (legRun(d, leg) !== date) return;
+    if ((applies ? legRun(d, leg) : d.run) !== date) return;
     const r = touch(legWho(d, leg));
     if (leg === 'setter') r.setter += amt; else r.closer += amt;
     if (st === 'released') r.released += amt;
@@ -2111,9 +2125,9 @@ function holdCard(d) {
     if (!amt) return '';
     return `<div class="rate"><div class="rl">
         <b>${name} &mdash; ${esc(person)}</b>
-        <div class="sub">${st === 'held' ? 'Withheld from every run since ' + dshort(h.at) + (h.by ? ' by ' + esc(h.by) : '') + (h.reason ? ' &middot; ' + esc(h.reason) : '')
+        <div class="sub">${st === 'held' ? 'Withheld from every run' + (h.seeded || !h.at ? '' : ' since ' + dshort(h.at)) + (h.by && !h.seeded ? ' by ' + esc(h.by) : '') + (h.reason ? ' &middot; ' + esc(h.reason) : '')
           : st === 'released' ? 'Released &mdash; pays in the ' + dshort(legRun(d, key)) + ' run'
-          : 'Pays in the ' + dshort(d.run) + ' run'}</div></div>
+          : (d.run <= LAST_PAID ? 'Paid in the ' : 'Pays in the ') + dshort(d.run) + ' run'}</div></div>
       <b class="n" style="${st === 'held' ? 'color:var(--crit)' : ''}">${fmt(amt)}</b>
       <span class="pill ${st === 'held' ? 'crit' : st === 'released' ? 'info' : 'good'}">${st === 'held' ? 'On hold' : st === 'released' ? 'Released' : 'Payable'}</span>
       ${admin && firstOpenRun() ? (st === 'held'
@@ -2126,6 +2140,11 @@ function holdCard(d) {
     that person. The setter and the closer are held separately. Releasing pays it in the next open run rather than
     back-dating it into a run that has frozen. A hold placed after the freeze takes effect from the
     ${firstOpenRun() ? dshort(firstOpenRun()) : 'next'} run.</p>
+    ${admin && d.run <= LAST_PAID ? `<div class="note" style="margin:0 0 14px">
+      <span class="tag">Already paid</span> This deal paid in the <b>${dshort(d.run)}</b> run, so a hold placed now
+      cannot take that money back &mdash; the run keeps the figures it went out with, and holding only stops the leg
+      being paid again. To recover it, enter a <b>chargeback</b> against that rep in the
+      ${firstOpenRun() ? dshort(firstOpenRun()) : 'next open'} run.</div>` : ''}
     ${admin ? `<div class="rate" style="border-bottom:1px solid var(--line-2)">
       <div class="rl"><b>Reason</b><div class="sub">Shows on the hold list and on their statement</div></div>
       <select class="pick" id="holdReason" aria-label="Hold reason">
