@@ -124,6 +124,7 @@ _events_stale = False
 _lead_cache   = {}
 _emp_cache    = {}
 _schema_ready = False
+_has_name     = False   # Studio adds a mandatory x_name (Description) to a new model
 
 
 def _odoo_now():
@@ -174,9 +175,16 @@ def ensure_schema():
 
     have = odoo.call_kw("ir.model.fields", "search_read",
                         [[["model", "=", EVENT_MODEL],
-                          ["name", "in", [w[0] for w in want]]]],
+                          ["name", "in", [w[0] for w in want] + ["x_name"]]]],
                         {"fields": ["name", "ttype", "state"]})
     by_name = {f["name"]: f for f in have}
+
+    # Studio puts a mandatory Char called x_name ("Description") on every model
+    # it creates. Leaving it unset makes Odoo refuse the create outright, which
+    # is a write failure at the worst moment - somebody putting a hold on a
+    # deal. If it is there, every event gets a readable one-line description.
+    global _has_name
+    _has_name = "x_name" in by_name
 
     # An empty model can be corrected in place; one with events in it cannot,
     # because dropping a column would take real pay history with it.
@@ -342,6 +350,29 @@ def _post_note(ev, lead_id):
 DEAL_KINDS = ("hold", "release", "changeorder.apply", "changeorder.undo")
 
 
+def _event_label(kind, target, payload, is_deal):
+    """A one-line description for the Odoo record - this is what somebody
+    scrolling the Commission Event list actually reads."""
+    p = payload or {}
+    if is_deal:
+        who = str(target or "").split("|")[0]
+    elif kind == "run.freeze":
+        who = str(target or "")
+    else:
+        who = str(target or "")
+    bits = [kind]
+    if p.get("leg"):
+        bits.append(str(p["leg"]))
+    if who:
+        bits.append("- " + who)
+    if p.get("amount") is not None:
+        try:
+            bits.append("{:+,.2f}".format(float(p["amount"])))
+        except (TypeError, ValueError):
+            pass
+    return " ".join(bits)[:250]
+
+
 def append_event(kind, target, payload, actor, actor_email):
     ensure_schema()
     at = _odoo_now()
@@ -364,6 +395,8 @@ def append_event(kind, target, payload, actor, actor_email):
         "x_at": at,
         "x_run": (payload or {}).get("run") or (target if kind == "run.freeze" else False),
     }
+    if _has_name:
+        vals["x_name"] = _event_label(kind, target, payload, is_deal)
     new_id = odoo.call_kw(EVENT_MODEL, "create", [vals], {})
 
     global _events_cache
