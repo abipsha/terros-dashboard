@@ -54,7 +54,7 @@ RECRUIT = {"l1": {"self": 0.015, "closer": 0.0075, "setter": 0.0075},
 CUTOFF  = "2026-01-01"
 
 KINDS = ["hold", "release", "adjustment", "adjustment.remove",
-         "changeorder.apply", "changeorder.undo", "run.freeze"]
+         "changeorder.apply", "changeorder.decline", "changeorder.undo", "run.freeze"]
 HOLD_REASONS = ["Customer financing not approved", "Awaiting signed change order",
                 "Job cancelled - chargeback pending", "Rep eligibility under review",
                 "Contract value in dispute", "Install on hold", "Other"]
@@ -399,6 +399,11 @@ def _note_for(ev):
                   "closer commission, both levels of recruiting bonus and the manager override "
                   "have been recalculated, and only the difference is paid or clawed back. Runs "
                   "that already went out are unchanged.")
+    elif k == "changeorder.decline":
+        title = "Change order not applied"
+        detail = ("The contract value moved after commission had already been paid, and the "
+                  "difference was reviewed and deliberately not paid on. Nobody is paid or "
+                  "clawed back for it. It can be put back in the queue later.")
     elif k == "changeorder.undo":
         title = "Change order reversed"
         detail = "Commission goes back to what the original contract value paid."
@@ -479,7 +484,8 @@ def _post_note(ev, lead_id):
     return None
 
 
-DEAL_KINDS = ("hold", "release", "changeorder.apply", "changeorder.undo")
+DEAL_KINDS = ("hold", "release", "changeorder.apply", "changeorder.decline",
+              "changeorder.undo")
 
 
 def _event_label(kind, target, payload, is_deal):
@@ -802,7 +808,7 @@ def _validate(kind, target, p):
         if kind == "hold" and p.get("reason") and p["reason"] not in HOLD_REASONS:
             return "Unknown hold reason."
         return None
-    if kind in ("changeorder.apply", "changeorder.undo"):
+    if kind in ("changeorder.apply", "changeorder.decline", "changeorder.undo"):
         if not _deal_by_key(target):
             return "That deal is not in the ledger."
         return None

@@ -945,7 +945,12 @@ function applyCO(id, state) {
     const bd = BONUS_OF.get(d.month);
     co.bonusRun = bd && isApproved(bd) ? nextBonusRun() : null;
     co.at = TODAY_D; co.by = ADMIN_NOW;
-  } else { co.commRun = null; co.bonusRun = null; }
+  } else {
+    co.commRun = null; co.bonusRun = null;
+    /* declining is a decision and gets a name against it; reopening clears that */
+    if (state === 'declined') { co.at = TODAY_D; co.by = ADMIN_NOW; }
+    else { co.at = null; co.by = null; }
+  }
 }
 /* A change order is the gap between what a deal was paid on and what the
    contract says now. It can only exist once the basis is settled - while a deal
@@ -966,6 +971,9 @@ function seedCOs() {
   });
 }
 const coPending = () => [...CO.entries()].filter(x => x[1].state === 'pending')
+  .map(x => ({ d: DEALS[x[0]], co: x[1] })).sort((a, b) => Math.abs(b.co.delta) - Math.abs(a.co.delta));
+/* looked at and deliberately not paid on - out of the queue, still on the record */
+const coDeclined = () => [...CO.entries()].filter(x => x[1].state === 'declined')
   .map(x => ({ d: DEALS[x[0]], co: x[1] })).sort((a, b) => Math.abs(b.co.delta) - Math.abs(a.co.delta));
 const coApplied = () => [...CO.entries()].filter(x => x[1].state === 'applied')
   .map(x => ({ d: DEALS[x[0]], co: x[1] }));
@@ -1173,6 +1181,7 @@ function applyEvents(events) {
     if (e.kind === 'hold') setHold(d.id, p.leg, 'held', p.reason, e.actor, String(e.at).slice(0, 10));
     if (e.kind === 'release') setHold(d.id, p.leg, 'released', '', e.actor, String(e.at).slice(0, 10));
     if (e.kind === 'changeorder.apply') applyCO(d.id, 'applied');
+    if (e.kind === 'changeorder.decline') applyCO(d.id, 'declined');
     if (e.kind === 'changeorder.undo') applyCO(d.id, 'pending');
   });
 }
@@ -2366,6 +2375,8 @@ function coDealCard(d) {
     <h2>Change order</h2>
     <p class="hint" style="margin:6px 0 16px">The contract value moved after this deal was paid on.
     ${co.state === 'applied' ? 'It has been applied, so only the difference is paid out.'
+      : co.state === 'declined' ? 'It was reviewed and deliberately not applied' + (co.by ? ' by ' + esc(co.by) : '')
+        + (co.at ? ' on ' + dshort(co.at) : '') + ', so the difference does not move. Reopening puts it back in the queue.'
       : 'Nothing has been paid on the difference yet.'}</p>
     <div class="metricgrid" style="margin-bottom:20px">
       <div class="metric"><span class="mlabel">Paid on</span><span class="mval xs">${fmt0(d.baseImplied)}</span></div>
@@ -2373,7 +2384,7 @@ function coDealCard(d) {
       <div class="metric"><span class="mlabel">Change</span>
         <span class="mval xs" style="color:${co.delta < 0 ? 'var(--crit)' : 'var(--good)'}">${fmt0(co.delta)}</span></div>
       <div class="metric"><span class="mlabel">Status</span>
-        <span style="margin-top:8px"><span class="pill ${co.state === 'applied' ? 'info' : 'warn'}">${co.state === 'applied' ? 'Applied' : 'Not applied'}</span></span></div>
+        <span style="margin-top:8px"><span class="pill ${co.state === 'applied' ? 'info' : co.state === 'declined' ? 'plain' : 'warn'}">${co.state === 'applied' ? 'Applied' : co.state === 'declined' ? 'Not applied' : 'Waiting'}</span></span></div>
     </div>
     <div class="scroll"><table><thead><tr><th>What it changes</th><th>Who</th><th class="r">Amount</th></tr></thead>
       <tbody>
@@ -2390,7 +2401,9 @@ function coDealCard(d) {
         : BONUS_OF.get(d.month) ? 'are folded into the ' + dshort(BONUS_OF.get(d.month)) + ' bonus run, which has not gone out yet' : 'are unaffected'}.</p>` : ''}
     ${admin ? `<div style="display:flex;gap:10px;margin-top:18px">
       ${co.state === 'applied' ? `<button class="btn ghost" data-co="undo:${d.id}">Undo</button>`
-        : `<button class="btn" data-co="apply:${d.id}">Apply change order</button>`}</div>` : ''}
+        : co.state === 'declined' ? `<button class="btn ghost" data-co="undo:${d.id}">Reopen</button>`
+        : `<button class="btn" data-co="apply:${d.id}">Apply change order</button>
+           <button class="btn ghost" data-co="decline:${d.id}">Do not apply</button>`}</div>` : ''}
   </div>`;
 }
 
@@ -2523,13 +2536,14 @@ function freezeCard(sh) {
 /* ---- change orders waiting to be applied ---- */
 function coCard() {
   const wr = canEditAll();   /* read-only viewers get the table, not the buttons */
-  const pend = coPending(), app = coApplied();
+  const pend = coPending(), app = coApplied(), dec = coDeclined();
   const net = pend.reduce((a, x) => a + (coEffect(x.d) || { total: 0 }).total, 0);
   const show = S.coAll ? pend : pend.slice(0, 8);
   return `<div class="card">
     <div class="chead"><h2>Change orders</h2>
-      ${pend.length ? `<span class="pill warn">${pend.length} not applied</span>` : '<span class="pill good">All applied</span>'}
+      ${pend.length ? `<span class="pill warn">${pend.length} waiting</span>` : '<span class="pill good">Queue clear</span>'}
       ${app.length ? `<span class="pill info">${app.length} applied</span>` : ''}
+      ${dec.length ? `<span class="pill plain">${dec.length} not applied</span>` : ''}
       <div class="spacer"></div>
       <span class="mlabel">Commission pays in the next open run &middot; bonuses in the next bonus run</span></div>
     <div class="cbody" style="padding-top:0">
@@ -2552,7 +2566,8 @@ function coCard() {
           <td class="n r">${fmt(e.setter + e.closer)}</td>
           <td class="n r">${fmt(bon)}</td>
           <td class="n r"><b style="color:${e.total < 0 ? 'var(--crit)' : 'var(--c4)'}">${fmt(e.total)}</b></td>
-          ${wr ? `<td class="r"><button class="btn" data-co="apply:${x.d.id}">Apply</button></td>` : ''}</tr>`; }).join('')}</tbody>
+          ${wr ? `<td class="r" style="white-space:nowrap"><button class="btn" data-co="apply:${x.d.id}">Apply</button>
+            <button class="btn ghost" data-co="decline:${x.d.id}">Do not apply</button></td>` : ''}</tr>`; }).join('')}</tbody>
         <tfoot><tr><td colspan="8">${pend.length} waiting${pend.length > show.length ? ' &middot; showing ' + show.length : ''}</td>
           <td class="r">${fmt(net)}</td>
           <td class="r"${wr ? '' : ' colspan="2"'}>${pend.length > 8 ? `<button class="btn ghost" data-co="${S.coAll ? 'less' : 'all'}">${S.coAll ? 'Show less' : 'Show all'}</button>` : ''}</td></tr></tfoot>
@@ -2567,6 +2582,22 @@ function coCard() {
           <td class="n muted">${x.co.bonusRun ? dshort(x.co.bonusRun) : (BONUS_OF.get(x.d.month) ? 'folded into ' + dshort(BONUS_OF.get(x.d.month)) : '&mdash;')}</td>
           <td class="n r"><b style="color:var(--c4)">${fmt(e.total)}</b></td>
           ${wr ? `<td class="r"><button class="btn ghost" data-co="undo:${x.d.id}">Undo</button></td>` : ''}</tr>`; }).join('')}</tbody>
+      </table></div>` : ''}
+      ${dec.length ? `<div class="grouplabel">Not applied</div>
+      <p class="hint" style="margin:0 0 12px">Looked at and deliberately not paid on. The contract value still
+      differs from what the deal was paid on &mdash; the decision was that the difference does not move.
+      Reopening puts it back in the queue.</p>
+      <div class="scroll"><table>
+        <thead><tr><th>Opportunity</th><th class="r">Paid on</th><th class="r">Now</th><th class="r">Change</th>
+          <th class="r">Effect declined</th><th>Decided</th>${wr ? '<th></th>' : ''}</tr></thead>
+        <tbody>${dec.map(x => { const e = coEffect(x.d); return `<tr class="clickable" data-deal="${x.d.id}" tabindex="0">
+          <td>${esc(x.d.opp)}<div class="sub">closed ${dshort(x.d.close)}</div></td>
+          <td class="n r muted">${fmt0(x.d.baseImplied)}</td>
+          <td class="n r muted">${fmt0(x.d.value)}</td>
+          <td class="n r"><b style="color:${x.co.delta < 0 ? 'var(--crit)' : 'var(--good)'}">${fmt0(x.co.delta)}</b></td>
+          <td class="n r muted">${fmt(e.total)}</td>
+          <td class="n muted">${x.co.at ? dshort(x.co.at) : '&mdash;'}${x.co.by ? '<div class="sub">' + esc(x.co.by) + '</div>' : ''}</td>
+          ${wr ? `<td class="r"><button class="btn ghost" data-co="undo:${x.d.id}">Reopen</button></td>` : ''}</tr>`; }).join('')}</tbody>
       </table></div>` : ''}
     </div></div>`;
 }
@@ -2731,10 +2762,12 @@ document.addEventListener('click', ev => {
     const id = +p[1], d = DEALS[id];
     if (!d) return;
     const before = CO.get(id) ? Object.assign({}, CO.get(id)) : null;
-    applyCO(id, p[0] === 'apply' ? 'applied' : 'pending');
+    const state = p[0] === 'apply' ? 'applied' : p[0] === 'decline' ? 'declined' : 'pending';
+    const kind = p[0] === 'apply' ? 'changeorder.apply'
+      : p[0] === 'decline' ? 'changeorder.decline' : 'changeorder.undo';
+    applyCO(id, state);
     render();
-    save(p[0] === 'apply' ? 'changeorder.apply' : 'changeorder.undo', dealKey(d), {},
-      () => { if (before) CO.set(id, before); });
+    save(kind, dealKey(d), {}, () => { if (before) CO.set(id, before); });
     return;
   }
   if (t.dataset.adjdel) {
