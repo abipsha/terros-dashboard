@@ -313,8 +313,9 @@ def ensure_schema():
             "was changed - dropping a column would take pay history with it. Sort it out in "
             "Odoo by hand, then restart.")
     _schema_ready = True
+    jid = journal_id()
     print(f"[commissions] Odoo store ready: {EVENT_MODEL}"
-          + (f", journal record {JOURNAL_ID}" if JOURNAL_ID else ""))
+          + (f", journal record {jid}" if jid else ", no journal record"))
 
 
 def _find_lead(opp, close):
@@ -423,6 +424,42 @@ def _note_for(ev):
             f"{_esc(_when(ev.get('at')))} &middot; commission ledger</span></p>")
 
 
+_journal_id, _journal_looked = None, False
+
+
+def journal_id():
+    """The record that adjustments and pay-run freezes post their notes to.
+
+    ODOO_JOURNAL_ID names it outright. Failing that, look for the one record in
+    the model that is not an event: every event this module writes sets x_kind,
+    so the journal record is the one without it. Configuration a person has to
+    remember, whose absence shows up as nothing happening, is worse than a
+    lookup that says what it found."""
+    global _journal_id, _journal_looked
+    if JOURNAL_ID:
+        return JOURNAL_ID
+    if _journal_looked:
+        return _journal_id
+    _journal_looked = True
+    try:
+        rows = odoo.call_kw(EVENT_MODEL, "search_read", [[["x_kind", "in", [False, ""]]]],
+                            {"fields": ["id", "x_name"], "order": "id asc", "limit": 3})
+        if len(rows) == 1:
+            _journal_id = rows[0]["id"]
+            print(f"[commissions] journal record: {EVENT_MODEL} id {_journal_id}"
+                  f" ({rows[0].get('x_name') or 'unnamed'})")
+        elif not rows:
+            print(f"[commissions] no journal record in {EVENT_MODEL}. Adjustment and pay-run"
+                  " notes will not be posted - the events themselves still save. Create one"
+                  " record with a Description and no Kind, or set ODOO_JOURNAL_ID.")
+        else:
+            print(f"[commissions] several records in {EVENT_MODEL} have no Kind, so the journal"
+                  " record is ambiguous. Set ODOO_JOURNAL_ID to the one you want.")
+    except Exception as e:
+        print(f"[commissions] could not look up the journal record: {e}")
+    return _journal_id
+
+
 def _post_note(ev, lead_id):
     """Best effort. A failed note never fails the write - the record is what
     the ledger reads back; the note is only for people reading Odoo."""
@@ -434,8 +471,11 @@ def _post_note(ev, lead_id):
         emp = _find_employee(ev["target"])
         if emp:
             return odoo.call_kw("hr.employee", "message_post", [[emp]], kw)
-    if JOURNAL_ID:
-        return odoo.call_kw(EVENT_MODEL, "message_post", [[JOURNAL_ID]], kw)
+    jid = journal_id()
+    if jid:
+        return odoo.call_kw(EVENT_MODEL, "message_post", [[jid]], kw)
+    print(f"[commissions] no journal record, so no note was posted for {ev.get('kind')}"
+          f" {ev.get('target')}. The event itself saved.")
     return None
 
 
