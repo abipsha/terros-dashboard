@@ -50,7 +50,6 @@ if (SESSION) {
   if (SESSION.role === 'viewer' && VIEWERS.indexOf(SESSION.name) < 0) VIEWERS.push(SESSION.name);
 }
 let ADMIN_NOW = SESSION && SESSION.role === 'admin' ? SESSION.name : ADMINS[0];
-const LAST_PAID = '2026-08-21', OPEN_RUN = '2026-08-28';
 const DAYSHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const dayOf = s2 => DAYSHORT[new Date(s2 + 'T00:00:00Z').getUTCDay()];
 const dday = s2 => s2 ? dayOf(s2) + ' ' + dshort(s2) : '&mdash;';
@@ -70,8 +69,19 @@ function windowLabel(runDate) {
 /* A run freezes ahead of its Friday payday. Nothing can be edited after the freeze;
    anything entered later rolls into the next open run. */
 const TZ = 'America/Denver';           /* the whole business runs on Mountain Time */
-const NOW_D = '2026-08-21', NOW_T = '10:00';   /* the prototype's "now", in MT */
+/* "Now" is the real now, read in Mountain Time rather than the browser's zone -
+   a rep opening this in California must not see a different run open than the
+   back office does. */
+function mtParts(fmt) {
+  try { return new Intl.DateTimeFormat('en-CA', Object.assign({ timeZone: TZ }, fmt)).format(new Date()); }
+  catch (e) { return null; }
+}
+const NOW_D = mtParts({ year: 'numeric', month: '2-digit', day: '2-digit' })
+  || new Date().toISOString().slice(0, 10);
+const NOW_T = mtParts({ hour: '2-digit', minute: '2-digit', hour12: false })
+  || new Date().toISOString().slice(11, 16);
 const TODAY_D = NOW_D;
+const FREEZE_DAYS = 1, FREEZE_TIME = '08:00';   /* Thursday 8am ahead of a Friday payday */
 const FROZEN = new Set();              /* runs frozen early by hand */
 /* MDT or MST for a given date, so the freeze lands at the right instant either side of DST */
 function tzAbbr(dateISO) {
@@ -86,12 +96,39 @@ function mtInstant(dateISO, hhmm) {
   return new Date(dateISO + 'T' + hhmm + ':00Z').getTime() + tzOffset(dateISO) * 36e5;
 }
 const NOW_MS = mtInstant(NOW_D, NOW_T);
-function freezeDate(runDate) {
+function freezeDateOf(runDate, days) {
   const dt = new Date(runDate + 'T00:00:00Z');
-  dt.setUTCDate(dt.getUTCDate() - S.freezeDays);
+  dt.setUTCDate(dt.getUTCDate() - days);
   return dt.toISOString().slice(0, 10);
 }
+function freezeDate(runDate) { return freezeDateOf(runDate, S.freezeDays); }
 const freezeMs = runDate => mtInstant(freezeDate(runDate), S.freezeTime);
+
+/* ---- the run calendar ------------------------------------------------------
+   Paydays are Fridays. What has paid, what is frozen and what is still open all
+   follow from the real date, so the ledger cannot go on offering a run that
+   went out a fortnight ago. */
+function fridayOnOrBefore(iso) {
+  const dt = new Date(iso + 'T00:00:00Z');
+  while (dt.getUTCDay() !== 5) dt.setUTCDate(dt.getUTCDate() - 1);
+  return dt.toISOString().slice(0, 10);
+}
+function fridayAfter(iso) {
+  const dt = new Date(iso + 'T00:00:00Z');
+  do { dt.setUTCDate(dt.getUTCDate() + 1); } while (dt.getUTCDay() !== 5);
+  return dt.toISOString().slice(0, 10);
+}
+const LAST_PAID = fridayOnOrBefore(TODAY_D);
+/* the next Friday that has not yet reached its freeze - on a Thursday morning
+   after 8am that is already the week after, which is the point of the rule */
+const OPEN_RUN = (() => {
+  let r = fridayAfter(TODAY_D);
+  for (let i = 0; i < 8; i++) {
+    if (NOW_MS < mtInstant(freezeDateOf(r, FREEZE_DAYS), FREEZE_TIME)) break;
+    r = fridayAfter(r);
+  }
+  return r;
+})();
 function runStatus(d) {
   if (d <= TODAY_D) return 'paid';
   if (FROZEN.has(d) || NOW_MS >= freezeMs(d)) return 'frozen';
@@ -445,6 +482,18 @@ MONTHS.forEach(m => {
 [...new Set(ADJ.filter(a => a.kind === 'Vivid Adder').map(a => a.run))].forEach(d => {
   if (!RUNS.some(r => r.date === d)) RUNS.push({ date: d, deals: [], total: 0, value: 0, state: d <= LAST_PAID ? 'paid' : 'next' });
 });
+/* The calendar has to run ahead of the deals. Runs are built from deals that
+   have closed, so the week nothing has closed in yet would have no run at all -
+   and a chargeback entered today would have nowhere to land. Carry the Fridays
+   forward from the rule instead. */
+(() => {
+  let d = LAST_PAID;
+  for (let i = 0; i < 12; i++) {
+    d = fridayAfter(d);
+    if (!RUNS.some(r => r.date === d))
+      RUNS.push({ date: d, deals: [], total: 0, value: 0, state: 'next' });
+  }
+})();
 RUNS.sort((a, b) => b.date.localeCompare(a.date));
 const RUNDATES2 = RUNS.map(r => r.date);
 
@@ -467,7 +516,7 @@ function applyCO(id, state) {
     co.commRun = isApproved(d.run) ? firstOpenRun() : null;
     const bd = BONUS_OF.get(d.month);
     co.bonusRun = bd && isApproved(bd) ? nextBonusRun() : null;
-    co.at = D.frozenAt; co.by = ADMIN_NOW;
+    co.at = TODAY_D; co.by = ADMIN_NOW;
   } else { co.commRun = null; co.bonusRun = null; }
 }
 DEALS.forEach(d => {
@@ -583,7 +632,7 @@ function holdAppliesTo(id, runDate) {
   return h.at <= freezeDate(runDate);
 }
 function setHold(id, leg, state, reason, by, at) {
-  const h = HOLDS.get(id) || { setter: null, closer: null, reason: '', at: at || D.frozenAt, by: by || ADMIN_NOW };
+  const h = HOLDS.get(id) || { setter: null, closer: null, reason: '', at: at || TODAY_D, by: by || ADMIN_NOW };
   h[leg] = state;
   h.by = by || ADMIN_NOW;
   if (at) h.at = at;
@@ -848,7 +897,7 @@ const S = {
   role: 'admin', admin: ADMIN_NOW, viewer: VIEWERS[0], actor: 'Carl Crosland', rep: 'Kerrigan Simpson',
   view: 'runs', focus: null, dealFocus: null,
   run: OPEN_RUN, q: '', dealFilter: 'all', strictYear: true,
-  freezeDays: 1, freezeTime: '08:00',      /* Thursday 8am ahead of a Friday payday */
+  freezeDays: FREEZE_DAYS, freezeTime: FREEZE_TIME,   /* Thursday 8am ahead of a Friday payday */
   adderRate: ADDER_RATE,                   /* what one VIVID Adder is worth */
   adderQ: null,                            /* which quarter's balance is on screen */
   rates: Object.assign({}, RATES),
