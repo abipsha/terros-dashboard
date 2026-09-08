@@ -424,6 +424,29 @@ const EMP = D.employees;
 const byName = new Map(EMP.map(e => [e.name, e]));
 const RATES = { closer: .09, canvasser: .05, hourly: .01, override: .04 };
 const RECRUIT = { l1: { self: .015, closer: .0075, setter: .0075 }, l2: { self: .005, closer: .0025, setter: .0025 } };
+/* ---- commission plans, effective by closing date ---------------------------
+   A plan change is announced ahead of time and starts on a date. Every deal is
+   priced by the plan in force the day it closed, so a change never reaches back
+   and re-prices work a rep has already done, and never disturbs a run that has
+   already been paid. A scheduled plan can be cancelled right up until it
+   starts; after that it is history like everything else here. */
+const PLANS = [];                     /* scheduled plans, ascending by .from */
+function planFor(close) {
+  for (let i = PLANS.length - 1; i >= 0; i--) {
+    if (close && close >= PLANS[i].from) return PLANS[i];
+  }
+  return { from: null, current: true, rates: S.rates, recruit: S.recruit, summer: SUMMER };
+}
+const planQueue = () => PLANS.filter(p => p.from > TODAY_D);
+const planLive = () => PLANS.filter(p => p.from <= TODAY_D);
+function addPlan(p) {
+  PLANS.push(p);
+  PLANS.sort((a, b) => a.from.localeCompare(b.from));
+}
+function dropPlan(from) {
+  const i = PLANS.findIndex(p => p.from === from);
+  if (i >= 0) PLANS.splice(i, 1);
+}
 
 const fmt = n => (n < 0 ? '-$' : '$') + Math.abs(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const fmt0 = n => (n < 0 ? '-$' : '$') + Math.abs(Math.round(n)).toLocaleString('en-US');
@@ -672,8 +695,9 @@ function recompute() {
   DEALS.forEach(o => {
     if (!o.won) { o.canvPay = o.closerPay = o.total = 0; return; }
     const base = comBase(o);
-    o.canvPay = +(base * (o.hourly ? S.rates.hourly : S.rates.canvasser)).toFixed(2);
-    o.closerPay = +(base * S.rates.closer).toFixed(2);
+    const R = planFor(o.close).rates;          /* the plan in force when it closed */
+    o.canvPay = +(base * (o.hourly ? R.hourly : R.canvasser)).toFixed(2);
+    o.closerPay = +(base * R.closer).toFixed(2);
     o.total = +(o.canvPay + o.closerPay).toFixed(2);
   });
   RUNS.forEach(r => { r.total = r.deals.reduce((s, d) => s + d.total, 0); });
@@ -795,15 +819,24 @@ function recruitRun(month, strict) {
     : d.close && +d.close.slice(5, 7) === +month.slice(5, 7)));
   const self = new Map(), cl = new Map(), st = new Map();
   const bump = (m, k, v) => m.set(k, (m.get(k) || 0) + v);
-  pool.forEach(d => { const v = comBase(d);
-    if (d.selfGen) bump(self, d.closer, v); else { bump(cl, d.closer, v); bump(st, d.canvasser, v); } });
+  /* rated per deal, not per person, so a plan that changed mid-month prices each
+     deal by the plan in force the day it closed */
+  const a1m = new Map(), a2m = new Map();
+  pool.forEach(d => {
+    const v = comBase(d), R = planFor(d.close).recruit;
+    if (d.selfGen) { bump(self, d.closer, v); bump(a1m, d.closer, v * R.l1.self); bump(a2m, d.closer, v * R.l2.self); }
+    else {
+      bump(cl, d.closer, v); bump(a1m, d.closer, v * R.l1.closer); bump(a2m, d.closer, v * R.l2.closer);
+      bump(st, d.canvasser, v); bump(a1m, d.canvasser, v * R.l1.setter); bump(a2m, d.canvasser, v * R.l2.setter);
+    }
+  });
   const out = new Map();
   const cell = to => { if (!out.has(to)) out.set(to, { name: to, l1: 0, l2: 0, special: 0, lines: [] }); return out.get(to); };
   EMP.forEach(e => {
     const s = self.get(e.name) || 0, c = cl.get(e.name) || 0, t = st.get(e.name) || 0;
     if (!s && !c && !t) return;
-    const a1 = s * S.recruit.l1.self + c * S.recruit.l1.closer + t * S.recruit.l1.setter;
-    const a2 = s * S.recruit.l2.self + c * S.recruit.l2.closer + t * S.recruit.l2.setter;
+    const a1 = a1m.get(e.name) || 0;
+    const a2 = a2m.get(e.name) || 0;
     if (e.ref1 && a1) { const r = cell(e.ref1); r.l1 += a1; r.lines.push({ from: e.name, lvl: 'l1', amt: a1 }); }
     if (e.ref2 && a2) { const r = cell(e.ref2); r.l2 += a2; r.lines.push({ from: e.name, lvl: 'l2', amt: a2 }); }
   });
@@ -981,15 +1014,16 @@ const coApplied = () => [...CO.entries()].filter(x => x[1].state === 'applied')
 function coEffect(d) {
   const co = CO.get(d.id); if (!co) return null;
   const D_ = co.delta;
-  const sRate = d.hourly ? S.rates.hourly : S.rates.canvasser;
+  const P = planFor(d.close);
+  const sRate = d.hourly ? P.rates.hourly : P.rates.canvasser;
   const out = { setter: 0, closer: 0, recruit: [], override: [], delta: D_ };
   if (d.canvPay || d.canvasser) out.setter = D_ * sRate;
-  if (d.closer) out.closer = D_ * S.rates.closer;
+  if (d.closer) out.closer = D_ * P.rates.closer;
   const legs = d.selfGen ? [[d.closer, 'self']] : [[d.closer, 'closer'], [d.canvasser, 'setter']];
   legs.forEach(l => {
     const e = byName.get(l[0]); if (!e) return;
-    if (e.ref1) out.recruit.push({ to: e.ref1, on: l[0], lvl: 'L1', amt: D_ * S.recruit.l1[l[1]] });
-    if (e.ref2) out.recruit.push({ to: e.ref2, on: l[0], lvl: 'L2', amt: D_ * S.recruit.l2[l[1]] });
+    if (e.ref1) out.recruit.push({ to: e.ref1, on: l[0], lvl: 'L1', amt: D_ * P.recruit.l1[l[1]] });
+    if (e.ref2) out.recruit.push({ to: e.ref2, on: l[0], lvl: 'L2', amt: D_ * P.recruit.l2[l[1]] });
   });
   const sp = D.mavryckPlan;
   legs.forEach(l => { if (sp.members.indexOf(l[0]) >= 0)
@@ -1034,7 +1068,8 @@ function summerWeeks(filterMonth) {
   m.forEach((weeks, name) => {
     const list = [...weeks.values()].map(w => {
       w.count = w.deals.length;
-      w.rate = w.count >= 3 ? SUMMER.tier3 : w.count === 2 ? SUMMER.tier2 : 0;
+      const SU = planFor(w.week).summer;       /* the plan in force that week */
+      w.rate = w.count >= 3 ? SU.tier3 : w.count === 2 ? SU.tier2 : 0;
       w.amount = +(w.value * w.rate).toFixed(2);
       w.qualifying = w.count >= 2;
       w.baseRate = w.value ? w.base / w.value : 0;
@@ -1176,6 +1211,15 @@ function applyEvents(events) {
       if (i >= 0) ADJ.splice(i, 1);
       return;
     }
+    if (e.kind === 'plan.schedule') {
+      if (p.rates && p.recruit && p.summer && e.target) {
+        dropPlan(e.target);                    /* a re-schedule replaces the old one */
+        addPlan({ from: e.target, rates: p.rates, recruit: p.recruit, summer: p.summer,
+          note: p.note || '', by: e.actor, at: String(e.at).slice(0, 10) });
+      }
+      return;
+    }
+    if (e.kind === 'plan.cancel') { dropPlan(e.target); return; }
     const d = DEAL_BY_KEY.get(e.target);
     if (!d) return;                              /* outside this person's scope */
     if (e.kind === 'hold') setHold(d.id, p.leg, 'held', p.reason, e.actor, String(e.at).slice(0, 10));
@@ -1361,6 +1405,7 @@ const S = {
   run: OPEN_RUN, q: '', dealFilter: 'all', strictYear: true,
   freezeDays: FREEZE_DAYS, freezeTime: FREEZE_TIME,   /* Thursday 8am ahead of a Friday payday */
   adderRate: ADDER_RATE,                   /* what one VIVID Adder is worth */
+  planOpen: false, planFrom: '', planError: '',   /* scheduling a plan change */
   adderQ: null,                            /* which quarter's balance is on screen */
   rates: Object.assign({}, RATES),
   recruit: JSON.parse(JSON.stringify(RECRUIT))
@@ -2012,10 +2057,58 @@ V.people = () => {
 };
 
 /* ---- plans ---- */
+/* ---- scheduling a plan change ------------------------------------------- */
+function planRow(p, canCancel) {
+  const future = p.from > TODAY_D;
+  return `<tr>
+    <td><b>${dshort(p.from)}</b><div class="sub">${dayOf(p.from)}</div></td>
+    <td>${future ? '<span class="pill warn">Scheduled</span>' : '<span class="pill info">In force</span>'}</td>
+    <td class="n r">${pct(p.rates.closer)}</td>
+    <td class="n r">${pct(p.rates.canvasser)}</td>
+    <td class="n r">${pct(p.rates.hourly)}</td>
+    <td class="n r muted">${pct(p.summer.tier2)} / ${pct(p.summer.tier3)}</td>
+    <td class="muted">${esc(p.note || '&mdash;')}<div class="sub">${esc(p.by || '')}${p.at ? ' &middot; ' + dshort(p.at) : ''}</div></td>
+    ${canCancel ? `<td class="r">${future ? `<button class="btn ghost" data-planq="drop:${p.from}">Cancel</button>`
+      : '<span class="muted">Started</span>'}</td>` : ''}</tr>`;
+}
+function planCard() {
+  const q = planQueue(), live = planLive(), admin = canEditAll();
+  const rows = live.concat(q);
+  const tomorrow = (() => { const d = new Date(TODAY_D + 'T00:00:00Z');
+    d.setUTCDate(d.getUTCDate() + 1); return d.toISOString().slice(0, 10); })();
+  return `<div class="card" style="margin-bottom:20px">
+    <div class="chead"><h2>Plan changes</h2>
+      ${q.length ? `<span class="pill warn">${q.length} scheduled</span>` : '<span class="pill good">Nothing scheduled</span>'}
+      ${live.length ? `<span class="pill info">${live.length} in force</span>` : ''}
+      <div class="spacer"></div>
+      ${admin && !S.planOpen ? '<button class="btn" data-act="planopen">Schedule a change</button>' : ''}</div>
+    <div class="cbody" style="padding-top:0">
+      <p class="hint" style="margin:0 0 14px">The rates below this card are a working copy. Change them, then
+      schedule the whole set from a date. <b>Every deal closing on or after that date is paid at the new rates, and
+      everything already closed keeps the rates it was sold under</b> &mdash; so a change can be announced in advance
+      without disturbing anything in flight, and no run that has already been paid can move.</p>
+      ${admin && S.planOpen ? `<div style="padding:0 0 4px"><div class="adjform">
+        <label>Effective from<input id="planFrom" type="date" min="${tomorrow}" value="${S.planFrom || ''}"></label>
+        <label>What changed<input id="planNote" type="text" placeholder="Shows in the plan history and on the record"></label>
+        <div class="actions">
+          <button class="btn" data-act="plansave">Schedule the rates below</button>
+          <button class="btn ghost" data-act="planclose">Cancel</button></div>
+      </div>${S.planError ? `<div class="err">${esc(S.planError)}</div>` : ''}
+      <p class="hint" style="margin:12px 0 0">The date has to be in the future. A plan cannot start today or
+      earlier, because deals have already closed under the current one.</p></div>` : ''}
+      ${rows.length ? `<div class="scroll"><table>
+        <thead><tr><th>Starts</th><th>Status</th><th class="r">Closer</th><th class="r">Setter</th>
+          <th class="r">Hourly</th><th class="r">Summer 2 / 3</th><th>Note</th>${admin ? '<th></th>' : ''}</tr></thead>
+        <tbody>${rows.map(p => planRow(p, admin)).join('')}</tbody>
+      </table></div>` : '<p class="muted" style="margin:0">No plan change has been scheduled. Everything is paid at the rates below.</p>'}
+    </div></div>`;
+}
+
 V.plans = () => `
+  ${planCard()}
   <p class="hint">Every rate the system uses lives here instead of inside a formula. Change one and every screen
-  recalculates. In the real build each edit is versioned with an effective date, so an approved run keeps the rate
-  it was paid at.</p>
+  recalculates immediately, so this doubles as a way to price a change before committing to it. Nothing here is
+  saved until you schedule it from a date above.</p>
   <div class="row two">
     <div class="card pad"><h2>Commission</h2>
       <div class="rate"><div class="rl"><b>Closer</b><div class="sub">Of contract value, on every won deal</div></div>
@@ -2846,6 +2939,34 @@ document.addEventListener('click', ev => {
     document.documentElement.dataset.theme = dark ? 'light' : 'dark';
     return;
   }
+  if (act === 'planopen') { S.planOpen = true; S.planError = ''; return render(); }
+  if (act === 'planclose') { S.planOpen = false; S.planError = ''; return render(); }
+  if (act === 'plansave') {
+    if (S.role !== 'admin') return;
+    const from = (document.getElementById('planFrom') || {}).value || '';
+    const note = ((document.getElementById('planNote') || {}).value || '').trim();
+    S.planFrom = from;
+    if (!from) { S.planError = 'Pick the date the new plan starts.'; return render(); }
+    if (from <= TODAY_D) {
+      S.planError = 'A plan has to start in the future. Deals have already closed under the current one, '
+        + 'and their rates cannot move.';
+      return render();
+    }
+    const snap = {
+      from: from,
+      rates: Object.assign({}, S.rates),
+      recruit: JSON.parse(JSON.stringify(S.recruit)),
+      summer: { on: SUMMER.on, start: SUMMER.start, end: SUMMER.end, tier2: SUMMER.tier2, tier3: SUMMER.tier3 },
+      note: note, by: ADMIN_NOW, at: TODAY_D
+    };
+    const had = PLANS.find(p => p.from === from);
+    dropPlan(from); addPlan(snap);
+    S.planOpen = false; S.planError = ''; S.planFrom = '';
+    render();
+    save('plan.schedule', from, { rates: snap.rates, recruit: snap.recruit, summer: snap.summer, note: note },
+      () => { dropPlan(from); if (had) addPlan(had); });
+    return;
+  }
   if (act === 'approve') {
     if (S.role !== 'admin') return;
     const run = S.run;
@@ -2920,6 +3041,16 @@ document.addEventListener('change', e => {
   if (t.id === 'freezeDays') { S.freezeDays = +t.value; return render(); }
   if (t.id === 'freezeTime') { S.freezeTime = t.value; return render(); }
   if (t.dataset.adderrate) { S.adderRate = Math.max(0, +t.value || 0); return render(); }
+  if (t.dataset.planq) {
+    if (S.role !== 'admin') return;
+    const from = t.dataset.planq.split(':')[1];
+    const gone = PLANS.find(p => p.from === from);
+    if (!gone || from <= TODAY_D) return;
+    dropPlan(from);
+    render();
+    save('plan.cancel', from, {}, () => addPlan(gone));
+    return;
+  }
   if (t.dataset.rate) { S.rates[t.dataset.rate] = (+t.value || 0) / 100; return render(); }
   if (t.dataset.rec) { const p = t.dataset.rec.split('.'); S.recruit[p[0]][p[1]] = (+t.value || 0) / 100; return render(); }
 });

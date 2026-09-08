@@ -54,7 +54,8 @@ RECRUIT = {"l1": {"self": 0.015, "closer": 0.0075, "setter": 0.0075},
 CUTOFF  = "2026-01-01"
 
 KINDS = ["hold", "release", "adjustment", "adjustment.remove",
-         "changeorder.apply", "changeorder.decline", "changeorder.undo", "run.freeze"]
+         "changeorder.apply", "changeorder.decline", "changeorder.undo", "run.freeze",
+         "plan.schedule", "plan.cancel"]
 HOLD_REASONS = ["Customer financing not approved", "Awaiting signed change order",
                 "Job cancelled - chargeback pending", "Rep eligibility under review",
                 "Contract value in dispute", "Install on hold", "Other"]
@@ -360,6 +361,18 @@ def _esc(s):
             .replace(">", "&gt;").replace('"', "&quot;"))
 
 
+
+def _today():
+    return datetime.now(timezone.utc).date().isoformat()
+
+
+def _pct(v):
+    try:
+        return f"{float(v) * 100:g}%"
+    except (TypeError, ValueError):
+        return "?"
+
+
 def _money(n):
     try:
         n = float(n)
@@ -399,6 +412,18 @@ def _note_for(ev):
                   "closer commission, both levels of recruiting bonus and the manager override "
                   "have been recalculated, and only the difference is paid or clawed back. Runs "
                   "that already went out are unchanged.")
+    elif k == "plan.schedule":
+        r = p.get("rates") or {}
+        title = "Commission plan scheduled"
+        detail = (f"From <b>{_esc(ev.get('target'))}</b>: closer "
+                  f"{_pct(r.get('closer'))}, setter {_pct(r.get('canvasser'))}, hourly setter "
+                  f"{_pct(r.get('hourly'))}. Deals closing on or after that date are paid at these "
+                  "rates; everything already closed keeps the rates it was sold under."
+                  + (f"<br>{_esc(p.get('note'))}" if p.get("note") else ""))
+    elif k == "plan.cancel":
+        title = "Scheduled plan change cancelled"
+        detail = (f"The plan due to start <b>{_esc(ev.get('target'))}</b> will not take effect. "
+                  "Nothing had been paid at those rates.")
     elif k == "changeorder.decline":
         title = "Change order not applied"
         detail = ("The contract value moved after commission had already been paid, and the "
@@ -832,6 +857,26 @@ def _validate(kind, target, p):
         return None if str(target or "").isdigit() else "Which adjustment?"
     if kind == "run.freeze":
         return None if _is_date(target) else "Which run?"
+    if kind in ("plan.schedule", "plan.cancel"):
+        if not _is_date(target):
+            return "A plan change needs the date it starts."
+        # a plan may only ever start in the future: deals have already closed
+        # under the current one and their rates cannot be moved underneath them
+        if target <= _today():
+            return "A plan has to start in the future."
+        if kind == "plan.cancel":
+            return None
+        rates = p.get("rates")
+        if not isinstance(rates, dict):
+            return "A plan change needs its rates."
+        for k in ("closer", "canvasser", "hourly"):
+            try:
+                v = float(rates[k])
+            except (KeyError, TypeError, ValueError):
+                return f"The {k} rate is missing or not a number."
+            if not 0 <= v <= 1:
+                return "Rates are a fraction of contract value, between 0 and 1."
+        return None
     return "Unknown action."
 
 
@@ -850,6 +895,24 @@ def _sanitise(kind, p):
     if kind == "adjustment":
         return {"type": cut(p.get("type"), 40), "amount": float(p.get("amount")),
                 "run": cut(p.get("run"), 10), "note": cut(p.get("note"), 300)}
+    if kind == "plan.schedule":
+        def frac(v):
+            try:
+                return round(min(max(float(v), 0.0), 1.0), 6)
+            except (TypeError, ValueError):
+                return 0.0
+        r = p.get("rates") or {}
+        rc = p.get("recruit") or {}
+        su = p.get("summer") or {}
+        lvl = lambda d: {k: frac((d or {}).get(k)) for k in ("self", "closer", "setter")}
+        return {
+            "rates": {k: frac(r.get(k)) for k in ("closer", "canvasser", "hourly", "override")},
+            "recruit": {"l1": lvl(rc.get("l1")), "l2": lvl(rc.get("l2"))},
+            "summer": {"on": bool(su.get("on")), "start": cut(su.get("start"), 10),
+                       "end": cut(su.get("end"), 10), "tier2": frac(su.get("tier2")),
+                       "tier3": frac(su.get("tier3"))},
+            "note": cut(p.get("note"), 300),
+        }
     if kind == "run.freeze":
         # What each deal in the run was paid on, captured at the moment it froze.
         # This is what makes the run a record rather than a live recalculation,
