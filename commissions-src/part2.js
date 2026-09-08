@@ -502,10 +502,27 @@ const RUNDATES2 = RUNS.map(r => r.date);
 const CO = new Map();                 /* deal id -> {delta, state, commRun, bonusRun, note} */
 const firstOpenRun = () => RUNDATES2.slice().reverse().find(d => !isApproved(d)) || OPEN_RUN;
 const nextBonusRun = () => [...BONUS_RUN.keys()].sort().find(d => !isApproved(d)) || firstOpenRun();
+/* ---- what a deal is calculated on -----------------------------------------
+   Three sources, in order of authority:
+     1. the workbook's paid amounts, for anything paid before this existed
+     2. the figure captured when the deal's run froze
+     3. for a deal nobody has paid yet, whatever the contract is worth today
+   A basis stops moving the moment its run freezes. That is what lets a later
+   edit in Odoo surface as a change order instead of quietly restating what
+   already went out - and it is why a deal arriving fresh from the CRM pays on
+   its real contract value rather than on nothing. */
+const CAPTURED = new Map();           /* deal key -> basis captured at freeze */
+function paidBasis(d) {
+  if (d.baseImplied) return d.baseImplied;
+  const c = CAPTURED.get(dealKey(d));
+  return c == null ? (+d.value || 0) : c;
+}
+/* true once the basis is settled and can no longer follow the contract value */
+const basisFixed = d => !!d.baseImplied || CAPTURED.has(dealKey(d));
 /* the value every plan should calculate on: what was paid, unless a change order has been applied */
 function comBase(d) {
   const co = CO.get(d.id);
-  return co && co.state === 'applied' ? d.value : d.baseImplied;
+  return co && co.state === 'applied' ? d.value : paidBasis(d);
 }
 function applyCO(id, state) {
   const co = CO.get(id); if (!co) return;
@@ -519,14 +536,24 @@ function applyCO(id, state) {
     co.at = TODAY_D; co.by = ADMIN_NOW;
   } else { co.commRun = null; co.bonusRun = null; }
 }
-DEALS.forEach(d => {
-  if (!d.won || !d.baseImplied) return;
-  const delta = +(d.value - d.baseImplied).toFixed(2);
-  if (Math.abs(delta) < 15) return;
-  CO.set(d.id, { delta, state: 'pending', at: D.frozenAt, commRun: null, bonusRun: null,
-    note: delta > 0 ? 'Contract value increased after commission was paid'
-                    : 'Contract value reduced after commission was paid' });
-});
+/* A change order is the gap between what a deal was paid on and what the
+   contract says now. It can only exist once the basis is settled - while a deal
+   is still following the live contract value there is nothing to true up. Run
+   after the freeze events have been read, so captured deals are included. */
+function seedCOs() {
+  CO.clear();
+  DEALS.forEach(d => {
+    if (!d.won) return;
+    const fixed = basisFixed(d);
+    const delta = fixed && d.value ? +(d.value - paidBasis(d)).toFixed(2) : 0;
+    d.variance = delta;
+    d.flagged = Math.abs(delta) > 15;
+    if (!fixed || Math.abs(delta) < 15) return;
+    CO.set(d.id, { delta, state: 'pending', at: TODAY_D, commRun: null, bonusRun: null,
+      note: delta > 0 ? 'Contract value increased after commission was paid'
+                      : 'Contract value reduced after commission was paid' });
+  });
+}
 const coPending = () => [...CO.entries()].filter(x => x[1].state === 'pending')
   .map(x => ({ d: DEALS[x[0]], co: x[1] })).sort((a, b) => Math.abs(b.co.delta) - Math.abs(a.co.delta));
 const coApplied = () => [...CO.entries()].filter(x => x[1].state === 'applied')
@@ -718,7 +745,7 @@ function save(kind, target, payload, undo) {
 function applyEvents(events) {
   (events || []).forEach(e => {
     const p = e.payload || {};
-    if (e.kind === 'run.freeze') { FROZEN.add(e.target); return; }
+    if (e.kind === 'run.freeze') return;         /* read in the first pass */
     if (e.kind === 'adjustment') {
       ADJ.push({ id: 'e' + e.id, who: e.target, kind: p.type, label: p.note || p.type,
         note: 'Added ' + dshort(String(e.at).slice(0, 10)) + ' by ' + e.actor,
@@ -738,6 +765,21 @@ function applyEvents(events) {
     if (e.kind === 'changeorder.undo') applyCO(d.id, 'pending');
   });
 }
+/* Freezes are read first: they settle which deals still follow the contract
+   value and which are pinned to a captured figure, and a change order cannot be
+   worked out before that is known. */
+function captureFreezes(events) {
+  (events || []).forEach(e => {
+    if (e.kind !== 'run.freeze') return;
+    FROZEN.add(e.target);
+    const b = (e.payload || {}).basis;
+    if (b && typeof b === 'object') {
+      Object.keys(b).forEach(k => { if (!CAPTURED.has(k)) CAPTURED.set(k, +b[k]); });
+    }
+  });
+}
+captureFreezes(D.events);
+seedCOs();
 applyEvents(D.events);
 
 /* Odoo was unreachable and these came from cache. Say so plainly rather than
@@ -2363,8 +2405,22 @@ document.addEventListener('click', ev => {
   if (act === 'approve') {
     if (S.role !== 'admin') return;
     const run = S.run;
+    /* Capture what every deal in this run is being paid on, before anything can
+       move. From here the run is a record, and a later edit in Odoo shows up as
+       a change order rather than restating what went out. */
+    const basis = {};
+    sheet(run).rows.forEach(r => r.deals.forEach(d => {
+      const k = dealKey(d);
+      if (!CAPTURED.has(k)) basis[k] = paidBasis(d);
+    }));
     FROZEN.add(run); S.addAdj = null;
-    save('run.freeze', run, {}, () => FROZEN.delete(run));
+    Object.keys(basis).forEach(k => CAPTURED.set(k, basis[k]));
+    seedCOs();
+    save('run.freeze', run, { basis: basis }, () => {
+      FROZEN.delete(run);
+      Object.keys(basis).forEach(k => CAPTURED.delete(k));
+      seedCOs();
+    });
     const next = firstOpenRun();
     render();
     view.insertAdjacentHTML('afterbegin', `<div class="note good"><span class="tag">Run frozen</span>

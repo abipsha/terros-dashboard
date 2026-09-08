@@ -115,6 +115,98 @@ _load()
 
 
 # ═════════════════════════════════════════════════════════════════
+#  Live deals from Odoo
+#
+#  Additive on purpose. Everything the workbook covers keeps its recorded paid
+#  amounts, so the reconciled runs cannot move; Odoo only carries the ledger
+#  forward from where the export stopped. A deal arriving this way has no paid
+#  amount, so the page calculates it on the contract value until its run
+#  freezes - see paidBasis() in commissions-src/part2.js.
+# ═════════════════════════════════════════════════════════════════
+
+LIVE_DEALS = os.environ.get("COMMISSIONS_LIVE_DEALS", "") == "1"
+DEALS_TTL  = int(os.environ.get("COMMISSIONS_DEALS_TTL") or 300)
+_deals_cache, _deals_at, _deals_stale = None, 0.0, False
+
+LEAD_FIELDS = ["name", "date_deadline", "x_studio_contract_value",
+               "x_studio_closer_text_1", "x_studio_canvasser_text",
+               "x_studio_vivid_adder", "x_studio_windowdoor_count",
+               "team_id", "stage_id"]
+
+
+def _workbook_last_close():
+    last = ""
+    for d in DATA.get("deals") or []:
+        c = d.get("close") or ""
+        if d.get("status") == "Won" and c > last:
+            last = c
+    return last
+
+
+def _rel(v):
+    return v[1] if isinstance(v, list) and len(v) > 1 else ""
+
+
+def _map_lead(r, tags):
+    closer = (r.get("x_studio_closer_text_1") or "").strip()
+    canv = (r.get("x_studio_canvasser_text") or "").strip()
+    return {
+        "opp": r.get("name") or "",
+        "close": r.get("date_deadline") or "",
+        "value": float(r.get("x_studio_contract_value") or 0),
+        "closer": closer,
+        "canvasser": canv,
+        "canvTag": tags.get(canv, "#N/A"),
+        "adder": int(r.get("x_studio_vivid_adder") or 0),
+        "units": int(r.get("x_studio_windowdoor_count") or 0),
+        "team": _rel(r.get("team_id")),
+        "stage": _rel(r.get("stage_id")),
+        "status": "Won",
+        "selfGen": bool(closer) and closer == canv,
+        "lost": False,
+        # never paid, so no recorded basis - the page uses the contract value
+        "canvComm": None, "closerComm": None,
+        "notes": None, "paid": None,
+        "live": True,
+    }
+
+
+def live_deals():
+    global _deals_cache, _deals_at, _deals_stale
+    if not LIVE_DEALS or _FAILED:
+        return []
+    now = time.time()
+    if _deals_cache is not None and now - _deals_at < DEALS_TTL:
+        return _deals_cache
+    after = _workbook_last_close()
+    try:
+        rows = odoo.call_kw("crm.lead", "search_read",
+                            [[["stage_id.is_won", "=", True],
+                              ["date_deadline", ">", after]]],
+                            {"fields": LEAD_FIELDS, "order": "date_deadline asc",
+                             "limit": 2000, "context": {"active_test": False}})
+        tags = {e["name"]: (e.get("tags") or "") for e in (DATA.get("employees") or []) if e.get("name")}
+        out = [_map_lead(r, tags) for r in rows if r.get("name") and r.get("date_deadline")]
+        _deals_cache, _deals_at, _deals_stale = out, now, False
+        print(f"[commissions] {len(out)} live deals from Odoo closing after {after}")
+        return out
+    except Exception as e:
+        if _deals_cache is not None:
+            _deals_stale = True
+            print(f"[commissions] Odoo unreachable, serving cached deals: {e}")
+            return _deals_cache
+        print(f"[commissions] live deals unavailable, serving the workbook alone: {e}")
+        return []
+
+
+def deals_now():
+    """Every deal the ledger should consider: the workbook, plus anything Odoo
+    has closed since."""
+    return (DATA.get("deals") or []) + live_deals()
+
+
+
+# ═════════════════════════════════════════════════════════════════
 #  Odoo storage
 # ═════════════════════════════════════════════════════════════════
 
@@ -507,7 +599,7 @@ def recruit_lines_for(names):
     the server."""
     want = set(names)
     by_month = {}
-    for d in DATA["deals"]:
+    for d in deals_now():
         if d.get("status") != "Won" or not d.get("close") or d["close"] < CUTOFF:
             continue
         by_month.setdefault(d["close"][:7], []).append(d)
@@ -556,6 +648,7 @@ def recruit_lines_for(names):
 def scope_data(person, scope):
     if scope["all"] and scope["role"] != "manager":
         payload = dict(DATA)
+        payload["deals"] = deals_now()      # admins and viewers see the live feed too
         payload["session"] = None
         return payload
 
@@ -566,7 +659,7 @@ def scope_data(person, scope):
             return True
         return d.get("canvasser") in names or d.get("closer") in names
 
-    deals = [d for d in DATA["deals"] if visible(d)]
+    deals = [d for d in deals_now() if visible(d)]
 
     keep = set(names)
     for d in deals:
@@ -653,7 +746,7 @@ def _deal_by_key(key):
     parts = str(key or "").split("|")
     if len(parts) < 2:
         return None
-    for d in DATA["deals"]:
+    for d in deals_now():
         if d.get("opp") == parts[0] and d.get("close") == parts[1]:
             return d
     return None
@@ -711,6 +804,20 @@ def _sanitise(kind, p):
     if kind == "adjustment":
         return {"type": cut(p.get("type"), 40), "amount": float(p.get("amount")),
                 "run": cut(p.get("run"), 10), "note": cut(p.get("note"), 300)}
+    if kind == "run.freeze":
+        # What each deal in the run was paid on, captured at the moment it froze.
+        # This is what makes the run a record rather than a live recalculation,
+        # so it is kept - bounded, and coerced to numbers.
+        b = p.get("basis")
+        if not isinstance(b, dict):
+            return {}
+        out = {}
+        for k, v in list(b.items())[:600]:
+            try:
+                out[str(k)[:200]] = round(float(v), 2)
+            except (TypeError, ValueError):
+                continue
+        return {"basis": out}
     return {}
 
 
@@ -810,6 +917,8 @@ def handle_get(handler, path, session):
             payload["events"] = events_for(all_events(), payload["deals"], scope)
             if _events_stale:
                 payload["eventsStale"] = True
+            if _deals_stale:
+                payload["dealsStale"] = True
         except Exception as e:
             handler._json({"error": "Odoo is not responding right now, so the ledger history "
                                     f"could not be read. Nothing is lost - try again in a minute. ({e})"},
