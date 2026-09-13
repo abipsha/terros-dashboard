@@ -184,6 +184,7 @@ const DEALS = D.deals.filter(d => d.close && d.close >= CUTOFF).map((d, i) => {
   o.canvPay = 0; o.closerPay = 0; o.total = 0;
   o.variance = o.won && d.value && o.baseImplied ? +(d.value - o.baseImplied).toFixed(2) : 0;
   o.flagged = o.won && Math.abs(o.variance) > 15;
+  o.cancelled = !!d.cancelled;          /* job cancelled after it was sold */
   o.unknownRep = d.canvTag === '#N/A' || !byName.has(d.canvasser) || !byName.has(d.closer);
   o.state = o.won ? (o.run <= LAST_PAID ? 'paid' : (o.run === OPEN_RUN ? 'open' : 'next')) : 'lost';
   return o;
@@ -548,14 +549,16 @@ const CAPTURED = new Map();           /* deal key -> basis captured at freeze */
 function paidBasis(d) {
   if (d.baseImplied) return d.baseImplied;
   const c = CAPTURED.get(dealKey(d));
-  return c == null ? (+d.value || 0) : c;
+  if (c != null) return c;
+  return d.cancelled ? 0 : (+d.value || 0);   /* cancelled before payday: nothing to pay */
 }
 /* true once the basis is settled and can no longer follow the contract value */
 const basisFixed = d => !!d.baseImplied || CAPTURED.has(dealKey(d));
 /* the value every plan should calculate on: what was paid, unless a change order has been applied */
 function comBase(d) {
   const co = CO.get(d.id);
-  return co && co.state === 'applied' ? d.value : paidBasis(d);
+  if (co && co.state === 'applied') return d.cancelled ? 0 : d.value;
+  return paidBasis(d);
 }
 function applyCO(id, state) {
   const co = CO.get(id); if (!co) return;
@@ -583,13 +586,18 @@ function seedCOs() {
   DEALS.forEach(d => {
     if (!d.won) return;
     const fixed = basisFixed(d);
-    const delta = fixed && d.value ? +(d.value - paidBasis(d)).toFixed(2) : 0;
+    /* a cancelled job is worth nothing now - the same arithmetic as any other
+       contract change, just all the way down */
+    const now = d.cancelled ? 0 : d.value;
+    const delta = fixed && (d.value || d.cancelled) ? +(now - paidBasis(d)).toFixed(2) : 0;
     d.variance = delta;
     d.flagged = Math.abs(delta) > 15;
     if (!fixed || Math.abs(delta) < 15) return;
     CO.set(d.id, { delta, state: 'pending', at: TODAY_D, commRun: null, bonusRun: null,
-      note: delta > 0 ? 'Contract value increased after commission was paid'
-                      : 'Contract value reduced after commission was paid' });
+      cancelled: !!d.cancelled,
+      note: d.cancelled ? 'Job cancelled after commission had been paid'
+        : delta > 0 ? 'Contract value increased after commission was paid'
+                    : 'Contract value reduced after commission was paid' });
   });
 }
 const coPending = () => [...CO.entries()].filter(x => x[1].state === 'pending')
@@ -689,6 +697,21 @@ const HOLDS = new Map();   /* deal id -> {setter, closer, reason, at} where a le
 function legState(d, leg) { const h = HOLDS.get(d.id); return (h && h[leg]) || 'pay'; }
 function legAmt(d, leg) { return leg === 'setter' ? d.canvPay : d.closerPay; }
 function legWho(d, leg) { return leg === 'setter' ? d.canvasser : d.closer; }
+/* What one run pays for one leg. A run that has frozen pays what it was paid
+   on; only an open run follows the current contract value. Without this,
+   applying a change order restates the run that already went out *and* pays the
+   difference in the next one - the same money twice, and history rewritten. */
+function basisForRun(d, runDate) {
+  if (!isApproved(runDate)) return comBase(d);
+  if (d.baseImplied) return d.baseImplied;
+  const c = CAPTURED.get(dealKey(d));
+  return c == null ? comBase(d) : c;
+}
+function legAmtFor(d, leg, runDate) {
+  const R = planFor(d.close).rates;
+  const rate = leg === 'setter' ? (d.hourly ? R.hourly : R.canvasser) : R.closer;
+  return +(basisForRun(d, runDate) * rate).toFixed(2);
+}
 /* a released leg pays in the next open run when its own run has already gone out */
 function legRun(d, leg) { return legState(d, leg) === 'released' && d.run <= LAST_PAID ? OPEN_RUN : d.run; }
 /* A hold only bears on a run that was still open when the hold was placed.
@@ -863,7 +886,7 @@ function runSheet(date) {
   HOLDS.forEach((h, id) => { const d = DEALS[id]; if (d && consider.indexOf(d) < 0) consider.push(d); });
   const held = [];
   consider.forEach(d => ['setter', 'closer'].forEach(leg => {
-    const amt = legAmt(d, leg);
+    const amt = legAmtFor(d, leg, date);
     if (!amt) return;
     /* a hold placed after this run froze leaves it exactly as it paid */
     const applies = holdAppliesTo(d.id, date);
@@ -2056,7 +2079,9 @@ function coDealCard(d) {
   return `<div class="card pad" style="margin-top:20px">
     <h2>Change order</h2>
     <p class="hint" style="margin:6px 0 16px">The contract value moved after this deal was paid on.
-    ${co.state === 'applied' ? 'It has been applied, so only the difference is paid out.'
+    ${co.cancelled ? '<b>This job was cancelled after commission had already gone out.</b> Clawing it back reverses '
+      + 'the setter and closer commission, both levels of recruiting bonus and the override, in the next open run. '
+      : ''}${co.state === 'applied' ? 'It has been applied, so only the difference is paid out.'
       : co.state === 'declined' ? 'It was reviewed and deliberately not applied' + (co.by ? ' by ' + esc(co.by) : '')
         + (co.at ? ' on ' + dshort(co.at) : '') + ', so the difference does not move. Reopening puts it back in the queue.'
       : 'Nothing has been paid on the difference yet.'}</p>
@@ -2232,7 +2257,8 @@ function coCard() {
       <p class="hint" style="margin:0 0 16px">A change order moves the contract value up or down after the deal was
       already paid on. Applying it recalculates the setter and closer commission, the level 1 and 2 recruiting bonus
       on both reps, and the regional and VP override &mdash; and pays or claws back only the difference, so runs that
-      already went out are never rewritten.</p>
+      already went out are never rewritten. <b>A cancelled job is the same thing taken to zero</b>: everything paid on
+      it comes back, which is why those rows say Claw back rather than Apply.</p>
       ${pend.length ? `<div class="scroll"><table>
         <thead><tr><th class="idx">#</th><th>Opportunity</th><th>Team</th><th class="r">Paid on</th>
           <th class="r">Now</th><th class="r">Change</th><th class="r">Commission</th><th class="r">Bonuses</th>
@@ -2240,7 +2266,8 @@ function coCard() {
         <tbody>${show.map((x, i) => { const e = coEffect(x.d); const bon = e.total - e.setter - e.closer;
           return `<tr class="clickable" data-deal="${x.d.id}" tabindex="0">
           <td class="idx">${i + 1}</td>
-          <td>${esc(x.d.opp)}<div class="sub">closed ${dshort(x.d.close)}</div></td>
+          <td>${esc(x.d.opp)}${x.co.cancelled ? ' <span class="pill crit">Cancelled</span>' : ''}
+            <div class="sub">closed ${dshort(x.d.close)}</div></td>
           <td class="muted">${esc(x.d.team || '&mdash;')}</td>
           <td class="n r muted">${fmt0(x.d.baseImplied)}</td>
           <td class="n r">${fmt0(x.d.value)}</td>
@@ -2248,8 +2275,8 @@ function coCard() {
           <td class="n r">${fmt(e.setter + e.closer)}</td>
           <td class="n r">${fmt(bon)}</td>
           <td class="n r"><b style="color:${e.total < 0 ? 'var(--crit)' : 'var(--c4)'}">${fmt(e.total)}</b></td>
-          ${wr ? `<td class="r" style="white-space:nowrap"><button class="btn" data-co="apply:${x.d.id}">Apply</button>
-            <button class="btn ghost" data-co="decline:${x.d.id}">Do not apply</button></td>` : ''}</tr>`; }).join('')}</tbody>
+          ${wr ? `<td class="r" style="white-space:nowrap"><button class="btn" data-co="apply:${x.d.id}">${x.co.cancelled ? 'Claw back' : 'Apply'}</button>
+            <button class="btn ghost" data-co="decline:${x.d.id}">${x.co.cancelled ? 'Leave it' : 'Do not apply'}</button></td>` : ''}</tr>`; }).join('')}</tbody>
         <tfoot><tr><td colspan="8">${pend.length} waiting${pend.length > show.length ? ' &middot; showing ' + show.length : ''}</td>
           <td class="r">${fmt(net)}</td>
           <td class="r"${wr ? '' : ' colspan="2"'}>${pend.length > 8 ? `<button class="btn ghost" data-co="${S.coAll ? 'less' : 'all'}">${S.coAll ? 'Show less' : 'Show all'}</button>` : ''}</td></tr></tfoot>

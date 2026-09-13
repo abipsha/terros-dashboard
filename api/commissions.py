@@ -172,38 +172,106 @@ def _map_lead(r, tags):
     }
 
 
+CANCELLED_REASON = os.environ.get("ODOO_CANCELLED_REASON", "Customer Cancelled")
+
+
+def _key(opp, close):
+    return (opp or "") + "|" + (close or "")
+
+
+def _fetch_odoo():
+    """One pass over the CRM for everything that can change after a deal is sold.
+
+    Three things come back:
+
+      new       - won deals closing after the workbook stops, as before
+      state     - the contract value Odoo holds *now* for every deal in scope,
+                  so a value edited months later surfaces as a change order
+                  rather than going unnoticed
+      cancelled - deals that have since been cancelled
+
+    A cancellation in this CRM is not a stage. The lead is moved back to Leads,
+    archived, and given a lost reason - so it stops being a won deal and would
+    otherwise drop out of the ledger silently, taking the commission, both
+    recruiting levels and the override with it, none of which were ever clawed
+    back. Reading the lost reason is what turns that silence into a queue."""
+    tags = {e["name"]: (e.get("tags") or "") for e in (DATA.get("employees") or []) if e.get("name")}
+    after = _workbook_last_close()
+    fields = LEAD_FIELDS + ["lost_reason_id"]
+    ctx = {"active_test": False}
+
+    won = odoo.call_kw("crm.lead", "search_read",
+                       [[["stage_id.is_won", "=", True], ["date_deadline", ">=", CUTOFF]]],
+                       {"fields": fields, "order": "date_deadline asc",
+                        "limit": 5000, "context": ctx})
+    lost = odoo.call_kw("crm.lead", "search_read",
+                        [[["lost_reason_id.name", "=", CANCELLED_REASON],
+                          ["date_deadline", ">=", CUTOFF]]],
+                        {"fields": fields, "order": "date_deadline asc",
+                         "limit": 5000, "context": ctx})
+
+    state, new = {}, []
+    for r in won:
+        if not (r.get("name") and r.get("date_deadline")):
+            continue
+        state[_key(r["name"], r["date_deadline"])] = {
+            "value": float(r.get("x_studio_contract_value") or 0), "cancelled": False}
+        if r["date_deadline"] > after:
+            new.append(_map_lead(r, tags))
+    for r in lost:
+        if not (r.get("name") and r.get("date_deadline")):
+            continue
+        k = _key(r["name"], r["date_deadline"])
+        state[k] = {"value": float(r.get("x_studio_contract_value") or 0), "cancelled": True}
+        if r["date_deadline"] > after:
+            # it closed after the workbook and has since cancelled: put it back in
+            # the ledger marked as such, or there is nothing to claw back against
+            d = _map_lead(r, tags)
+            d["cancelled"] = True
+            new.append(d)
+    return new, state
+
+
 def live_deals():
+    """(new deals, current Odoo state), cached together."""
     global _deals_cache, _deals_at, _deals_stale
     if not LIVE_DEALS or _FAILED:
-        return []
+        return [], {}
     now = time.time()
     if _deals_cache is not None and now - _deals_at < DEALS_TTL:
         return _deals_cache
-    after = _workbook_last_close()
     try:
-        rows = odoo.call_kw("crm.lead", "search_read",
-                            [[["stage_id.is_won", "=", True],
-                              ["date_deadline", ">", after]]],
-                            {"fields": LEAD_FIELDS, "order": "date_deadline asc",
-                             "limit": 2000, "context": {"active_test": False}})
-        tags = {e["name"]: (e.get("tags") or "") for e in (DATA.get("employees") or []) if e.get("name")}
-        out = [_map_lead(r, tags) for r in rows if r.get("name") and r.get("date_deadline")]
-        _deals_cache, _deals_at, _deals_stale = out, now, False
-        print(f"[commissions] {len(out)} live deals from Odoo closing after {after}")
-        return out
+        new, state = _fetch_odoo()
+        _deals_cache, _deals_at, _deals_stale = (new, state), now, False
+        cancelled = sum(1 for v in state.values() if v["cancelled"])
+        print(f"[commissions] Odoo: {len(new)} deals since the workbook, "
+              f"{len(state)} contract values, {cancelled} cancelled")
+        return _deals_cache
     except Exception as e:
         if _deals_cache is not None:
             _deals_stale = True
             print(f"[commissions] Odoo unreachable, serving cached deals: {e}")
             return _deals_cache
         print(f"[commissions] live deals unavailable, serving the workbook alone: {e}")
-        return []
+        return [], {}
 
 
 def deals_now():
-    """Every deal the ledger should consider: the workbook, plus anything Odoo
-    has closed since."""
-    return (DATA.get("deals") or []) + live_deals()
+    """Every deal the ledger should consider: the workbook refreshed against
+    what Odoo says today, plus anything closed since."""
+    new, state = live_deals()
+    if not state:
+        return (DATA.get("deals") or []) + new
+    out = []
+    for d in DATA.get("deals") or []:
+        st = state.get(_key(d.get("opp"), d.get("close")))
+        if st:
+            d = dict(d)
+            d["value"] = st["value"]          # what the contract is worth now
+            if st["cancelled"]:
+                d["cancelled"] = True
+        out.append(d)
+    return out + new
 
 
 
