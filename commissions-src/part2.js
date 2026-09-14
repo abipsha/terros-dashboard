@@ -865,7 +865,7 @@ function applyEvents(events) {
        just lands in a different cycle. Replaying in order means the last move
        wins, and moving it back is another move rather than an undo. */
     if (e.kind === 'adjustment.move') {
-      const a = ADJ.find(x => x.id === 'e' + e.target);
+      const a = ADJ.find(x => x.id === 'e' + e.target || x.key === e.target);
       if (a && p.run) {
         a.movedFrom = a.movedFrom || a.run;
         a.run = p.run;
@@ -909,6 +909,19 @@ function captureFreezes(events) {
     }
   });
 }
+/* An adjustment entered in the dashboard is an event and is addressed by its
+   event id. One that came in with the dataset has no event, so it is addressed
+   by what it IS - who, the run it arrived in, the amount and the reason - the
+   same way a seeded hold is matched by opportunity and closing date rather than
+   by its position in a list. The key is fixed here, before any move is replayed,
+   so moving an entry twice cannot make it unfindable. */
+function adjKeyOf(a) {
+  return 'k:' + [a.who, a.run, a.amount, a.kind, a.label]
+    .join('~').replace(/[\r\n]+/g, ' ').slice(0, 180);
+}
+const adjKey = a => String(a.id).charAt(0) === 'e' ? String(a.id).slice(1) : a.key;
+ADJ.forEach(a => { if (!a.key) a.key = adjKeyOf(a); });
+
 captureFreezes(D.events);
 seedCOs();
 applyEvents(D.events);
@@ -2470,7 +2483,7 @@ function adjCard(runDate, lockedPerson) {
         ${canEdit && !locked ? (a.auto
           ? '<td class="r"><span class="muted" title="Generated from the deals that carried the adder">Automatic</span></td>'
           : `<td class="r" style="white-space:nowrap">
-              ${String(a.id).charAt(0) === 'e' && laterRuns(a.run).length ? `<select class="pick" id="adjMove:${esc(a.id)}" aria-label="Move to a later run">
+              ${laterRuns(a.run).length ? `<select class="pick" id="adjMove:${esc(a.id)}" aria-label="Move to a later run">
                 ${laterRuns(a.run).map(r => `<option value="${r}">${dshort(r)} run</option>`).join('')}</select>
               <button class="btn ghost" data-adjmove="${a.id}">Move to</button>` : ''}
               <button class="btn ghost" data-adjdel="${a.id}">Remove</button></td>`) : ''}</tr>`).join('')
@@ -2616,7 +2629,7 @@ document.addEventListener('click', ev => {
   if (t.dataset.adjmove) {
     if (S.role !== 'admin') return;
     const a = ADJ.find(x => x.id === t.dataset.adjmove);
-    if (!a || isApproved(a.run) || String(a.id).charAt(0) !== 'e') return render();
+    if (!a || isApproved(a.run) || a.auto) return render();
     const sel = document.getElementById('adjMove:' + a.id);
     const to = sel ? sel.value : '';
     if (!to || to <= a.run || isApproved(to)) return render();
@@ -2624,7 +2637,7 @@ document.addEventListener('click', ev => {
     a.movedFrom = a.movedFrom || a.run;
     a.run = to; a.movedBy = ADMIN_NOW; a.movedAt = TODAY_D;
     render();
-    save('adjustment.move', String(a.id).slice(1), { run: to },
+    save('adjustment.move', adjKey(a), { run: to },
       () => { a.run = was.run; a.movedFrom = was.movedFrom; a.movedBy = was.movedBy; a.movedAt = was.movedAt; });
     return;
   }

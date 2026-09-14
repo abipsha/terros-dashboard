@@ -961,7 +961,11 @@ def _validate(kind, target, p):
     if kind == "adjustment.remove":
         return None if str(target or "").isdigit() else "Which adjustment?"
     if kind == "adjustment.move":
-        if not str(target or "").isdigit():
+        # An adjustment entered here is addressed by its event id. One that came
+        # in with the dataset has no event, so it is addressed by what it is:
+        # "k:" then who, the run it arrived in, the amount and the reason.
+        t = str(target or "")
+        if not (t.isdigit() or (t.startswith("k:") and 2 < len(t) <= 200)):
             return "Which adjustment?"
         # A run that has already gone out cannot be given new money, so the only
         # direction an adjustment moves is forward, onto a payday still ahead.
