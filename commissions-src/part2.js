@@ -2483,10 +2483,10 @@ function adjCard(runDate, lockedPerson) {
         ${canEdit && !locked ? (a.auto
           ? '<td class="r"><span class="muted" title="Generated from the deals that carried the adder">Automatic</span></td>'
           : `<td class="r" style="white-space:nowrap">
-              ${laterRuns(a.run).length ? `<select class="pick" id="adjMove:${esc(a.id)}" aria-label="Move to a later run">
-                ${laterRuns(a.run).map(r => `<option value="${r}">${dshort(r)} run</option>`).join('')}</select>
-              <button class="btn ghost" data-adjmove="${a.id}">Move to</button>` : ''}
-              <button class="btn ghost" data-adjdel="${a.id}">Remove</button></td>`) : ''}</tr>`).join('')
+              ${laterRuns(a.run).length ? `<button class="btn ghost" data-adjmove="${a.id}">Move to</button>
+              <select class="pick" id="adjMove:${esc(a.id)}" aria-label="Move to a later run">
+                ${laterRuns(a.run).map(r => `<option value="${r}">${dshort(r)} run</option>`).join('')}</select>` : ''}
+              <button class="btn ghost" data-adjdel="${a.id}" style="margin-left:14px">Remove</button></td>`) : ''}</tr>`).join('')
       || `<tr><td colspan="${(lockedPerson ? 4 : 5) + (canEdit && !locked ? 1 : 0)}" class="muted">No adjustments in this run${canEdit ? '. Add one above.' : '.'}</td></tr>`}</tbody>
       ${list.length ? `<tfoot><tr><td colspan="${lockedPerson ? 3 : 4}">Net</td>
         <td class="r">${fmt(list.reduce((s2, a) => s2 + a.amount, 0))}</td>${canEdit && !locked ? '<td></td>' : ''}</tr></tfoot>` : ''}
