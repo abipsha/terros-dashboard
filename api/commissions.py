@@ -54,6 +54,7 @@ RECRUIT = {"l1": {"self": 0.015, "closer": 0.0075, "setter": 0.0075},
 CUTOFF  = "2026-01-01"
 
 KINDS = ["hold", "release", "hold.settle", "hold.reopen", "adjustment", "adjustment.remove",
+         "adjustment.move",
          "changeorder.apply", "changeorder.decline", "changeorder.undo", "run.freeze",
          "plan.schedule", "plan.cancel"]
 # a settled leg names the run payroll paid it in, or this when it predates the ledger
@@ -484,6 +485,11 @@ def _note_for(ev):
         detail = (f"The <b>{leg}</b> commission on this deal was held here but paid through "
                   f"payroll in {when}. It is reported against that run so it does not look "
                   "missing, is not added to that run's total, and will not be paid again.")
+    elif k == "adjustment.move":
+        title = "Adjustment moved to a later run"
+        detail = (f"This adjustment now pays in the <b>{_esc(p.get('run'))}</b> run. Nothing about "
+                  "the entry itself changed - the amount, the reason and who it is for are the "
+                  "same - and no run that has already been paid is touched.")
     elif k == "hold.reopen":
         title = "Put back on hold"
         detail = (f"The <b>{leg}</b> commission was marked as paid outside the ledger and that "
@@ -954,6 +960,22 @@ def _validate(kind, target, p):
         return None
     if kind == "adjustment.remove":
         return None if str(target or "").isdigit() else "Which adjustment?"
+    if kind == "adjustment.move":
+        if not str(target or "").isdigit():
+            return "Which adjustment?"
+        # A run that has already gone out cannot be given new money, so the only
+        # direction an adjustment moves is forward, onto a payday still ahead.
+        run = p.get("run")
+        if not _is_date(run):
+            return "Which run should it move to?"
+        try:
+            if datetime.strptime(run, "%Y-%m-%d").weekday() != 4:
+                return "Pay runs fall on a Friday."
+        except ValueError:
+            return "Which run should it move to?"
+        if run <= _today():
+            return "An adjustment can only move to a run that has not been paid."
+        return None
     if kind == "run.freeze":
         return None if _is_date(target) else "Which run?"
     if kind in ("plan.schedule", "plan.cancel"):
@@ -997,6 +1019,8 @@ def _sanitise(kind, p):
                 "reason": cut(p.get("reason"), 120)}
     if kind == "hold.reopen":
         return {"leg": cut(p.get("leg"), 10), "reason": cut(p.get("reason"), 120)}
+    if kind == "adjustment.move":
+        return {"run": cut(p.get("run"), 10)}
     if kind == "adjustment":
         return {"type": cut(p.get("type"), 40), "amount": float(p.get("amount")),
                 "run": cut(p.get("run"), 10), "note": cut(p.get("note"), 300)}

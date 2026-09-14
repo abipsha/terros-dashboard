@@ -861,6 +861,19 @@ function applyEvents(events) {
       if (i >= 0) ADJ.splice(i, 1);
       return;
     }
+    /* moved to a later run: the entry keeps its identity and its history, it
+       just lands in a different cycle. Replaying in order means the last move
+       wins, and moving it back is another move rather than an undo. */
+    if (e.kind === 'adjustment.move') {
+      const a = ADJ.find(x => x.id === 'e' + e.target);
+      if (a && p.run) {
+        a.movedFrom = a.movedFrom || a.run;
+        a.run = p.run;
+        a.movedBy = e.actor;
+        a.movedAt = String(e.at).slice(0, 10);
+      }
+      return;
+    }
     if (e.kind === 'plan.schedule') {
       if (p.rates && p.recruit && p.summer && e.target) {
         dropPlan(e.target);                    /* a re-schedule replaces the old one */
@@ -2004,7 +2017,7 @@ function adderCard() {
 
 function adminCard() {
   const can = ['Change every rate and plan', 'Assign leadership seats', 'Freeze a run for payroll',
-    'Hold, release and settle commission', 'Enter and remove adjustments', 'Apply change orders',
+    'Hold, release and settle commission', 'Enter, move and remove adjustments', 'Apply change orders',
     'Add and edit people', 'See every rep in every region'];
   return `<div class="card" style="margin-top:20px">
     <div class="chead"><h2>Who has access</h2>
@@ -2411,6 +2424,9 @@ function coCard() {
     </div></div>`;
 }
 
+/* Runs an adjustment can be moved into: later than the one it sits in, and not
+   yet frozen. Moving it into a frozen run would restate a payroll that has gone. */
+const laterRuns = from => RUNDATES2.filter(r => r > from && !isApproved(r)).slice().sort().slice(0, 10);
 /* ---- adjustments: enter money for one rep before the run is approved ---- */
 function adjCard(runDate, lockedPerson) {
   const list = ADJ.filter(a => a.run === runDate && (!lockedPerson || a.who === lockedPerson))
@@ -2438,6 +2454,7 @@ function adjCard(runDate, lockedPerson) {
           <button class="btn ghost" data-act="adjcancel">Cancel</button></div>
       </div>${S.adjError ? `<div class="err">${esc(S.adjError)}</div>` : ''}
       <p class="hint" style="margin:12px 0 0">A chargeback, deduction or advance repayment goes in as a negative.
+      An entry that should wait can be moved to a later run instead of being removed and re-entered, which keeps its reason and its history.
       ${locked ? `The ${dshort(runDate)} run is already frozen, so this lands in the <b>${dshort(target)}</b> run.`
         : `This lands in the ${dshort(runDate)} run and can be changed until it freezes on ${freezeLabel(runDate)}.`}</p></div>` : ''}
     <div class="scroll"><table>
@@ -2447,11 +2464,16 @@ function adjCard(runDate, lockedPerson) {
         <td class="idx">${i + 1}</td>
         ${lockedPerson ? '' : `<td>${who2(a.who)}</td>`}
         <td><span class="pill ${a.amount < 0 ? 'crit' : 'good'}">${esc(a.kind)}</span></td>
-        <td>${esc(a.label)}${a.note ? `<div class="sub">${esc(a.note)}</div>` : ''}</td>
+        <td>${esc(a.label)}${a.note ? `<div class="sub">${esc(a.note)}</div>` : ''}
+          ${a.movedFrom ? `<div class="sub">Moved from the ${dshort(a.movedFrom)} run${a.movedBy ? ' by ' + esc(a.movedBy) : ''}${a.movedAt ? ' on ' + dshort(a.movedAt) : ''}</div>` : ''}</td>
         <td class="n r"><b style="color:${a.amount < 0 ? 'var(--crit)' : 'var(--good)'}">${fmt(a.amount)}</b></td>
         ${canEdit && !locked ? (a.auto
           ? '<td class="r"><span class="muted" title="Generated from the deals that carried the adder">Automatic</span></td>'
-          : `<td class="r"><button class="btn ghost" data-adjdel="${a.id}">Remove</button></td>`) : ''}</tr>`).join('')
+          : `<td class="r" style="white-space:nowrap">
+              ${String(a.id).charAt(0) === 'e' && laterRuns(a.run).length ? `<select class="pick" id="adjMove:${esc(a.id)}" aria-label="Move to a later run">
+                ${laterRuns(a.run).map(r => `<option value="${r}">${dshort(r)} run</option>`).join('')}</select>
+              <button class="btn ghost" data-adjmove="${a.id}">Move to</button>` : ''}
+              <button class="btn ghost" data-adjdel="${a.id}">Remove</button></td>`) : ''}</tr>`).join('')
       || `<tr><td colspan="${(lockedPerson ? 4 : 5) + (canEdit && !locked ? 1 : 0)}" class="muted">No adjustments in this run${canEdit ? '. Add one above.' : '.'}</td></tr>`}</tbody>
       ${list.length ? `<tfoot><tr><td colspan="${lockedPerson ? 3 : 4}">Net</td>
         <td class="r">${fmt(list.reduce((s2, a) => s2 + a.amount, 0))}</td>${canEdit && !locked ? '<td></td>' : ''}</tr></tfoot>` : ''}
@@ -2553,7 +2575,7 @@ function render() {
   window.scrollTo({ top: 0 });
 }
 document.addEventListener('click', ev => {
-  const t = ev.target.closest ? ev.target.closest('[data-nav],[data-df],[data-focus],[data-deal],[data-act],[data-step],[data-hold],[data-release],[data-settle],[data-reopen],[data-adjdel],[data-co],[data-setter],[data-panel],[data-ptab],[data-adderq]') : null;
+  const t = ev.target.closest ? ev.target.closest('[data-nav],[data-df],[data-focus],[data-deal],[data-act],[data-step],[data-hold],[data-release],[data-settle],[data-reopen],[data-adjdel],[data-adjmove],[data-co],[data-setter],[data-panel],[data-ptab],[data-adderq]') : null;
   if (!t) return;
   ev.preventDefault();
   if (t.dataset.nav) { S.focus = null; S.dealFocus = null; S.view = t.dataset.nav; S.q = ''; return render(); }
@@ -2589,6 +2611,21 @@ document.addEventListener('click', ev => {
     applyCO(id, state);
     render();
     save(kind, dealKey(d), {}, () => { if (before) CO.set(id, before); });
+    return;
+  }
+  if (t.dataset.adjmove) {
+    if (S.role !== 'admin') return;
+    const a = ADJ.find(x => x.id === t.dataset.adjmove);
+    if (!a || isApproved(a.run) || String(a.id).charAt(0) !== 'e') return render();
+    const sel = document.getElementById('adjMove:' + a.id);
+    const to = sel ? sel.value : '';
+    if (!to || to <= a.run || isApproved(to)) return render();
+    const was = { run: a.run, movedFrom: a.movedFrom, movedBy: a.movedBy, movedAt: a.movedAt };
+    a.movedFrom = a.movedFrom || a.run;
+    a.run = to; a.movedBy = ADMIN_NOW; a.movedAt = TODAY_D;
+    render();
+    save('adjustment.move', String(a.id).slice(1), { run: to },
+      () => { a.run = was.run; a.movedFrom = was.movedFrom; a.movedBy = was.movedBy; a.movedAt = was.movedAt; });
     return;
   }
   if (t.dataset.adjdel) {
