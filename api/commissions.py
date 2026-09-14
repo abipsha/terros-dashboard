@@ -53,9 +53,11 @@ RECRUIT = {"l1": {"self": 0.015, "closer": 0.0075, "setter": 0.0075},
            "l2": {"self": 0.005, "closer": 0.0025, "setter": 0.0025}}
 CUTOFF  = "2026-01-01"
 
-KINDS = ["hold", "release", "adjustment", "adjustment.remove",
+KINDS = ["hold", "release", "hold.settle", "hold.reopen", "adjustment", "adjustment.remove",
          "changeorder.apply", "changeorder.decline", "changeorder.undo", "run.freeze",
          "plan.schedule", "plan.cancel"]
+# a settled leg names the run payroll paid it in, or this when it predates the ledger
+SETTLED_PRE = "pre"
 HOLD_REASONS = ["Customer financing not approved", "Awaiting signed change order",
                 "Job cancelled - chargeback pending", "Rep eligibility under review",
                 "Contract value in dispute", "Install on hold", "Other"]
@@ -474,6 +476,18 @@ def _note_for(ev):
         title = "Commission released"
         detail = (f"The <b>{leg}</b> commission on this deal is no longer withheld. It pays in "
                   "the next open run.")
+    elif k == "hold.settle":
+        run = p.get("run")
+        when = ("before the ledger started" if run in (None, "", SETTLED_PRE)
+                else f"the <b>{_esc(run)}</b> run")
+        title = "Commission paid outside the ledger"
+        detail = (f"The <b>{leg}</b> commission on this deal was held here but paid through "
+                  f"payroll in {when}. It is reported against that run so it does not look "
+                  "missing, is not added to that run's total, and will not be paid again.")
+    elif k == "hold.reopen":
+        title = "Put back on hold"
+        detail = (f"The <b>{leg}</b> commission was marked as paid outside the ledger and that "
+                  "has been undone. It is withheld again until it is released or settled.")
     elif k == "changeorder.apply":
         title = "Change order applied"
         detail = ("The contract value moved after commission had already been paid. Setter and "
@@ -577,8 +591,8 @@ def _post_note(ev, lead_id):
     return None
 
 
-DEAL_KINDS = ("hold", "release", "changeorder.apply", "changeorder.decline",
-              "changeorder.undo")
+DEAL_KINDS = ("hold", "release", "hold.settle", "hold.reopen", "changeorder.apply",
+              "changeorder.decline", "changeorder.undo")
 
 
 def _event_label(kind, target, payload, is_deal):
@@ -893,13 +907,30 @@ def _deal_by_key(key):
 
 def _validate(kind, target, p):
     p = p or {}
-    if kind in ("hold", "release"):
+    if kind in ("hold", "release", "hold.settle", "hold.reopen"):
         if not _deal_by_key(target):
             return "That deal is not in the ledger."
         if p.get("leg") not in ("setter", "closer"):
             return "A hold is on the setter or the closer leg."
-        if kind == "hold" and p.get("reason") and p["reason"] not in HOLD_REASONS:
+        if kind in ("hold", "hold.reopen") and p.get("reason") and p["reason"] not in HOLD_REASONS:
             return "Unknown hold reason."
+        if kind == "hold.settle":
+            # Run dates are not in the dataset - the ledger derives them from the
+            # deals - so the shape is checked here: a payday is a Friday, and one
+            # that has not arrived yet cannot have paid anything.
+            run = p.get("run")
+            if run != SETTLED_PRE:
+                if not _is_date(run):
+                    return "Name the payroll cycle it was paid in."
+                try:
+                    if datetime.strptime(run, "%Y-%m-%d").weekday() != 4:
+                        return "Pay runs fall on a Friday."
+                except ValueError:
+                    return "Name the payroll cycle it was paid in."
+                if run > _today():
+                    return "A run that has not happened yet cannot have paid it."
+                if run < CUTOFF:
+                    return "That is before the ledger starts."
         return None
     if kind in ("changeorder.apply", "changeorder.decline", "changeorder.undo"):
         if not _deal_by_key(target):
@@ -960,6 +991,12 @@ def _sanitise(kind, p):
         return {"leg": cut(p.get("leg"), 10), "reason": cut(p.get("reason"), 120)}
     if kind == "release":
         return {"leg": cut(p.get("leg"), 10)}
+    if kind == "hold.settle":
+        run = cut(p.get("run"), 10)
+        return {"leg": cut(p.get("leg"), 10), "run": run or SETTLED_PRE,
+                "reason": cut(p.get("reason"), 120)}
+    if kind == "hold.reopen":
+        return {"leg": cut(p.get("leg"), 10), "reason": cut(p.get("reason"), 120)}
     if kind == "adjustment":
         return {"type": cut(p.get("type"), 40), "amount": float(p.get("amount")),
                 "run": cut(p.get("run"), 10), "note": cut(p.get("note"), 300)}

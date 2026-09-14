@@ -693,7 +693,13 @@ function summerMonthsFor(date) {
 const HOLD_REASONS = ['Customer financing not approved', 'Awaiting signed change order',
   'Job cancelled - chargeback pending', 'Rep eligibility under review',
   'Contract value in dispute', 'Install on hold', 'Other'];
-const HOLDS = new Map();   /* deal id -> {setter, closer, reason, at} where a leg is 'held' or 'released' */
+/* deal id -> {setter, closer, reason, at}. A leg is 'held', 'released' or
+   'settled'. Settled means payroll already paid it outside this ledger: it is
+   never routed into a run again, and h.setterPaid / h.closerPaid record which
+   run it was paid in, or 'pre' for money paid before the ledger started. */
+const HOLDS = new Map();
+const SETTLED_PRE = 'pre';
+const legPaidRun = (d, leg) => { const h = HOLDS.get(d.id); return (h && h[leg + 'Paid']) || null; };
 function legState(d, leg) { const h = HOLDS.get(d.id); return (h && h[leg]) || 'pay'; }
 function legAmt(d, leg) { return leg === 'setter' ? d.canvPay : d.closerPay; }
 function legWho(d, leg) { return leg === 'setter' ? d.canvasser : d.closer; }
@@ -712,8 +718,13 @@ function legAmtFor(d, leg, runDate) {
   const rate = leg === 'setter' ? (d.hourly ? R.hourly : R.canvasser) : R.closer;
   return +(basisForRun(d, runDate) * rate).toFixed(2);
 }
-/* a released leg pays in the next open run when its own run has already gone out */
-function legRun(d, leg) { return legState(d, leg) === 'released' && d.run <= LAST_PAID ? OPEN_RUN : d.run; }
+/* a released leg pays in the next open run when its own run has already gone out.
+   a settled leg was paid outside the ledger and is never routed into a run. */
+function legRun(d, leg) {
+  const st = legState(d, leg);
+  if (st === 'settled') return null;
+  return st === 'released' && d.run <= LAST_PAID ? OPEN_RUN : d.run;
+}
 /* A hold only bears on a run that was still open when the hold was placed.
    Holding a leg today cannot rewrite what a run paid out weeks ago: that money
    has gone, the run is a record of it, and clawing it back is an adjustment.
@@ -724,12 +735,21 @@ function holdAppliesTo(id, runDate) {
   if (!h || h.seeded || !h.at) return true;
   return h.at <= freezeDate(runDate);
 }
-function setHold(id, leg, state, reason, by, at) {
+function setHold(id, leg, state, reason, by, at, paidRun) {
   const h = HOLDS.get(id) || { setter: null, closer: null, reason: '', at: at || TODAY_D, by: by || ADMIN_NOW };
   h[leg] = state;
   h.by = by || ADMIN_NOW;
-  if (at) h.at = at;
+  /* h.at is the date the hold was PLACED, and holdAppliesTo reads it to decide
+     which runs the hold ever bore on. Settling a leg must not move it: saying
+     payroll paid it in August cannot retroactively make the hold younger than
+     the runs it was already withheld from. */
+  if (at && state !== 'settled') h.at = at;
   if (reason) h.reason = reason;
+  /* the run a settled leg was paid in travels with the leg, not the deal */
+  if (state === 'settled') {
+    h[leg + 'Paid'] = paidRun || SETTLED_PRE;
+    h[leg + 'PaidAt'] = at || TODAY_D;
+  } else { delete h[leg + 'Paid']; delete h[leg + 'PaidAt']; }
   if (!h.setter && !h.closer) HOLDS.delete(id); else HOLDS.set(id, h);
 }
 /* a snapshot of one deal's hold, so a refused save can be put back */
@@ -744,6 +764,24 @@ function allHolds() {
     if (h[leg] === 'held') out.push({ d: DEALS[id], leg, amt: legAmt(DEALS[id], leg), reason: h.reason, at: h.at });
   }));
   return out.sort((a, b) => b.amt - a.amt);
+}
+/* legs an admin has marked as paid outside the ledger */
+function allSettled() {
+  const out = [];
+  HOLDS.forEach((h, id) => ['setter', 'closer'].forEach(leg => {
+    if (h[leg] === 'settled') out.push({ d: DEALS[id], leg, amt: legAmt(DEALS[id], leg),
+      reason: h.reason, at: h[leg + 'PaidAt'] || h.at, by: h.by, run: h[leg + 'Paid'] || SETTLED_PRE });
+  }));
+  return out.sort((a, b) => b.amt - a.amt);
+}
+const settledLabel = run => run === SETTLED_PRE ? 'before the ledger started' : 'the ' + dshort(run) + ' run';
+/* Only runs that have already frozen can be chosen: naming the open run would
+   just be a release, and that button is right beside this one. */
+const settleRuns = () => RUNDATES2.filter(r => isApproved(r)).slice().sort().reverse().slice(0, 16);
+function settleRunPicker(id) {
+  return `<select class="pick" id="${id}" aria-label="Payroll cycle it was paid in">
+    ${settleRuns().map(r => `<option value="${r}">${dshort(r)} run</option>`).join('')}
+    <option value="${SETTLED_PRE}">Before the ledger started</option></select>`;
 }
 /* Holds are records in the dataset, matched to a deal by opportunity and closing
    date rather than by position, so a scoped payload holds exactly the same legs
@@ -836,6 +874,10 @@ function applyEvents(events) {
     if (!d) return;                              /* outside this person's scope */
     if (e.kind === 'hold') setHold(d.id, p.leg, 'held', p.reason, e.actor, String(e.at).slice(0, 10));
     if (e.kind === 'release') setHold(d.id, p.leg, 'released', '', e.actor, String(e.at).slice(0, 10));
+    if (e.kind === 'hold.settle') setHold(d.id, p.leg, 'settled', p.reason, e.actor,
+      String(e.at).slice(0, 10), p.run || SETTLED_PRE);
+    /* reopening restores the hold; the date it was first placed still stands */
+    if (e.kind === 'hold.reopen') setHold(d.id, p.leg, 'held', p.reason, e.actor, null);
     if (e.kind === 'changeorder.apply') applyCO(d.id, 'applied');
     if (e.kind === 'changeorder.decline') applyCO(d.id, 'declined');
     if (e.kind === 'changeorder.undo') applyCO(d.id, 'pending');
@@ -878,8 +920,8 @@ function runSheet(date) {
   const m = new Map();
   const touch = n => {
     if (!m.has(n)) m.set(n, { name: n, setter: 0, closer: 0, recruit: 0, override: 0, adj: 0,
-      released: 0, heldBack: 0, co: 0, summer: 0, deals: [], bonusLines: [], holds: [],
-      coLines: [], summerLines: [] });
+      released: 0, heldBack: 0, outside: 0, co: 0, summer: 0, deals: [], bonusLines: [], holds: [],
+      outsideLines: [], coLines: [], summerLines: [] });
     return m.get(n);
   };
   const consider = run.deals.slice();
@@ -896,6 +938,17 @@ function runSheet(date) {
         const r = touch(legWho(d, leg));
         r.heldBack += amt; r.holds.push({ d, leg, amt });
         held.push({ d, leg, amt, who: legWho(d, leg), reason: (HOLDS.get(d.id) || {}).reason });
+      }
+      return;
+    }
+    /* Paid outside the ledger. It is reported against the run it was paid in but
+       never added to that run's total: a frozen run keeps the figures it went out
+       with, and this money never passed through the ledger to begin with. */
+    if (st === 'settled') {
+      if (legPaidRun(d, leg) === date) {
+        const r = touch(legWho(d, leg));
+        r.outside += amt;
+        r.outsideLines.push({ d, leg, amt, by: (HOLDS.get(d.id) || {}).by });
       }
       return;
     }
@@ -945,10 +998,12 @@ function runSheet(date) {
     r.bonus = r.recruit + r.override + r.summer;
     r.total = r.commission + r.bonus + r.adj + r.co;
     return r;
-  }).filter(r => Math.abs(r.total) > 0.004 || r.heldBack > 0.004).sort((a, b) => b.total - a.total);
+  }).filter(r => Math.abs(r.total) > 0.004 || r.heldBack > 0.004 || r.outside > 0.004)
+    .sort((a, b) => b.total - a.total);
   return { date, bonusMonth: bm, deals: run.deals, rows,
     state: runStatus(date), held,
     withheld: held.reduce((s, h) => s + h.amt, 0),
+    outside: rows.reduce((s, r) => s + r.outside, 0),
     total: rows.reduce((s, r) => s + r.total, 0) };
 }
 const sheetCache = new Map();
@@ -1309,7 +1364,8 @@ V.runs = () => {
         return `<tr class="clickable" data-focus="${esc(r.name)}" tabindex="0">
         <td class="idx">${i + 1}</td>
         <td><span class="who">${avatar(r.name)}<a href="#" data-focus="${esc(r.name)}">${esc(r.name)}</a></span>
-          ${r.heldBack ? `<div class="sub" style="color:var(--crit)">${fmt0(r.heldBack)} held back</div>` : ''}</td>
+          ${r.heldBack ? `<div class="sub" style="color:var(--crit)">${fmt0(r.heldBack)} held back</div>` : ''}
+          ${r.outside ? `<div class="sub">${fmt0(r.outside)} paid outside the ledger</div>` : ''}</td>
         <td class="muted">${e ? esc(e.team || '&mdash;') : '&mdash;'}
           ${e && e.tags === 'Setter, Hourly' ? '<div class="sub">Hourly &middot; 1%</div>' : ''}</td>
         <td class="n r">${r.commission ? fmt(r.commission) : '<span class="dash">--</span>'}</td>
@@ -1321,13 +1377,16 @@ V.runs = () => {
       ${rows.length ? `<tfoot><tr><td colspan="3">${rows.length} ${rows.length === 1 ? 'person' : 'people'}</td>
         <td class="r">${fmt(comm)}</td><td class="r">${fmt(bon)}</td>
         <td class="r">${fmt(co)}</td><td class="r">${fmt(adj)}</td>
-        <td class="r">${fmt(total)}</td></tr></tfoot>` : ''}
+        <td class="r">${fmt(total)}</td></tr>
+        ${sh.outside ? `<tr><td colspan="7" class="muted">Paid outside the ledger &mdash; recorded against this run, not included in the total above</td>
+        <td class="r muted">${fmt(sh.outside)}</td></tr>` : ''}</tfoot>` : ''}
     </table></div></div>`;
 };
 
 /* ---- one strip for everything that needs a decision before the freeze ---- */
 function reviewStrip(sh) {
   const holds = allHolds().filter(h => scopeName(legWho(h.d, h.leg)));
+  const settled = allSettled().filter(h => scopeName(legWho(h.d, h.leg)));
   const adjs = ADJ.filter(a => a.run === sh.date);
   const cos = coPending();
   const crit = checks().filter(c => c.sev === 'crit').length;
@@ -1335,12 +1394,14 @@ function reviewStrip(sh) {
   const tabs = [
     { k: 'co', label: 'Change orders', n: cos.length, tone: cos.length ? 'warn' : 'good' },
     { k: 'holds', label: 'On hold', n: holds.length, tone: holds.length ? 'crit' : 'good' },
+    settled.length ? { k: 'settled', label: 'Paid outside', n: settled.length, tone: 'plain' } : null,
     { k: 'adj', label: 'Adjustments', n: adjs.length, tone: 'plain' },
     summerMonths.length ? { k: 'summer', label: 'Summer bonus', n: null, tone: 'info' } : null,
     { k: 'checks', label: 'Data checks', n: crit, tone: crit ? 'crit' : 'good' }
   ].filter(Boolean);
   const open = S.panel;
   const body = open === 'co' ? coCard() : open === 'holds' ? holdsCard(holds)
+    : open === 'settled' ? settledCard(settled)
     : open === 'adj' ? adjCard(sh.date, null) : open === 'summer' ? summerCard(sh)
     : open === 'checks' ? checksCard() : '';
   return `<div class="card" style="margin-bottom:20px">
@@ -1366,8 +1427,30 @@ function holdsCard(holds) {
       <td class="muted">${esc(h.reason || 'No reason given')}</td>
       <td class="n muted">${dshort(h.d.run)}</td>
       <td class="n r"><b style="color:var(--crit)">${fmt(h.amt)}</b></td>
-      ${canEditAll() ? `<td class="r"><button class="btn ghost" data-release="${h.d.id}:${h.leg}">Release</button></td>` : ''}</tr>`).join('')
+      ${canEditAll() ? `<td class="r" style="white-space:nowrap">
+        <button class="btn ghost" data-release="${h.d.id}:${h.leg}">Release</button>
+        ${settleRunPicker('settleRun:' + h.d.id + ':' + h.leg)}
+        <button class="btn ghost" data-settle="${h.d.id}:${h.leg}:row">Already paid</button></td>` : ''}</tr>`).join('')
     || `<tr><td colspan="${canEditAll() ? 8 : 7}" class="muted">Nothing withheld. Open a deal to hold a leg.</td></tr>`}</tbody>
+  </table></div>`;
+}
+/* legs payroll paid some other way: shown for the record, never paid again */
+function settledCard(list) {
+  return `<div class="scroll"><table>
+    <thead><tr><th class="idx">#</th><th>Opportunity</th><th>Person</th><th>Leg</th><th>Paid in</th>
+      <th>Recorded</th><th class="r">Amount</th>${canEditAll() ? '<th></th>' : ''}</tr></thead>
+    <tbody>${list.map((h, i) => `<tr>
+      <td class="idx">${i + 1}</td>
+      <td><a href="#" data-deal="${h.d.id}">${esc(h.d.opp)}</a></td>
+      <td>${who2(legWho(h.d, h.leg))}</td>
+      <td><span class="pill plain">${h.leg === 'setter' ? 'Setter' : 'Closer'}</span></td>
+      <td class="muted">${h.run === SETTLED_PRE ? 'Before the ledger' : dshort(h.run) + ' run'}</td>
+      <td class="muted">${h.at ? dshort(h.at) : '&mdash;'}${h.by ? ' &middot; ' + esc(h.by) : ''}</td>
+      <td class="n r">${fmt(h.amt)}</td>
+      ${canEditAll() ? `<td class="r"><button class="btn ghost" data-reopen="${h.d.id}:${h.leg}">Reopen</button></td>` : ''}</tr>`).join('')
+    || `<tr><td colspan="${canEditAll() ? 8 : 7}" class="muted">Nothing marked as paid outside the ledger.</td></tr>`}</tbody>
+    ${list.length ? `<tfoot><tr><td colspan="6">Paid outside the ledger</td>
+      <td class="r">${fmt(list.reduce((a, h) => a + h.amt, 0))}</td>${canEditAll() ? '<td></td>' : ''}</tr></tfoot>` : ''}
   </table></div>`;
 }
 function checksCard() {
@@ -1387,8 +1470,8 @@ V.person = () => {
   const e = byName.get(name);
   const sh = sheet(S.run);
   const r = sh.rows.find(x => x.name === name) || { name, setter: 0, closer: 0, recruit: 0, override: 0,
-    adj: 0, co: 0, summer: 0, commission: 0, bonus: 0, total: 0, heldBack: 0, released: 0,
-    deals: [], bonusLines: [], holds: [], coLines: [], summerLines: [] };
+    adj: 0, co: 0, summer: 0, commission: 0, bonus: 0, total: 0, heldBack: 0, released: 0, outside: 0,
+    deals: [], bonusLines: [], holds: [], outsideLines: [], coLines: [], summerLines: [] };
   const pi = RUNDATES2.indexOf(S.run);
   const trend = RUNDATES2.slice(Math.max(pi - 5, 0), pi + 7).reverse().map(d => {
     const row = sheet(d).rows.find(x => x.name === name);
@@ -1420,6 +1503,7 @@ V.person = () => {
       n: r.summerLines.reduce((a, l) => a + l.dealIds.length, 0) } : null,
     r.coLines.length ? { k: 'co', label: 'Change orders', n: r.coLines.length } : null,
     r.holds.length ? { k: 'holds', label: 'Held back', n: r.holds.length } : null,
+    r.outsideLines.length ? { k: 'outside', label: 'Paid outside', n: r.outsideLines.length } : null,
     addQs.length ? { k: 'adder', label: 'Vivid Adder', n: addN } : null,
     { k: 'adj', label: 'Adjustments', n: adjs.length }
   ].filter(Boolean);
@@ -1487,6 +1571,18 @@ V.person = () => {
         <td class="n r"><b style="color:var(--crit)">${fmt(x.amt)}</b></td></tr>`).join('')}</tbody>
       <tfoot><tr><td colspan="3">Held back</td><td class="r">${fmt(r.heldBack)}</td></tr></tfoot></table></div>`,
 
+    outside: `<p class="hint" style="margin:0 0 14px">These legs were held here but paid through payroll some other
+      way. They are shown against the cycle they went out in so nothing looks missing, and they are not added to the
+      run total above &mdash; that money never passed through this ledger.</p>
+      <div class="scroll"><table>
+      <thead><tr><th>Opportunity</th><th>Leg</th><th>Recorded by</th><th class="r">Paid elsewhere</th></tr></thead>
+      <tbody>${r.outsideLines.map(x => `<tr class="clickable" data-deal="${x.d.id}" tabindex="0">
+        <td>${esc(x.d.opp)}</td>
+        <td><span class="pill plain">${x.leg === 'setter' ? 'Setter' : 'Closer'}</span></td>
+        <td class="muted">${esc(x.by || '&mdash;')}</td>
+        <td class="n r">${fmt(x.amt)}</td></tr>`).join('')}</tbody>
+      <tfoot><tr><td colspan="3">Paid outside the ledger</td><td class="r">${fmt(r.outside)}</td></tr></tfoot></table></div>`,
+
     adder: `<p class="hint" style="margin:0 0 14px">Won deals that carried a <b>VIVID Adder</b> count in Odoo,
       with ${esc(name)} as the closer. Each adder is worth <b>${fmt0(S.adderRate)}</b>, totalled per calendar
       quarter of the closing date. A quarter is paid <b>two quarters later</b>, as a single line on the
@@ -1548,6 +1644,7 @@ V.person = () => {
       <div class="mlabel" style="margin-top:6px">${e ? [e.job, e.team].filter(Boolean).map(esc).join(' &middot; ') : 'Not in the employee list'}</div>
       ${r.heldBack ? `<div style="margin-top:10px"><span class="pill crit">${fmt0(r.heldBack)} held back</span></div>` : ''}
       ${r.released ? `<div style="margin-top:10px"><span class="pill info">${fmt0(r.released)} released from an earlier run</span></div>` : ''}
+      ${r.outside ? `<div style="margin-top:10px"><span class="pill plain">${fmt0(r.outside)} paid outside the ledger</span></div>` : ''}
       ${isCloser ? `<div class="adderbox" ${addQs.length ? 'data-ptab="adder" role="button" tabindex="0"' : ''}>
         <span class="mlabel">Vivid Adder &middot; ${qLabel(addQ)}</span>
         <b class="n">${fmt0(addBal)}</b>
@@ -1618,7 +1715,10 @@ V.deals = () => {
       <td class="idx">${i + 1}</td>
       <td>${esc(d.opp)}${d.selfGen ? ' <span class="pill info">Self-gen</span>' : ''}
         ${d.flagged ? ' <span class="pill crit">Variance</span>' : ''}${d.unknownRep ? ' <span class="pill warn">Unlisted</span>' : ''}
-        ${HOLDS.has(d.id) ? ' <span class="pill crit">On hold</span>' : ''}
+        ${HOLDS.has(d.id) ? (legState(d, 'setter') === 'held' || legState(d, 'closer') === 'held'
+          ? ' <span class="pill crit">On hold</span>'
+          : legState(d, 'setter') === 'settled' || legState(d, 'closer') === 'settled'
+          ? ' <span class="pill plain">Paid outside</span>' : '') : ''}
         ${CO.has(d.id) ? ` <span class="pill ${CO.get(d.id).state === 'applied' ? 'info' : 'warn'}">Change order ${fmt0(CO.get(d.id).delta)}</span>` : ''}</td>
       <td class="muted">${esc(d.team || '&mdash;')}</td><td class="n muted">${dday(d.close)}</td>
       <td>${who2(d.canvasser)}${d.hourly ? ' <span class="pill plain">1%</span>' : ''}</td>
@@ -1904,7 +2004,7 @@ function adderCard() {
 
 function adminCard() {
   const can = ['Change every rate and plan', 'Assign leadership seats', 'Freeze a run for payroll',
-    'Hold and release commission', 'Enter and remove adjustments', 'Apply change orders',
+    'Hold, release and settle commission', 'Enter and remove adjustments', 'Apply change orders',
     'Add and edit people', 'See every rep in every region'];
   return `<div class="card" style="margin-top:20px">
     <div class="chead"><h2>Who has access</h2>
@@ -2368,12 +2468,18 @@ function holdCard(d) {
     return `<div class="rate"><div class="rl">
         <b>${name} &mdash; ${esc(person)}</b>
         <div class="sub">${st === 'held' ? 'Withheld from every run' + (h.seeded || !h.at ? '' : ' since ' + dshort(h.at)) + (h.by && !h.seeded ? ' by ' + esc(h.by) : '') + (h.reason ? ' &middot; ' + esc(h.reason) : '')
+          : st === 'settled' ? 'Paid outside the ledger in ' + settledLabel(legPaidRun(d, key))
+            + (h.by ? ' &middot; recorded by ' + esc(h.by) : '')
+            + (h[key + 'PaidAt'] ? ' on ' + dshort(h[key + 'PaidAt']) : '')
           : st === 'released' ? 'Released &mdash; pays in the ' + dshort(legRun(d, key)) + ' run'
           : (d.run <= LAST_PAID ? 'Paid in the ' : 'Pays in the ') + dshort(d.run) + ' run'}</div></div>
       <b class="n" style="${st === 'held' ? 'color:var(--crit)' : ''}">${fmt(amt)}</b>
-      <span class="pill ${st === 'held' ? 'crit' : st === 'released' ? 'info' : 'good'}">${st === 'held' ? 'On hold' : st === 'released' ? 'Released' : 'Payable'}</span>
+      <span class="pill ${st === 'held' ? 'crit' : st === 'released' ? 'info' : st === 'settled' ? 'plain' : 'good'}">${st === 'held' ? 'On hold' : st === 'released' ? 'Released' : st === 'settled' ? 'Paid outside' : 'Payable'}</span>
       ${admin && firstOpenRun() ? (st === 'held'
-        ? `<button class="btn ghost" data-release="${d.id}:${key}">Release</button>`
+        ? `<button class="btn ghost" data-release="${d.id}:${key}">Release</button>
+           <button class="btn ghost" data-settle="${d.id}:${key}:card">Already paid</button>`
+        : st === 'settled'
+        ? `<button class="btn ghost" data-reopen="${d.id}:${key}">Reopen</button>`
         : `<button class="btn ghost" data-hold="${d.id}:${key}">Hold</button>`) : ''}</div>`;
   };
   return `<div class="card pad" style="margin-top:20px">
@@ -2381,7 +2487,9 @@ function holdCard(d) {
     <p class="hint" style="margin:6px 0 8px">Holding a leg keeps it out of every pay run and flags it as not paid for
     that person. The setter and the closer are held separately. Releasing pays it in the next open run rather than
     back-dating it into a run that has frozen. A hold placed after the freeze takes effect from the
-    ${firstOpenRun() ? dshort(firstOpenRun()) : 'next'} run.</p>
+    ${firstOpenRun() ? dshort(firstOpenRun()) : 'next'} run. If payroll already paid a held leg some other way,
+    mark it <b>Already paid</b> against the cycle it went out in: it is then reported against that run but never
+    paid again, and the run's own total is left exactly as it was.</p>
     ${admin && d.run <= LAST_PAID ? `<div class="note" style="margin:0 0 14px">
       <span class="tag">Already paid</span> This deal paid in the <b>${dshort(d.run)}</b> run, so a hold placed now
       cannot take that money back &mdash; the run keeps the figures it went out with, and holding only stops the leg
@@ -2391,6 +2499,10 @@ function holdCard(d) {
       <div class="rl"><b>Reason</b><div class="sub">Shows on the hold list and on their statement</div></div>
       <select class="pick" id="holdReason" aria-label="Hold reason">
         ${HOLD_REASONS.map(r => `<option ${h.reason === r ? 'selected' : ''}>${esc(r)}</option>`).join('')}</select>
+    </div>` : ''}
+    ${admin && (h.setter === 'held' || h.closer === 'held') && settleRuns().length ? `<div class="rate" style="border-bottom:1px solid var(--line-2)">
+      <div class="rl"><b>Already paid in</b><div class="sub">The payroll cycle a held leg went out in, if it was paid outside the ledger</div></div>
+      ${settleRunPicker('settleRun')}
     </div>` : ''}
     ${leg('Setter commission', 'setter')}
     ${leg('Closer commission', 'closer')}
@@ -2441,7 +2553,7 @@ function render() {
   window.scrollTo({ top: 0 });
 }
 document.addEventListener('click', ev => {
-  const t = ev.target.closest ? ev.target.closest('[data-nav],[data-df],[data-focus],[data-deal],[data-act],[data-step],[data-hold],[data-release],[data-adjdel],[data-co],[data-setter],[data-panel],[data-ptab],[data-adderq]') : null;
+  const t = ev.target.closest ? ev.target.closest('[data-nav],[data-df],[data-focus],[data-deal],[data-act],[data-step],[data-hold],[data-release],[data-settle],[data-reopen],[data-adjdel],[data-co],[data-setter],[data-panel],[data-ptab],[data-adderq]') : null;
   if (!t) return;
   ev.preventDefault();
   if (t.dataset.nav) { S.focus = null; S.dealFocus = null; S.view = t.dataset.nav; S.q = ''; return render(); }
@@ -2523,6 +2635,31 @@ document.addEventListener('click', ev => {
         toast('Adjustment saved');
         render();
       });
+    return;
+  }
+  /* marking a held leg as paid outside the ledger, and putting it back */
+  if (t.dataset.settle || t.dataset.reopen) {
+    if (S.role !== 'admin' || !firstOpenRun()) return;
+    const p = (t.dataset.settle || t.dataset.reopen).split(':');
+    const id = +p[0], d = DEALS[id];
+    if (!d) return;
+    const settling = !!t.dataset.settle;
+    const h = HOLDS.get(id) || {};
+    const reason = h.reason || '';
+    let run = SETTLED_PRE;
+    if (settling) {
+      const sel = document.getElementById(p[2] === 'row' ? 'settleRun:' + id + ':' + p[1] : 'settleRun');
+      run = sel ? sel.value : SETTLED_PRE;
+    }
+    const snap = holdSnapshot(id);
+    const legs = p[1] === 'both' ? ['setter', 'closer'] : [p[1]];
+    legs.forEach(leg => settling
+      ? setHold(id, leg, 'settled', reason, ADMIN_NOW, TODAY_D, run)
+      : setHold(id, leg, 'held', reason, ADMIN_NOW, null));
+    render();
+    const undo = () => holdRestore(id, snap);
+    legs.forEach(leg => save(settling ? 'hold.settle' : 'hold.reopen', dealKey(d),
+      settling ? { leg: leg, run: run, reason: reason } : { leg: leg, reason: reason }, undo));
     return;
   }
   if (t.dataset.hold || t.dataset.release) {
