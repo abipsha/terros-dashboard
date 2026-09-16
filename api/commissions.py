@@ -53,7 +53,8 @@ RECRUIT = {"l1": {"self": 0.015, "closer": 0.0075, "setter": 0.0075},
            "l2": {"self": 0.005, "closer": 0.0025, "setter": 0.0025}}
 CUTOFF  = "2026-01-01"
 
-KINDS = ["hold", "release", "hold.settle", "hold.reopen", "adjustment", "adjustment.remove",
+KINDS = ["hold", "release", "hold.settle", "hold.reopen", "hold.reason",
+         "adjustment", "adjustment.remove",
          "adjustment.move",
          "changeorder.apply", "changeorder.decline", "changeorder.undo", "run.freeze",
          "plan.schedule", "plan.cancel"]
@@ -517,6 +518,11 @@ def _note_for(ev):
         detail = (f"This adjustment now pays in the <b>{_esc(p.get('run'))}</b> run. Nothing about "
                   "the entry itself changed - the amount, the reason and who it is for are the "
                   "same - and no run that has already been paid is touched.")
+    elif k == "hold.reason":
+        title = "Hold reason corrected"
+        detail = (f"The commission on this deal is still held, for the same legs and from the "
+                  f"same date. What changed is why: <b>{_esc(p.get('reason'))}</b>. That is what "
+                  "now shows on the hold list and on the rep's statement.")
     elif k == "hold.reopen":
         title = "Put back on hold"
         detail = (f"The <b>{leg}</b> commission was marked as paid outside the ledger and that "
@@ -624,8 +630,8 @@ def _post_note(ev, lead_id):
     return None
 
 
-DEAL_KINDS = ("hold", "release", "hold.settle", "hold.reopen", "changeorder.apply",
-              "changeorder.decline", "changeorder.undo")
+DEAL_KINDS = ("hold", "release", "hold.settle", "hold.reopen", "hold.reason",
+              "changeorder.apply", "changeorder.decline", "changeorder.undo")
 
 
 def _event_label(kind, target, payload, is_deal):
@@ -1036,6 +1042,13 @@ def _deal_by_key(key):
 
 def _validate(kind, target, p):
     p = p or {}
+    if kind == "hold.reason":
+        # the reason belongs to the hold, not to one leg of it
+        if not _deal_by_key(target):
+            return "That deal is not in the ledger."
+        if p.get("reason") not in HOLD_REASONS:
+            return "Unknown hold reason."
+        return None
     if kind in ("hold", "release", "hold.settle", "hold.reopen"):
         if not _deal_by_key(target):
             return "That deal is not in the ledger."
@@ -1146,6 +1159,8 @@ def _sanitise(kind, p):
                 "reason": cut(p.get("reason"), 120)}
     if kind == "hold.reopen":
         return {"leg": cut(p.get("leg"), 10), "reason": cut(p.get("reason"), 120)}
+    if kind == "hold.reason":
+        return {"reason": cut(p.get("reason"), 120)}
     if kind == "adjustment.move":
         return {"run": cut(p.get("run"), 10)}
     if kind == "adjustment":

@@ -913,6 +913,14 @@ function applyEvents(events) {
       String(e.at).slice(0, 10), p.run || SETTLED_PRE);
     /* reopening restores the hold; the date it was first placed still stands */
     if (e.kind === 'hold.reopen') setHold(d.id, p.leg, 'held', p.reason, e.actor, null);
+    /* Correcting the reason on a hold that is already in place. Its own event
+       kind rather than another hold: replaying a hold would re-date it, and the
+       date a hold was placed is what decides which runs it ever bore on. */
+    if (e.kind === 'hold.reason') {
+      const rec = HOLDS.get(d.id);
+      if (rec && p.reason) { rec.reason = p.reason; rec.reasonBy = e.actor;
+        rec.reasonAt = String(e.at).slice(0, 10); }
+    }
     if (e.kind === 'changeorder.apply') applyCO(d.id, 'applied');
     if (e.kind === 'changeorder.decline') applyCO(d.id, 'declined');
     if (e.kind === 'changeorder.undo') applyCO(d.id, 'pending');
@@ -1104,8 +1112,10 @@ function accountLines(r, date) {
       basis: comBase(d), amt: comBase(d) * l.rate,
       note: l.count + ' deals set in the week of ' + dshort(l.week) });
   }));
+  /* oldest first: a statement reads as the week happened, and the run's own
+     closing window runs the same way */
   return mergeSelfGen(out)
-    .sort((a, b) => (b.d.close || '').localeCompare(a.d.close || '') || b.amt - a.amt);
+    .sort((a, b) => (a.d.close || '').localeCompare(b.d.close || '') || b.amt - a.amt);
 }
 const ACC_HEAD = ['Account', 'Team', 'Closed', 'Earned as', 'Contract value', 'Paid on', 'Amount', 'Note'];
 /* Commission being withheld. Not payable, and deliberately not folded into any
@@ -3233,7 +3243,14 @@ function holdCard(d) {
       <div class="rl"><b>Reason</b><div class="sub">Shows on the hold list and on their statement</div></div>
       <select class="pick" id="holdReason" aria-label="Hold reason">
         ${HOLD_REASONS.map(r => `<option ${h.reason === r ? 'selected' : ''}>${esc(r)}</option>`).join('')}</select>
-    </div>` : ''}
+      ${h.setter === 'held' || h.closer === 'held'
+        ? `<button class="btn ghost" data-act="holdreason:${d.id}">Save reason</button>` : ''}
+    </div>
+    ${admin && (h.setter === 'held' || h.closer === 'held') ? `<p class="hint" style="margin:0 0 8px">
+      The reason shows on the hold list and on that person's statement. Changing it here and pressing
+      <b>Save reason</b> corrects it without moving the date the hold was placed, so nothing about which
+      runs it applies to changes.${h.reasonBy ? ' Last corrected by ' + esc(h.reasonBy)
+        + (h.reasonAt ? ' on ' + dshort(h.reasonAt) : '') + '.' : ''}</p>` : ''}` : ''}
     ${admin && (h.setter === 'held' || h.closer === 'held') && settleRuns().length ? `<div class="rate" style="border-bottom:1px solid var(--line-2)">
       <div class="rl"><b>Already paid in</b><div class="sub">The payroll cycle a held leg went out in, if it was paid outside the ledger</div></div>
       ${settleRunPicker('settleRun')}
@@ -3359,6 +3376,22 @@ document.addEventListener('click', ev => {
     if (act === 'exportcsv') exportCsv(S.run);
     else if (act === 'exportxlsx') exportXlsx(S.run);
     else exportHtml(S.run);
+    return;
+  }
+  if (act.indexOf('holdreason:') === 0) {
+    if (S.role !== 'admin') return;
+    const id = +act.slice(11), d = DEALS[id], rec = HOLDS.get(id);
+    if (!d || !rec || (rec.setter !== 'held' && rec.closer !== 'held')) return render();
+    const sel = document.getElementById('holdReason');
+    const reason = sel ? sel.value : '';
+    if (!reason || reason === rec.reason) return render();
+    const was = { reason: rec.reason, by: rec.reasonBy, at: rec.reasonAt };
+    rec.reason = reason; rec.reasonBy = ADMIN_NOW; rec.reasonAt = TODAY_D;
+    render();
+    save('hold.reason', dealKey(d), { reason: reason }, () => {
+      const x = HOLDS.get(id);
+      if (x) { x.reason = was.reason; x.reasonBy = was.by; x.reasonAt = was.at; }
+    });
     return;
   }
   if (act.indexOf('adjopen:') === 0) { S.addAdj = act.slice(8); S.adjError = null; return render(); }
