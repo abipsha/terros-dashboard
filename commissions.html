@@ -1647,7 +1647,6 @@ const num = v => ({ n: +v || 0 });
 const money = v => ({ n: Math.round((+v || 0) * 100) / 100, money: true });
 const cellText = c => c == null ? '' : (typeof c === 'object' ? ('n' in c ? c.n : c.t) : c);
 const cellNum = c => c && typeof c === 'object' && 'n' in c;
-const cellBold = c => !!(c && typeof c === 'object' && c.b);
 
 /* --- CSV: the summary alone, because an importer wants one table --------- */
 function csvCell(v) {
@@ -1664,130 +1663,239 @@ function runCsv(date) {
   return '\uFEFF' + rows.join('\r\n') + '\r\n';
 }
 
-/* --- HTML: the whole run, readable and printable ------------------------ */
+/* --- HTML: the run as a document -----------------------------------------
+   Not the spreadsheet rendered in a browser. A sixteen-column matrix is the
+   right shape for the workbook and the wrong shape for a page: it can only be
+   read by scrolling sideways, which is no way to read anything. So the report
+   carries few columns and spends them well - a person, what they earned it on,
+   what it came to - and the full split lives on that person's own section and
+   in the export payroll imports. Nothing here scrolls horizontally, at any
+   width, by construction rather than by luck.                             */
 const PAY_CSS = `
-:root{--paper:#FCFCFD;--surface:#F4F5F9;--ink:#14161F;--soft:#4A4F63;--faint:#7B8098;
---rule:#E3E5ED;--rule-soft:#EDEFF4;--crit:#A5352A;--good:#1C7355;--accent:#4B4ACF;
+:root{--paper:#FCFCFD;--surface:#F5F6FA;--sunken:#EDEFF5;--ink:#14161F;--soft:#4A4F63;
+--faint:#7B8098;--rule:#E3E5ED;--rule-soft:#EDEFF4;--crit:#A5352A;--good:#1C7355;
+--accent:#4B4ACF;
 --display:'Familjen Grotesk','Helvetica Neue',Arial,sans-serif;
 --body:'Newsreader',Georgia,'Times New Roman',serif;
 --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,monospace}
-@media (prefers-color-scheme:dark){:root{--paper:#101218;--surface:#191C24;--ink:#E9EAEF;
---soft:#A8ADC0;--faint:#767C92;--rule:#2A2E3A;--rule-soft:#22252F;--crit:#E28A7C;
---good:#6FBF9B;--accent:#9C9BF0}}
+@media (prefers-color-scheme:dark){:root{--paper:#101218;--surface:#191C24;--sunken:#1F222C;
+--ink:#E9EAEF;--soft:#A8ADC0;--faint:#767C92;--rule:#2A2E3A;--rule-soft:#22252F;
+--crit:#E28A7C;--good:#6FBF9B;--accent:#9C9BF0}}
 *{box-sizing:border-box}
+html,body{max-width:100%;overflow-x:hidden}
 body{background:var(--paper);color:var(--ink);font-family:var(--body);font-size:16px;
 line-height:1.5;margin:0;-webkit-font-smoothing:antialiased}
-.wrap{max-width:1040px;margin:0 auto;padding:44px 20px 80px;display:flex;
+.wrap{max-width:900px;margin:0 auto;padding:44px 20px 80px;display:flex;
 flex-direction:column;gap:34px}
 .eyebrow{font-family:var(--mono);font-size:10.5px;letter-spacing:.15em;text-transform:uppercase;
 color:var(--faint);margin:0 0 12px}
 h1{font-family:var(--display);font-weight:700;font-size:clamp(28px,5vw,42px);line-height:1.05;
-letter-spacing:-.02em;margin:0 0 12px}
+letter-spacing:-.02em;margin:0 0 12px;text-wrap:balance}
 .standfirst{font-size:17.5px;color:var(--soft);margin:0;max-width:62ch}
 h2{font-family:var(--display);font-weight:600;font-size:22px;letter-spacing:-.015em;
 margin:0 0 6px;padding-top:22px;border-top:2px solid var(--ink)}
-.note{font-size:15px;color:var(--soft);margin:0 0 16px;max-width:72ch}
-.figs{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1px;
+.note{font-size:15px;color:var(--soft);margin:0 0 18px;max-width:70ch}
+.figs{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1px;
 background:var(--rule);border:1px solid var(--rule)}
 .fig{background:var(--paper);padding:16px 18px}
 .fig .k{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.1em;
 text-transform:uppercase;color:var(--faint);margin-bottom:7px}
-.fig b{font-family:var(--mono);font-size:24px;font-weight:700;font-variant-numeric:tabular-nums;
-display:block;letter-spacing:-.02em}
-/* A wide table is allowed to be wide: it scrolls in its own box rather than
-   compressing sixteen money columns until the figures touch. */
-.scroll{overflow-x:auto;border:1px solid var(--rule);background:var(--paper)}
-table{border-collapse:collapse;width:100%;font-size:14.5px}
-th{font-family:var(--display);font-weight:600;font-size:10px;letter-spacing:.07em;
-text-transform:uppercase;text-align:left;color:var(--faint);background:var(--paper);
-border-bottom:1.5px solid var(--rule);padding:12px 16px 9px;white-space:nowrap;
-position:sticky;top:0;z-index:1}
-td{border-bottom:1px solid var(--rule-soft);padding:9px 16px;vertical-align:top;
-white-space:nowrap}
-/* Every cell is one line. Wrapping inside a table cell - whether by max-width
-   on the cell or on a box inside it - makes the browser size the row from the
-   minimum-content width, and rows come out several times taller than the text
-   they show. A wide table scrolls in its own box instead; nothing here needs to
-   be squeezed into the page width. Anything genuinely long is cut with the
-   whole of it kept on the cell, where hovering shows it. */
-td[title]{cursor:help;border-bottom-style:dashed}
-th.n,td.n{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums;
-white-space:nowrap;padding-left:26px}
-tbody tr:nth-child(even) td{background:var(--surface)}
-tbody tr:hover td{background:var(--rule-soft)}
-td.neg{color:var(--crit)}
-td.zero{color:var(--faint)}
-td.b,tr.b td{font-weight:700}
-tr.b td{background:var(--surface);border-top:1.5px solid var(--rule);border-bottom:none}
+.fig b{font-family:var(--mono);font-size:23px;font-weight:700;font-variant-numeric:tabular-nums;
+display:block;letter-spacing:-.02em;overflow-wrap:anywhere}
 .nav{display:flex;flex-wrap:wrap;gap:8px}
-.nav a{font-family:var(--mono);font-size:11px;letter-spacing:.04em;text-transform:uppercase;
+.nav a{font-family:var(--mono);font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;
 text-decoration:none;color:var(--soft);border:1px solid var(--rule);padding:7px 12px}
 .nav a:hover{color:var(--ink);border-color:var(--faint)}
+table{border-collapse:collapse;width:100%;font-size:15px;table-layout:auto}
+th{font-family:var(--display);font-weight:600;font-size:10px;letter-spacing:.07em;
+text-transform:uppercase;text-align:left;color:var(--faint);
+border-bottom:1.5px solid var(--rule);padding:0 14px 8px 0;vertical-align:bottom}
+td{border-bottom:1px solid var(--rule-soft);padding:11px 14px 11px 0;vertical-align:top;
+overflow-wrap:anywhere}
+th:last-child,td:last-child{padding-right:0}
+th.n,td.n{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums;
+white-space:nowrap}
+td .v{display:block}
+td .sub{display:block;font-family:var(--mono);font-size:11px;color:var(--faint);
+margin-top:3px;letter-spacing:.02em}
+td.neg{color:var(--crit)}
+td.zero{color:var(--faint)}
+tr.total td{border-top:1.5px solid var(--rule);border-bottom:none;font-weight:700;
+padding-top:12px}
 .person{border:1px solid var(--rule);background:var(--surface);padding:18px 20px;
 display:flex;flex-direction:column;gap:12px;break-inside:avoid}
 .people{display:flex;flex-direction:column;gap:14px}
+.phead{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
 .person h3{font-family:var(--display);font-weight:600;font-size:17px;margin:0}
-.person .sub{font-family:var(--mono);font-size:11px;color:var(--faint);margin:4px 0 0}
+.person .who{font-family:var(--mono);font-size:11px;color:var(--faint);margin:4px 0 0}
+.paid{font-family:var(--mono);font-size:19px;font-weight:700;font-variant-numeric:tabular-nums}
+.flag{font-family:var(--mono);font-size:11px;color:var(--crit)}
 .foot{border-top:1px solid var(--rule);padding-top:16px;font-family:var(--mono);
 font-size:11px;color:var(--faint);line-height:1.8}
-@media(max-width:560px){.wrap{padding:28px 16px 56px}.person{padding:14px}}
-@media print{body{background:#fff}.person{break-inside:avoid}h2{break-after:avoid}}`;
+.empty{color:var(--faint);font-size:15px;margin:0}
+@media(max-width:620px){
+  .wrap{padding:28px 16px 56px}
+  .person{padding:14px}
+  table,tbody,tr,td{display:block;width:100%}
+  thead{display:none}
+  tr{border-bottom:1px solid var(--rule);padding:10px 0}
+  tr:last-child{border-bottom:none}
+  td{border:none;padding:3px 0;display:flex;align-items:baseline;gap:14px}
+  td:before{content:attr(data-l);font-family:var(--display);font-size:10px;
+    letter-spacing:.07em;text-transform:uppercase;color:var(--faint);
+    flex:0 0 8.5em;padding-top:2px}
+  td .v{flex:1 1 auto;min-width:0;text-align:right}
+  td.zero{display:none}
+  td:empty{display:none}
+  tr.total td{border-top:none}
+  tr.total td:first-child .v{text-align:right}
+}
+@media print{body{background:#fff}.person{break-inside:avoid}h2{break-after:avoid}
+  .nav{display:none}}`;
 
-function htmlTable(rows) {
+/* a cell: plain text, text with a quieter second line, or money */
+const T = (t, sub) => ({ t: t, sub: sub || '' });
+const M = v => ({ m: +v || 0 });
+const isM = c => c && typeof c === 'object' && 'm' in c;
+
+function cellHtml(c) {
+  if (isM(c)) {
+    const zero = Math.abs(c.m) < 0.005;
+    return { cls: 'n' + (zero ? ' zero' : (c.m < -0.004 ? ' neg' : '')),
+      html: `<span class="v">${zero ? '&mdash;' : fmt(c.m)}</span>` };
+  }
+  const o = typeof c === 'object' ? c : { t: c, sub: '' };
+  return { cls: '', html: `<span class="v">${esc(o.t == null ? '' : o.t)}`
+    + (o.sub ? `<span class="sub">${esc(o.sub)}</span>` : '') + '</span>' };
+}
+/* head: [{t, n}] - n marks a money column so the label right-aligns with it */
+function table(head, rows, total) {
   if (!rows.length) return '';
-  let head = '', body = '';
-  rows.forEach((r, i) => {
-    const cells = r.map(c => {
-      const v = cellText(c);
-      const num = cellNum(c);
-      /* a column of $0.00 is what makes a wide table unreadable - the figure is
-         still zero, it just stops competing with the numbers that matter */
-      const zero = num && Math.abs(+v) < 0.005;
-      const raw = String(v);
-      const long = !num && raw.length > 92;
-      const txt = num ? (zero ? '&mdash;' : fmt(v))
-        : esc(long ? raw.slice(0, 89).replace(/\s+\S*$/, '') + '\u2026' : raw);
-      return { txt: txt, num: num, zero: zero, neg: num && +v < -0.004,
-        b: cellBold(c), full: long ? raw : '' };
-    });
-    const allBold = cells.length && cells.every(c => c.b || c.txt === '');
-    if (i === 0 && allBold) {
-      head = '<tr>' + cells.map(c => `<th class="${c.num ? 'n' : ''}">${c.txt}</th>`).join('') + '</tr>';
-    } else if (!cells.some(c => c.txt !== '')) {
-      body += '<tr><td colspan="' + Math.max(1, r.length) + '" style="border:none;height:10px"></td></tr>';
-    } else {
-      body += `<tr${allBold ? ' class="b"' : ''}>`
-        + cells.map(c => `<td class="${[c.num ? 'n' : '', c.b ? 'b' : '', c.zero ? 'zero' : '',
-            c.neg ? 'neg' : ''].filter(Boolean).join(' ')}"${
-            c.full ? ' title="' + esc(c.full) + '"' : ''}>${c.txt}</td>`).join('')
-        + '</tr>';
-    }
-  });
-  return `<div class="scroll"><table>${head ? '<thead>' + head + '</thead>' : ''}<tbody>${body}</tbody></table></div>`;
+  const row = (cells, cls) => '<tr' + (cls ? ` class="${cls}"` : '') + '>'
+    + cells.map((c, i) => {
+      const r = cellHtml(c);
+      return `<td class="${r.cls}" data-l="${esc(head[i] ? head[i].t : '')}">${r.html}</td>`;
+    }).join('') + '</tr>';
+  return `<table>
+    <thead><tr>${head.map(h => `<th class="${h.n ? 'n' : ''}">${esc(h.t)}</th>`).join('')}</tr></thead>
+    <tbody>${rows.map(r => row(r)).join('')}${total ? row(total, 'total') : ''}</tbody>
+  </table>`;
 }
 
-const SECTION_NOTE = {
-  Summary: 'One row per person. <b>Total</b> is the only column payroll pays; held back and paid outside the ledger are shown so a short figure explains itself.',
-  Accounts: 'Every account each person earned on in this run. A deal they both set and closed is one line, marked self-gen, with the split in the note.',
-  Bonuses: 'Recruiting is a share of what a recruit produced across all their deals, and the override a share of a whole region, so neither splits per account.',
-  Adjustments: 'Money that is not commission, with the reason that shows on the rep&rsquo;s statement.',
-  Withheld: 'Not payable, and not counted in any total here.'
-};
-
 function runHtml(date) {
-  const sh = sheet(date), book = runBook(date);
-  /* Reading order, not the order the sections happen to be built in: what is
-     paid, then what is not, then the page each person gets, and only then the
-     long reference tables - every account and everything withheld - which are
-     looked up rather than read through. */
-  const named = ['Summary', 'Accounts', 'Bonuses', 'Adjustments', 'Withheld'];
-  const order = ['Summary', 'Bonuses', 'Adjustments'];
-  const tail = ['Accounts', 'Withheld'];
-  const pick = names => names.map(x => book.find(s => s.name === x)).filter(Boolean);
-  const main = pick(order);
-  const last = pick(tail);
-  const people = book.filter(s => named.indexOf(s.name) < 0);
-  const withheld = sh.rows.reduce((a, r) => a + r.heldBack, 0);
+  const sh = sheet(date);
+  const rows = sh.rows;
+  const withheld = heldLines(null);
+  const withheldTotal = withheld.reduce((a, h) => a + h.amt, 0);
+  const sum = k => rows.reduce((a, r) => a + r[k], 0);
+
+  /* --- what each person is paid, in four columns rather than sixteen --- */
+  const summary = table(
+    [{ t: 'Person' }, { t: 'Commission', n: true }, { t: 'Bonuses', n: true },
+     { t: 'Adjustments', n: true }, { t: 'Total', n: true }],
+    rows.map(r => {
+      const e = byName.get(r.name) || {};
+      const flags = [r.heldBack ? fmt0(r.heldBack) + ' held back' : '',
+        r.outside ? fmt0(r.outside) + ' paid outside' : ''].filter(Boolean).join(' \u00b7 ');
+      return [T(r.name, [e.team, flags].filter(Boolean).join(' \u00b7 ')),
+        M(r.commission), M(r.bonus + r.summer * 0), M(r.adj + r.co), M(r.total)];
+    }),
+    [T(rows.length + (rows.length === 1 ? ' person' : ' people')),
+     M(sum('commission')), M(sum('bonus')), M(sum('adj') + sum('co')), M(sum('total'))]);
+
+  /* --- every account, everyone --- */
+  const accRows = [];
+  rows.forEach(r => accountLines(r, date).forEach(l => accRows.push([
+    T(r.name), T(l.d.opp, [l.d.team, dshort(l.d.close)].filter(Boolean).join(' \u00b7 ')),
+    T(l.kind === 'Commission' ? l.what : l.kind + ' \u00b7 ' + l.what, l.note || ''),
+    M(l.amt)])));
+  const accounts = table(
+    [{ t: 'Person' }, { t: 'Account' }, { t: 'Earned as' }, { t: 'Amount', n: true }],
+    accRows, [T('All accounts'), T(''), T(''), M(accRows.reduce((a, x) => a + x[3].m, 0))]);
+
+  /* --- bonuses, which do not trace to one account --- */
+  const bonRows = [];
+  rows.forEach(r => {
+    r.bonusLines.slice().sort((a, b) => b.amt - a.amt).forEach(l => bonRows.push([
+      T(r.name), T(l.lvl === 'l1' ? 'Recruiting level 1' : l.lvl === 'l2' ? 'Recruiting level 2'
+        : 'Recruiting special 2%', 'on the production of ' + l.from), M(l.amt)]));
+    if (r.override) bonRows.push([T(r.name), T('Override',
+      'region production' + (sh.bonusMonth ? ' for ' + monLabel(sh.bonusMonth) : '')), M(r.override)]);
+    if (r.summer) bonRows.push([T(r.name), T('Summer bonus', 'weeks with two or more set'), M(r.summer)]);
+  });
+  const bonuses = table([{ t: 'Person' }, { t: 'Bonus' }, { t: 'Amount', n: true }],
+    bonRows, bonRows.length ? [T('All bonuses'), T(''), M(bonRows.reduce((a, x) => a + x[2].m, 0))] : null);
+
+  /* --- adjustments --- */
+  const adjRows = ADJ.filter(a => a.run === date && scopeName(a.who)).map(a => [
+    T(a.who), T(a.kind, [a.label, a.note, a.movedFrom ? 'moved from the ' + dshort(a.movedFrom) + ' run' : '']
+      .filter(Boolean).join(' \u00b7 ')), M(a.amount)]);
+  const adjustments = table([{ t: 'Person' }, { t: 'Adjustment' }, { t: 'Amount', n: true }],
+    adjRows, adjRows.length ? [T('Net'), T(''), M(adjRows.reduce((a, x) => a + x[2].m, 0))] : null);
+
+  /* --- withheld --- */
+  const heldRows = withheld.slice().sort((a, b) => a.who.localeCompare(b.who) || b.amt - a.amt)
+    .map(h => [T(h.who), T(h.d.opp, [h.d.team, dshort(h.d.close)].filter(Boolean).join(' \u00b7 ')),
+      T(legName(h.leg) + ' \u00b7 ' + h.reason,
+        [h.by, h.at ? 'since ' + dshort(h.at) : '', 'would have paid in the ' + dshort(h.d.run) + ' run']
+          .filter(Boolean).join(' \u00b7 ')), M(h.amt)]);
+  const withheldTable = table(
+    [{ t: 'Person' }, { t: 'Account' }, { t: 'Why' }, { t: 'Withheld', n: true }],
+    heldRows, heldRows.length ? [T('Withheld in total'), T(''), T(''), M(withheldTotal)] : null);
+
+  /* --- one section per person --- */
+  const personCard = r => {
+    const lines = accountLines(r, date);
+    const mine = heldLines(r.name);
+    const e = byName.get(r.name) || {};
+    if (!lines.length && !mine.length && !r.total) return '';
+    const extra = [];
+    if (r.bonus) extra.push([T('Bonuses', 'recruiting, override and summer'), M(r.bonus)]);
+    if (r.adj || r.co) extra.push([T('Adjustments and change orders'), M(r.adj + r.co)]);
+    return `<article class="person">
+      <div class="phead">
+        <div><h3>${esc(r.name)}</h3>
+          <p class="who">${esc([e.team, e.job].filter(Boolean).join(' \u00b7 ') || 'Not in the employee list')}</p></div>
+        <div style="text-align:right">
+          <div class="paid">${fmt(r.total)}</div>
+          ${r.heldBack ? `<div class="flag">${fmt0(r.heldBack)} held back</div>` : ''}
+          ${r.outside ? `<div class="flag">${fmt0(r.outside)} paid outside the ledger</div>` : ''}</div>
+      </div>
+      ${lines.length ? table([{ t: 'Account' }, { t: 'Earned as' }, { t: 'Amount', n: true }],
+        lines.map(l => [T(l.d.opp, [l.d.team, dshort(l.d.close)].filter(Boolean).join(' \u00b7 ')),
+          T(l.kind === 'Commission' ? l.what : l.kind + ' \u00b7 ' + l.what, l.note || ''), M(l.amt)]),
+        extra.length ? null : [T('Paid this run'), T(''), M(r.total)]) : ''}
+      ${extra.length ? table([{ t: '' }, { t: '' }, { t: '', n: true }],
+        [[T('Commission on accounts above'), T(''), M(r.commission)]].concat(
+          extra.map(x => [x[0], T(''), x[1]])),
+        [T('Paid this run'), T(''), M(r.total)]) : ''}
+      ${mine.length ? `<p class="note" style="margin:6px 0 0">Withheld &mdash; not paid, and not in the figure above.</p>
+        ${table([{ t: 'Account' }, { t: 'Why' }, { t: 'Withheld', n: true }],
+          mine.slice().sort((a, b) => b.amt - a.amt).map(h => [
+            T(h.d.opp, [h.d.team, dshort(h.d.close)].filter(Boolean).join(' \u00b7 ')),
+            T(legName(h.leg) + ' \u00b7 ' + h.reason,
+              [h.by, 'would have paid in the ' + dshort(h.d.run) + ' run'].filter(Boolean).join(' \u00b7 ')),
+            M(h.amt)]),
+          [T('Withheld in total'), T(''), M(mine.reduce((a, h) => a + h.amt, 0))])}` : ''}
+    </article>`;
+  };
+
+  const sections = [
+    { id: 'summary', title: 'Summary', body: summary,
+      note: 'What each person is paid this run. The full split by rate is in the CSV and the workbook.' },
+    { id: 'bonuses', title: 'Bonuses', body: bonuses,
+      note: 'Recruiting is a share of what a recruit produced across all their deals, and the override a share of a whole region, so neither traces to one account.' },
+    { id: 'adjustments', title: 'Adjustments', body: adjustments,
+      note: 'Money that is not commission, with the reason that shows on the rep&rsquo;s statement.' },
+    { id: 'each-person', title: 'Each person',
+      body: `<div class="people">${rows.map(personCard).join('')}</div>`,
+      note: 'One section per person, ready to hand over.' },
+    { id: 'accounts', title: 'Accounts', body: accounts,
+      note: 'Every account each person earned on. A deal they both set and closed is one line, marked self-gen, with the split underneath.' },
+    { id: 'withheld', title: 'Withheld', body: withheldTable,
+      note: 'Every leg on hold across the ledger, not only this run. None of it is payable, and none of it is counted in any figure above.' }
+  ].filter(s => s.body && s.body.indexOf('<t') >= 0 || s.id === 'each-person');
+
   return `<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Payroll &middot; ${dshort(date)}</title>
@@ -1798,36 +1906,23 @@ function runHtml(date) {
 <header>
   <p class="eyebrow">Vivid Windows &middot; Commission ledger</p>
   <h1>Payroll &middot; ${dshort(date)} run</h1>
-  <p class="standfirst">${runStatus(date) === 'open' ? 'This run is still open and can change until it freezes on '
-    + freezeLabel(date) + '.' : 'This run is ' + (runStatus(date) === 'paid' ? 'paid' : 'frozen')
-    + ' and will not change.'} Covers deals closing ${windowLabel(date)}.</p>
+  <p class="standfirst">${runStatus(date) === 'open'
+    ? 'This run is still open and can change until it freezes on ' + freezeLabel(date) + '.'
+    : 'This run is ' + (runStatus(date) === 'paid' ? 'paid' : 'frozen') + ' and will not change.'}
+    Covers deals closing ${windowLabel(date)}.</p>
 </header>
 <section><div class="figs">
   <div class="fig"><span class="k">Payable</span><b>${fmt(sh.total)}</b></div>
-  <div class="fig"><span class="k">People</span><b>${sh.rows.length}</b></div>
-  <div class="fig"><span class="k">Deals in this run</span><b>${sh.deals.length}</b></div>
-  ${withheld ? `<div class="fig"><span class="k">Withheld</span><b style="color:var(--crit)">${fmt(withheld)}</b></div>` : ''}
+  <div class="fig"><span class="k">People</span><b>${rows.length}</b></div>
+  <div class="fig"><span class="k">Deals</span><b>${sh.deals.length}</b></div>
+  ${withheldTotal ? `<div class="fig"><span class="k">Withheld</span>
+    <b style="color:var(--crit)">${fmt(withheldTotal)}</b></div>` : ''}
 </div></section>
-<nav class="nav">${main.concat(people.length ? [{ name: 'Each person' }] : [], last)
-  .map(s => `<a href="#s-${esc(s.name.replace(/\s+/g, '-').toLowerCase())}">${esc(s.name)}</a>`).join('')}</nav>
-${main.map(s => `<section id="s-${esc(s.name.replace(/\s+/g, '-').toLowerCase())}"><h2>${esc(s.name)}</h2>
-  ${SECTION_NOTE[s.name] ? `<p class="note">${SECTION_NOTE[s.name]}</p>` : ''}
-  ${htmlTable(s.rows)}</section>`).join('')}
-${people.length ? `<section id="s-each-person"><h2>Each person</h2>
-  <p class="note">One page per person, ready to hand over.</p>
-  <div class="people">${people.map(s => {
-    const rows = s.rows.slice();
-    const head = rows.shift() || [];
-    return `<article class="person">
-      <div><h3>${esc(cellText(head[0]))}</h3>
-      <p class="sub">${esc(cellText(head[1]) || dshort(date) + ' run')}</p></div>
-      ${htmlTable(rows)}</article>`;
-  }).join('')}</div></section>` : ''}
-${last.map(s => `<section id="s-${esc(s.name.replace(/\s+/g, '-').toLowerCase())}"><h2>${esc(s.name)}</h2>
-  ${SECTION_NOTE[s.name] ? `<p class="note">${SECTION_NOTE[s.name]}</p>` : ''}
-  ${htmlTable(s.rows)}</section>`).join('')}
+<nav class="nav">${sections.map(s => `<a href="#s-${s.id}">${esc(s.title)}</a>`).join('')}</nav>
+${sections.map(s => `<section id="s-${s.id}"><h2>${esc(s.title)}</h2>
+  ${s.note ? `<p class="note">${s.note}</p>` : ''}${s.body}</section>`).join('')}
 <p class="foot">
-  Generated ${dshort(TODAY_D)} from the commission ledger &middot; ${sh.rows.length} people,
+  Generated ${dshort(TODAY_D)} from the commission ledger &middot; ${rows.length} people,
   ${fmt(sh.total)} payable.<br>
   Rates are those in force on each deal&rsquo;s closing date. Figures match the dashboard person by person.
 </p>
