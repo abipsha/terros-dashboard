@@ -1032,6 +1032,49 @@ function runSheet(date) {
     outside: rows.reduce((s, r) => s + r.outside, 0),
     total: rows.reduce((s, r) => s + r.total, 0) };
 }
+/* ---- the payroll export ----------------------------------------------------
+   One row per person for one run, with commission, bonuses, change orders and
+   adjustments broken out so payroll can see how a figure was arrived at rather
+   than being handed a single number. Held back and paid outside the ledger are
+   carried as their own columns: neither is payable, and both are the first
+   thing anyone asks about when a person's total looks light. Total is the only
+   column payroll pays. */
+const CSV_HEAD = ['Pay run', 'Person', 'Team', 'Role', 'Setter commission', 'Closer commission',
+  'Commission', 'Recruiting', 'Override', 'Summer bonus', 'Bonuses', 'Change orders',
+  'Adjustments', 'Total', 'Held back (not paid)', 'Paid outside the ledger (not paid)'];
+function csvCell(v) {
+  const t = v == null ? '' : String(v);
+  return /[",\r\n]/.test(t) ? '"' + t.replace(/"/g, '""') + '"' : t;
+}
+function runCsv(date) {
+  const sh = sheet(date);
+  const money = v => (+v || 0).toFixed(2);
+  const rows = sh.rows.map(r => {
+    const e = byName.get(r.name) || {};
+    return [date, r.name, e.team || '', e.job || '',
+      money(r.setter), money(r.closer), money(r.commission),
+      money(r.recruit), money(r.override), money(r.summer), money(r.bonus),
+      money(r.co), money(r.adj), money(r.total),
+      money(r.heldBack), money(r.outside)].map(csvCell).join(',');
+  });
+  /* a byte order mark so Excel opens it as UTF-8 rather than mangling a name */
+  return '\uFEFF' + [CSV_HEAD.map(csvCell).join(',')].concat(rows).join('\r\n') + '\r\n';
+}
+function exportRun(date) {
+  const name = 'vivid-commissions-' + date + '.csv';
+  const blob = new Blob([runCsv(date)], { type: 'text/csv;charset=utf-8;' });
+  /* msSaveBlob is the only route in older Edge; everywhere else an anchor works */
+  if (window.navigator && window.navigator.msSaveBlob) return window.navigator.msSaveBlob(blob, name);
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = name;
+  a.style.display = 'none';
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 250);
+}
+
 const sheetCache = new Map();
 function sheet(date) { if (!sheetCache.has(date)) sheetCache.set(date, runSheet(date)); return sheetCache.get(date); }
 
@@ -1609,7 +1652,12 @@ V.person = () => {
         <td class="n r">${fmt(x.amt)}</td></tr>`).join('')}</tbody>
       <tfoot><tr><td colspan="3">Paid outside the ledger</td><td class="r">${fmt(r.outside)}</td></tr></tfoot></table></div>`,
 
-    adder: `<p class="hint" style="margin:0 0 14px">Won deals that carried a <b>VIVID Adder</b> count in Odoo,
+    adder: `${adderPayday(addQ) !== S.run ? `<div class="note" style="margin:0 0 14px">
+      <span class="tag">Not in this run</span> This is ${esc(name)}'s running Vivid Adder balance for
+      <b>${qLabel(addQ)}</b>, which ${adderPaid(addQ) ? 'was paid in' : 'pays in'} the
+      <b>${dshort(adderPayday(addQ))}</b> run. Nothing on this tab is part of the
+      <b>${dshort(S.run)}</b> run you have open.</div>` : ''}
+      <p class="hint" style="margin:0 0 14px">Won deals that carried a <b>VIVID Adder</b> count in Odoo,
       with ${esc(name)} as the closer. Each adder is worth <b>${fmt0(S.adderRate)}</b>, totalled per calendar
       quarter of the closing date. A quarter is paid <b>two quarters later</b>, as a single line on the
       adjustments of the first bonus run of that quarter &mdash; the first Friday after the 10th of its first
@@ -1677,9 +1725,11 @@ V.person = () => {
         <span class="mlabel">${addD.length ? adders(addN) + ' at ' + fmt0(S.adderRate) + ' each, over '
             + addD.length + ' closed deal' + (addD.length === 1 ? '' : 's')
           : 'no adders closed this quarter'}</span>
-        ${addQs.length ? `<span class="when" style="margin-top:8px">
-          <span class="pill ${adderPaid(addQ) ? 'good' : 'info'}">${adderPaid(addQ) ? 'Paid' : 'Pays'}</span>
-          ${dday(adderPayday(addQ))}</span>` : ''}
+        ${addQs.length ? (() => { const pd = adderPayday(addQ), here = pd === S.run;
+          return `<span class="when" style="margin-top:8px">
+          <span class="pill ${here ? 'info' : adderPaid(addQ) ? 'good' : 'plain'}">${here ? 'In this run' : adderPaid(addQ) ? 'Paid' : 'Not in this run'}</span>
+          ${here ? '' : dday(pd)}</span>
+          ${here ? '' : `<span class="mlabel" style="margin-top:4px">A running balance for the quarter &mdash; no part of it is in the ${dshort(S.run)} run</span>`}`; })() : ''}
         ${addQs.length > 1 ? `<span class="mlabel" style="margin-top:6px">${fmt0(addAll)} across
           ${addQs.length} quarters</span>` : ''}</div>` : ''}
       <div style="max-width:250px;margin:22px auto 0">${attainment(r.total, avg, 'Against their recent average')}</div>
@@ -2655,6 +2705,11 @@ document.addEventListener('click', ev => {
     return;
   }
   const act = t.dataset.act || '';
+  if (act === 'export') {
+    if (!seesAll()) return;
+    exportRun(S.run);
+    return;
+  }
   if (act.indexOf('adjopen:') === 0) { S.addAdj = act.slice(8); S.adjError = null; return render(); }
   if (act === 'adjcancel') { S.addAdj = null; S.adjError = null; return render(); }
   if (act.indexOf('adjsave:') === 0) {
