@@ -1238,6 +1238,26 @@ function accountLines(r, date) {
   return out.sort((a, b) => (b.d.close || '').localeCompare(a.d.close || '') || b.amt - a.amt);
 }
 const ACC_HEAD = ['Account', 'Team', 'Closed', 'Earned as', 'Contract value', 'Paid on', 'Amount', 'Note'];
+/* Commission being withheld. Not payable, and deliberately not folded into any
+   total - but the first question a rep asks when their cheque is light, so the
+   accounts it is sitting on belong in the file payroll is holding. */
+const HELD_HEAD = ['Account', 'Team', 'Closed', 'Leg', 'Reason', 'Held since', 'Placed by',
+  'Would have paid in', 'Withheld'];
+function heldLines(name) {
+  return allHolds()
+    .filter(h => !name || legWho(h.d, h.leg) === name)
+    .filter(h => scopeName(legWho(h.d, h.leg)))
+    .map(h => {
+      const rec = HOLDS.get(h.d.id) || {};
+      return { d: h.d, leg: h.leg, amt: h.amt, who: legWho(h.d, h.leg),
+        reason: h.reason || 'No reason given',
+        at: rec.seeded || !rec.at ? '' : rec.at,
+        by: rec.seeded ? 'Carried in from the workbook' : (rec.by === CRM_ACTOR ? 'The CRM' : rec.by || '') };
+    });
+}
+const heldRow = h => [h.d.opp, h.d.team || '', h.d.close || '',
+  legName(h.leg), h.reason, h.at || '', h.by || '', dshort(h.d.run), money(h.amt)];
+const HELD_W = [40, 16, 12, 10, 30, 12, 26, 18, 13];
 const accRow = l => [l.d.opp, l.d.team || '', l.d.close || '', l.kind + ' - ' + l.what,
   money(l.d.value), money(l.basis), money(l.amt), l.note || ''];
 const ACC_W = [40, 16, 12, 26, 15, 15, 13, 40];
@@ -1286,10 +1306,26 @@ function runBook(date) {
     money(a.amount)]));
   if (adj.length > 1) sheets.push({ name: 'Adjustments', rows: adj, widths: [24, 22, 60, 13] });
 
-  /* 5. one tab per person - the page you can hand to the rep it belongs to */
+  /* 5. what is being withheld, and on which accounts */
+  const held = heldLines(null);
+  if (held.length) {
+    const rows = [[H('Withheld commission'), H(dshort(date) + ' run')],
+      ['Every leg on hold across the ledger, not only this run. None of it is payable, and none of it '
+       + 'is counted in any total in this workbook.'],
+      [],
+      ['Person'].concat(HELD_HEAD).map(H)];
+    held.slice().sort((a, b) => a.who.localeCompare(b.who) || b.amt - a.amt)
+      .forEach(h => rows.push([h.who].concat(heldRow(h))));
+    rows.push([]);
+    rows.push([H('Withheld in total'), '', '', '', '', '', '', '', H('Not payable'),
+      money(held.reduce((a, h) => a + h.amt, 0))]);
+    sheets.push({ name: 'Withheld', rows: rows, widths: [24].concat(HELD_W) });
+  }
+
+  /* 6. one tab per person - the page you can hand to the rep it belongs to */
   sh.rows.forEach(r => {
     const lines = accountLines(r, date);
-    if (!lines.length) return;
+    if (!lines.length && !heldLines(r.name).length) return;
     const rows = [[H(r.name), H(dshort(date) + ' run')], []];
     rows.push(ACC_HEAD.map(H));
     lines.forEach(l => rows.push(accRow(l)));
@@ -1300,6 +1336,16 @@ function runBook(date) {
     rows.push([H('Paid this run'), '', '', '', '', '', money(r.total)]);
     if (r.heldBack) rows.push(['Held back - not paid', '', '', '', '', '', money(r.heldBack)]);
     if (r.outside) rows.push(['Paid outside the ledger - not paid here', '', '', '', '', '', money(r.outside)]);
+    /* the accounts behind that held-back figure, named rather than left as a total */
+    const mine = heldLines(r.name);
+    if (mine.length) {
+      rows.push([]);
+      rows.push([H('Withheld - which accounts')]);
+      rows.push(HELD_HEAD.map(H));
+      mine.slice().sort((a, b) => b.amt - a.amt).forEach(h => rows.push(heldRow(h)));
+      rows.push(['', '', '', '', '', '', '', 'Withheld in total',
+        money(mine.reduce((a, h) => a + h.amt, 0))]);
+    }
     sheets.push({ name: r.name, rows: rows, widths: ACC_W });
   });
   return sheets;
@@ -3127,7 +3173,7 @@ document.addEventListener('click', ev => {
   }
   const msg = {
     approveX: 'Approving locks the run. Rates, contract values and adjustments are captured as paid, a payroll file is generated, and the run becomes read-only. A later edit to a contract value then shows up as a variance instead of quietly changing what was paid.',
-    export: 'Downloads this run as an Excel workbook for payroll: a summary of one row per person, a tab of every account each of them earned on, bonuses and adjustments, and a tab per person you can hand to them.',
+    export: 'Downloads this run as an Excel workbook for payroll: a summary of one row per person, a tab of every account each of them earned on, bonuses, adjustments, the accounts whose commission is being withheld, and a tab per person you can hand to them.',
     newadj: 'Opens a short form: who it is for, what kind (spiff, chargeback, manual commission, deduction), the amount, the run it lands in, and a reason that shows on their statement.',
     newuser: 'Opens the new-person form: plan, team, manager, and who recruited them at level 1 and level 2.'
   }[t.dataset.act];
