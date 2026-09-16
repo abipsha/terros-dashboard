@@ -1058,175 +1058,44 @@ function runSheet(date) {
     outside: rows.reduce((s, r) => s + r.outside, 0),
     total: rows.reduce((s, r) => s + r.total, 0) };
 }
-/* ---- the payroll export ----------------------------------------------------
-   A real .xlsx workbook, written here rather than by a library: this is the
-   file payroll pays people from, and it should not depend on a script loaded
-   from somebody else's server. An xlsx is a ZIP of XML, and the ZIP is written
-   uncompressed - larger on disk, far less code to be wrong.               */
-
-/* --- ZIP ------------------------------------------------------------------ */
-const CRC_TABLE = (() => {
-  const t = new Int32Array(256);
-  for (let i = 0; i < 256; i++) {
-    let c = i;
-    for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1;
-    t[i] = c;
-  }
-  return t;
-})();
-function crc32(bytes) {
-  let c = -1;
-  for (let i = 0; i < bytes.length; i++) c = CRC_TABLE[(c ^ bytes[i]) & 0xFF] ^ (c >>> 8);
-  return (c ^ -1) >>> 0;
-}
-const utf8 = s => new TextEncoder().encode(s);
-function zip(files) {
-  const chunks = [], central = [];
-  let offset = 0;
-  const u16 = v => [v & 0xFF, (v >>> 8) & 0xFF];
-  const u32 = v => [v & 0xFF, (v >>> 8) & 0xFF, (v >>> 16) & 0xFF, (v >>> 24) & 0xFF];
-  files.forEach(f => {
-    const name = utf8(f.name), body = f.data, sum = crc32(body);
-    const local = [].concat([0x50, 0x4B, 0x03, 0x04], u16(20), u16(0), u16(0), u16(0), u16(0),
-      u32(sum), u32(body.length), u32(body.length), u16(name.length), u16(0));
-    chunks.push(new Uint8Array(local), name, body);
-    central.push([].concat([0x50, 0x4B, 0x01, 0x02], u16(20), u16(20), u16(0), u16(0), u16(0), u16(0),
-      u32(sum), u32(body.length), u32(body.length), u16(name.length),
-      u16(0), u16(0), u16(0), u16(0), u32(0), u32(offset), [...name]));
-    offset += local.length + name.length + body.length;
-  });
-  const dir = [].concat(...central);
-  const end = [].concat([0x50, 0x4B, 0x05, 0x06], u16(0), u16(0), u16(files.length), u16(files.length),
-    u32(dir.length), u32(offset), u16(0));
-  chunks.push(new Uint8Array(dir), new Uint8Array(end));
-  let total = 0;
-  chunks.forEach(c => { total += c.length; });
-  const out = new Uint8Array(total);
-  let at = 0;
-  chunks.forEach(c => { out.set(c, at); at += c.length; });
-  return out;
-}
-
-/* --- SpreadsheetML -------------------------------------------------------- */
-const xmlEsc = v => String(v == null ? '' : v)
-  .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-  .replace(/"/g, '&quot;').replace(/\x00-\x08\x0B\x0C\x0E-\x1F/g, '');
-function colRef(i) {
-  let s = '', n = i + 1;
-  while (n > 0) { const m = (n - 1) % 26; s = String.fromCharCode(65 + m) + s; n = (n - m - 1) / 26; }
-  return s;
-}
-/* a cell is either a number or text; money carries the 2dp format so payroll
-   sees 1,234.50 rather than 1234.5 */
-const num = v => ({ n: +v || 0 });
-/* Money is rounded to the cent on the way in, not merely displayed to two
-   places. This is the file somebody is paid from: every figure in it has to be
-   an amount that can actually be paid, and a cell holding 3339.5699999999993
-   is a defect waiting to be reported. Each person's total matches their
-   statement exactly; a run total can therefore sit a cent or two from the
-   dashboard's, which adds the unrounded figures and rounds once at the end. */
-const money = v => ({ n: Math.round((+v || 0) * 100) / 100, money: true });
-function sheetXml(rows, widths) {
-  const body = rows.map((cells, r) => {
-    const tds = cells.map((c, i) => {
-      const ref = colRef(i) + (r + 1);
-      if (c == null || c === '') return '';
-      if (typeof c === 'object' && 'n' in c) {
-        return '<c r="' + ref + '" s="' + (c.money ? 2 : 0) + '"><v>' + c.n + '</v></c>';
-      }
-      const bold = typeof c === 'object' && c.b;
-      const text = typeof c === 'object' ? c.t : c;
-      return '<c r="' + ref + '" s="' + (bold ? 1 : 0) + '" t="inlineStr"><is><t xml:space="preserve">'
-        + xmlEsc(text) + '</t></is></c>';
-    }).join('');
-    return '<row r="' + (r + 1) + '">' + tds + '</row>';
-  }).join('');
-  const cols = widths && widths.length
-    ? '<cols>' + widths.map((w, i) => '<col min="' + (i + 1) + '" max="' + (i + 1)
-      + '" width="' + w + '" customWidth="1"/>').join('') + '</cols>' : '';
-  return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
-    + '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
-    + (rows.length ? '<sheetViews><sheetView workbookViewId="0">'
-        + '<pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/>'
-        + '</sheetView></sheetViews>' : '')
-    + cols + '<sheetData>' + body + '</sheetData></worksheet>';
-}
-const STYLES_XML = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
-  + '<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
-  + '<numFmts count="1"><numFmt numFmtId="164" formatCode="#,##0.00"/></numFmts>'
-  + '<fonts count="2"><font><sz val="11"/><name val="Calibri"/></font>'
-  + '<font><b/><sz val="11"/><name val="Calibri"/></font></fonts>'
-  + '<fills count="2"><fill><patternFill patternType="none"/></fill>'
-  + '<fill><patternFill patternType="gray125"/></fill></fills>'
-  + '<borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders>'
-  + '<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>'
-  + '<cellXfs count="3">'
-  + '<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>'
-  + '<xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1"/>'
-  + '<xf numFmtId="164" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/>'
-  + '</cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles>'
-  + '</styleSheet>';
-/* Excel refuses : \ / ? * [ ] in a tab name, caps it at 31 characters, and will
-   not open a workbook with two tabs of the same name */
-function tabName(raw, taken) {
-  let t = String(raw || 'Sheet').replace(/[:\\\/?*\[\]]/g, ' ').trim().slice(0, 31) || 'Sheet';
-  if (taken.has(t.toLowerCase())) {
-    let i = 2, base = t;
-    do { const suffix = ' (' + i++ + ')'; t = base.slice(0, 31 - suffix.length) + suffix; }
-    while (taken.has(t.toLowerCase()));
-  }
-  taken.add(t.toLowerCase());
-  return t;
-}
-function xlsx(sheets) {
-  const taken = new Set();
-  const named = sheets.map(s => Object.assign({}, s, { name: tabName(s.name, taken) }));
-  const files = [
-    { name: '[Content_Types].xml', data: utf8('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
-      + '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'
-      + '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>'
-      + '<Default Extension="xml" ContentType="application/xml"/>'
-      + '<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>'
-      + '<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>'
-      + named.map((s, i) => '<Override PartName="/xl/worksheets/sheet' + (i + 1)
-        + '.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>').join('')
-      + '</Types>') },
-    { name: '_rels/.rels', data: utf8('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
-      + '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
-      + '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>'
-      + '</Relationships>') },
-    { name: 'xl/workbook.xml', data: utf8('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
-      + '<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"'
-      + ' xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets>'
-      + named.map((s, i) => '<sheet name="' + xmlEsc(s.name) + '" sheetId="' + (i + 1)
-        + '" r:id="rId' + (i + 1) + '"/>').join('')
-      + '</sheets></workbook>') },
-    { name: 'xl/_rels/workbook.xml.rels', data: utf8('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
-      + '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
-      + named.map((s, i) => '<Relationship Id="rId' + (i + 1)
-        + '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet'
-        + (i + 1) + '.xml"/>').join('')
-      + '<Relationship Id="rId' + (named.length + 1)
-      + '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>'
-      + '</Relationships>') },
-    { name: 'xl/styles.xml', data: utf8(STYLES_XML) }
-  ];
-  named.forEach((s, i) => files.push({ name: 'xl/worksheets/sheet' + (i + 1) + '.xml',
-    data: utf8(sheetXml(s.rows, s.widths)) }));
-  return zip(files);
-}
-
 const sheetCache = new Map();
 function sheet(date) { if (!sheetCache.has(date)) sheetCache.set(date, runSheet(date)); return sheetCache.get(date); }
 
 /* --- the tabs for one run ------------------------------------------------- */
 const H = t => ({ t: t, b: true });
 const legName = leg => leg === 'setter' ? 'Setter' : 'Closer';
+/* On a self-generated deal the same person set it and closed it, so two lines
+   describing one job read as two jobs on their statement. They become a single
+   line carrying both legs, with the split kept in the note - payroll still
+   needs to see how the figure was reached, it just should not look like two
+   sales. Only legs that actually paid are merged: if one of them is on hold,
+   the line stands alone and says which leg it is. */
+function mergeSelfGen(lines) {
+  const out = [], seen = new Map();
+  lines.forEach(l => {
+    if (!l.d.selfGen) { out.push(l); return; }
+    const k = l.d.id + '|' + l.kind;
+    const first = seen.get(k);
+    if (!first) { seen.set(k, l); out.push(l); return; }
+    /* snapshot the first leg before it is rewritten, or the note ends up
+       describing the merged line instead of the two legs that made it */
+    if (!first.legs) first.legs = [{ what: first.what, amt: first.amt }];
+    first.legs.push({ what: l.what, amt: l.amt });
+    first.amt += l.amt;
+    first.what = 'Self-gen';
+    const extra = [first.extraNote, l.note].filter(Boolean).join(' \u00b7 ');
+    first.note = 'Set and closed by the same person \u00b7 '
+      + first.legs.map(x => x.what.toLowerCase() + ' ' + fmt(x.amt)).join(' + ')
+      + (extra ? ' \u00b7 ' + extra : '');
+  });
+  return out;
+}
 /* every line of money that traces to a single account, for one person */
 function accountLines(r, date) {
   const out = [];
   r.legLines.forEach(l => out.push({ kind: 'Commission', d: l.d, what: legName(l.leg),
-    basis: l.basis, amt: l.amt, note: l.released ? 'Released from an earlier run' : '' }));
+    basis: l.basis, amt: l.amt, note: l.released ? 'Released from an earlier run' : '',
+    extraNote: l.released ? 'Released from an earlier run' : '' }));
   r.coLines.forEach(l => out.push({ kind: 'Change order', d: l.d, what: l.what,
     basis: comBase(l.d), amt: l.amt, note: 'Contract value moved after it was paid' }));
   r.summerLines.forEach(l => l.dealIds.forEach(id => {
@@ -1235,7 +1104,8 @@ function accountLines(r, date) {
       basis: comBase(d), amt: comBase(d) * l.rate,
       note: l.count + ' deals set in the week of ' + dshort(l.week) });
   }));
-  return out.sort((a, b) => (b.d.close || '').localeCompare(a.d.close || '') || b.amt - a.amt);
+  return mergeSelfGen(out)
+    .sort((a, b) => (b.d.close || '').localeCompare(a.d.close || '') || b.amt - a.amt);
 }
 const ACC_HEAD = ['Account', 'Team', 'Closed', 'Earned as', 'Contract value', 'Paid on', 'Amount', 'Note'];
 /* Commission being withheld. Not payable, and deliberately not folded into any
@@ -1350,20 +1220,182 @@ function runBook(date) {
   });
   return sheets;
 }
-function exportRun(date) {
-  const name = 'vivid-commissions-' + date + '.xlsx';
-  const blob = new Blob([xlsx(runBook(date))],
-    { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+/* ---- the payroll export ----------------------------------------------------
+   One model, two files. runBook() builds the run as a list of sections; a
+   section is a title, a header row and its rows. CSV is what payroll imports -
+   flat, one row per person, nothing clever. HTML is what people read: every
+   section, including the accounts each figure came from, and a page per person
+   you can hand over. Both are written here, so neither depends on a library
+   loaded from somebody else's server.                                      */
+/* a cell is text, a number, or money. Money is rounded to the cent on the way
+   in, not merely displayed to two places: somebody is paid from this, so every
+   figure has to be an amount that can actually be paid. Each person's total
+   matches their statement exactly; a run total can therefore sit a cent or two
+   from the dashboard's, which adds the unrounded figures and rounds once. */
+const num = v => ({ n: +v || 0 });
+const money = v => ({ n: Math.round((+v || 0) * 100) / 100, money: true });
+const cellText = c => c == null ? '' : (typeof c === 'object' ? ('n' in c ? c.n : c.t) : c);
+const cellNum = c => c && typeof c === 'object' && 'n' in c;
+const cellBold = c => !!(c && typeof c === 'object' && c.b);
+
+/* --- CSV: the summary alone, because an importer wants one table --------- */
+function csvCell(v) {
+  const t = String(v == null ? '' : v);
+  return /[",\r\n]/.test(t) ? '"' + t.replace(/"/g, '""') + '"' : t;
+}
+function runCsv(date) {
+  const sum = runBook(date).find(s => s.name === 'Summary');
+  const rows = sum.rows.map(r => r.map(c => {
+    const v = cellText(c);
+    return csvCell(cellNum(c) ? (+v).toFixed(2) : v);
+  }).join(','));
+  /* a byte order mark so Excel opens it as UTF-8 rather than mangling a name */
+  return '\uFEFF' + rows.join('\r\n') + '\r\n';
+}
+
+/* --- HTML: the whole run, readable and printable ------------------------ */
+const PAY_CSS = `
+:root{--paper:#FCFCFD;--surface:#F4F5F9;--ink:#14161F;--soft:#4A4F63;--faint:#7B8098;
+--rule:#E3E5ED;--rule-soft:#EDEFF4;--crit:#A5352A;--good:#1C7355;--accent:#4B4ACF;
+--display:'Familjen Grotesk','Helvetica Neue',Arial,sans-serif;
+--body:'Newsreader',Georgia,'Times New Roman',serif;
+--mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#101218;--surface:#191C24;--ink:#E9EAEF;
+--soft:#A8ADC0;--faint:#767C92;--rule:#2A2E3A;--rule-soft:#22252F;--crit:#E28A7C;
+--good:#6FBF9B;--accent:#9C9BF0}}
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font-family:var(--body);font-size:16px;
+line-height:1.5;margin:0;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1040px;margin:0 auto;padding:44px 20px 80px;display:flex;
+flex-direction:column;gap:34px}
+.eyebrow{font-family:var(--mono);font-size:10.5px;letter-spacing:.15em;text-transform:uppercase;
+color:var(--faint);margin:0 0 12px}
+h1{font-family:var(--display);font-weight:700;font-size:clamp(28px,5vw,42px);line-height:1.05;
+letter-spacing:-.02em;margin:0 0 12px}
+.standfirst{font-size:17.5px;color:var(--soft);margin:0;max-width:62ch}
+h2{font-family:var(--display);font-weight:600;font-size:22px;letter-spacing:-.015em;
+margin:0 0 6px;padding-top:22px;border-top:2px solid var(--ink)}
+.note{font-size:15px;color:var(--soft);margin:0 0 16px;max-width:72ch}
+.figs{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1px;
+background:var(--rule);border:1px solid var(--rule)}
+.fig{background:var(--paper);padding:16px 18px}
+.fig .k{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.1em;
+text-transform:uppercase;color:var(--faint);margin-bottom:7px}
+.fig b{font-family:var(--mono);font-size:24px;font-weight:700;font-variant-numeric:tabular-nums;
+display:block;letter-spacing:-.02em}
+.scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:14.5px}
+th{font-family:var(--display);font-weight:600;font-size:10.5px;letter-spacing:.06em;
+text-transform:uppercase;text-align:left;color:var(--faint);
+border-bottom:1.5px solid var(--rule);padding:0 12px 7px 0;white-space:nowrap}
+td{border-bottom:1px solid var(--rule-soft);padding:7px 12px 7px 0;vertical-align:top}
+th.n,td.n{text-align:right;padding-right:0;font-family:var(--mono);
+font-variant-numeric:tabular-nums;white-space:nowrap}
+th:last-child,td:last-child{padding-right:0}
+td.b,tr.b td{font-weight:700}
+.person{border:1px solid var(--rule);background:var(--surface);padding:18px 20px;
+display:flex;flex-direction:column;gap:12px;break-inside:avoid}
+.people{display:flex;flex-direction:column;gap:14px}
+.person h3{font-family:var(--display);font-weight:600;font-size:17px;margin:0}
+.person .sub{font-family:var(--mono);font-size:11px;color:var(--faint);margin:4px 0 0}
+.foot{border-top:1px solid var(--rule);padding-top:16px;font-family:var(--mono);
+font-size:11px;color:var(--faint);line-height:1.8}
+@media(max-width:560px){.wrap{padding:28px 16px 56px}.person{padding:14px}}
+@media print{body{background:#fff}.person{break-inside:avoid}h2{break-after:avoid}}`;
+
+function htmlTable(rows) {
+  if (!rows.length) return '';
+  let head = '', body = '';
+  rows.forEach((r, i) => {
+    const cells = r.map(c => {
+      const v = cellText(c);
+      const num = cellNum(c);
+      const txt = num ? fmt(v) : esc(v);
+      return { txt: txt, num: num, b: cellBold(c) };
+    });
+    const allBold = cells.length && cells.every(c => c.b || c.txt === '');
+    if (i === 0 && allBold) {
+      head = '<tr>' + cells.map(c => `<th class="${c.num ? 'n' : ''}">${c.txt}</th>`).join('') + '</tr>';
+    } else if (!cells.some(c => c.txt !== '')) {
+      body += '<tr><td colspan="' + Math.max(1, r.length) + '" style="border:none;height:10px"></td></tr>';
+    } else {
+      body += `<tr${allBold ? ' class="b"' : ''}>`
+        + cells.map(c => `<td class="${c.num ? 'n' : ''}${c.b ? ' b' : ''}">${c.txt}</td>`).join('')
+        + '</tr>';
+    }
+  });
+  return `<div class="scroll"><table>${head ? '<thead>' + head + '</thead>' : ''}<tbody>${body}</tbody></table></div>`;
+}
+
+const SECTION_NOTE = {
+  Summary: 'One row per person. <b>Total</b> is the only column payroll pays; held back and paid outside the ledger are shown so a short figure explains itself.',
+  Accounts: 'Every account each person earned on in this run. A deal they both set and closed is one line, marked self-gen, with the split in the note.',
+  Bonuses: 'Recruiting is a share of what a recruit produced across all their deals, and the override a share of a whole region, so neither splits per account.',
+  Adjustments: 'Money that is not commission, with the reason that shows on the rep&rsquo;s statement.',
+  Withheld: 'Not payable, and not counted in any total here.'
+};
+
+function runHtml(date) {
+  const sh = sheet(date), book = runBook(date);
+  const named = ['Summary', 'Accounts', 'Bonuses', 'Adjustments', 'Withheld'];
+  const main = book.filter(s => named.indexOf(s.name) >= 0);
+  const people = book.filter(s => named.indexOf(s.name) < 0);
+  const withheld = sh.rows.reduce((a, r) => a + r.heldBack, 0);
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Payroll &middot; ${dshort(date)}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;600;700&family=Newsreader:opsz,wght@6..72,400;6..72,500&family=JetBrains+Mono:wght@400;500;700&display=swap">
+<style>${PAY_CSS}</style></head><body><div class="wrap">
+<header>
+  <p class="eyebrow">Vivid Windows &middot; Commission ledger</p>
+  <h1>Payroll &middot; ${dshort(date)} run</h1>
+  <p class="standfirst">${runStatus(date) === 'open' ? 'This run is still open and can change until it freezes on '
+    + freezeLabel(date) + '.' : 'This run is ' + (runStatus(date) === 'paid' ? 'paid' : 'frozen')
+    + ' and will not change.'} Covers deals closing ${windowLabel(date)}.</p>
+</header>
+<section><div class="figs">
+  <div class="fig"><span class="k">Payable</span><b>${fmt(sh.total)}</b></div>
+  <div class="fig"><span class="k">People</span><b>${sh.rows.length}</b></div>
+  <div class="fig"><span class="k">Deals in this run</span><b>${sh.deals.length}</b></div>
+  ${withheld ? `<div class="fig"><span class="k">Withheld</span><b style="color:var(--crit)">${fmt(withheld)}</b></div>` : ''}
+</div></section>
+${main.map(s => `<section><h2>${esc(s.name)}</h2>
+  ${SECTION_NOTE[s.name] ? `<p class="note">${SECTION_NOTE[s.name]}</p>` : ''}
+  ${htmlTable(s.rows)}</section>`).join('')}
+${people.length ? `<section><h2>Each person</h2>
+  <p class="note">One page per person, ready to hand over.</p>
+  <div class="people">${people.map(s => {
+    const rows = s.rows.slice();
+    const head = rows.shift() || [];
+    return `<article class="person">
+      <div><h3>${esc(cellText(head[0]))}</h3>
+      <p class="sub">${esc(cellText(head[1]) || dshort(date) + ' run')}</p></div>
+      ${htmlTable(rows)}</article>`;
+  }).join('')}</div></section>` : ''}
+<p class="foot">
+  Generated ${dshort(TODAY_D)} from the commission ledger &middot; ${sh.rows.length} people,
+  ${fmt(sh.total)} payable.<br>
+  Rates are those in force on each deal&rsquo;s closing date. Figures match the dashboard person by person.
+</p>
+</div></body></html>`;
+}
+
+function download(name, text, type) {
+  const blob = new Blob([text], { type: type });
   if (window.navigator && window.navigator.msSaveBlob) return window.navigator.msSaveBlob(blob, name);
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  a.href = url;
-  a.download = name;
-  a.style.display = 'none';
-  document.body.appendChild(a);
-  a.click();
+  a.href = url; a.download = name; a.style.display = 'none';
+  document.body.appendChild(a); a.click();
   setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 250);
 }
+const exportCsv = date => download('vivid-commissions-' + date + '.csv', runCsv(date),
+  'text/csv;charset=utf-8;');
+const exportHtml = date => download('vivid-commissions-' + date + '.html', runHtml(date),
+  'text/html;charset=utf-8');
+
 
 
 /* ---- data checks ---- */
@@ -1711,7 +1743,8 @@ V.runs = () => {
       ${S.role === 'manager' && visibleTo(S.actor).all ? '<span class="pill info">All regions</span>' : ''}
       <div class="spacer"></div>
       <input class="search" id="dealQ" placeholder="Search by name" value="${esc(S.q)}">
-      ${seesAll() ? '<button class="btn ghost" data-act="export">Export for payroll</button>' : ''}</div>
+      ${seesAll() ? `<button class="btn ghost" data-act="exportcsv">Export CSV</button>
+        <button class="btn ghost" data-act="exporthtml">Export report</button>` : ''}</div>
     <div class="scroll"><table>
       <thead><tr><th class="idx">#</th><th>Person</th><th>Team</th>
         <th class="r">Commission</th><th class="r">Bonuses</th><th class="r">Change orders</th>
@@ -2433,7 +2466,7 @@ function adminCard() {
           <td class="r"><span class="pill good">Yes</span></td>
           <td class="r">${/^See every rep/.test(c) ? '<span class="pill good">Yes</span>'
             : '<span class="pill">View only</span>'}</td></tr>`).join('')}
-          <tr><td>Export a run to Excel</td>
+          <tr><td>Export a run to CSV or a report</td>
             <td class="r"><span class="pill good">Yes</span></td>
             <td class="r"><span class="pill good">Yes</span></td></tr>
         </tbody></table></div>
@@ -3024,9 +3057,9 @@ document.addEventListener('click', ev => {
     return;
   }
   const act = t.dataset.act || '';
-  if (act === 'export') {
+  if (act === 'exportcsv' || act === 'exporthtml') {
     if (!seesAll()) return;
-    exportRun(S.run);
+    if (act === 'exportcsv') exportCsv(S.run); else exportHtml(S.run);
     return;
   }
   if (act.indexOf('adjopen:') === 0) { S.addAdj = act.slice(8); S.adjError = null; return render(); }
@@ -3173,7 +3206,8 @@ document.addEventListener('click', ev => {
   }
   const msg = {
     approveX: 'Approving locks the run. Rates, contract values and adjustments are captured as paid, a payroll file is generated, and the run becomes read-only. A later edit to a contract value then shows up as a variance instead of quietly changing what was paid.',
-    export: 'Downloads this run as an Excel workbook for payroll: a summary of one row per person, a tab of every account each of them earned on, bonuses, adjustments, the accounts whose commission is being withheld, and a tab per person you can hand to them.',
+    exportcsv: 'One row per person for the payroll system to import: commission, bonuses, change orders and adjustments broken out, with held back and paid outside shown separately. Total is the only column payroll pays.',
+    exporthtml: 'The whole run as a page you can read, print or send on: the summary, every account each person earned on, bonuses, adjustments, what is being withheld, and a section per person you can hand to them.',
     newadj: 'Opens a short form: who it is for, what kind (spiff, chargeback, manual commission, deduction), the amount, the run it lands in, and a reason that shows on their statement.',
     newuser: 'Opens the new-person form: plan, team, manager, and who recruited them at level 1 and level 2.'
   }[t.dataset.act];
