@@ -176,6 +176,27 @@ def _map_lead(r, tags):
 
 
 CANCELLED_REASON = os.environ.get("ODOO_CANCELLED_REASON", "Customer Cancelled")
+# The CRM stage that means the job is parked and its commission should wait.
+HOLD_STAGE = os.environ.get("ODOO_HOLD_STAGE", "Hold Production")
+CRM_HOLD_REASON = "Install on hold"
+CRM_ACTOR = "Odoo"
+
+
+def _friday_on_or_after(iso):
+    d = datetime.strptime(iso, "%Y-%m-%d")
+    return (d + timedelta(days=(4 - d.weekday()) % 7)).strftime("%Y-%m-%d")
+
+
+def _run_of(close):
+    """A run pays the Friday on or after ten days from the closing date - the
+    same gap the dashboard works to."""
+    d = datetime.strptime(close, "%Y-%m-%d") + timedelta(days=10)
+    return _friday_on_or_after(d.strftime("%Y-%m-%d"))
+
+
+def _last_payday():
+    d = datetime.strptime(_today(), "%Y-%m-%d")
+    return (d - timedelta(days=(d.weekday() - 4) % 7)).strftime("%Y-%m-%d")
 
 
 def _key(opp, close):
@@ -218,14 +239,16 @@ def _fetch_odoo():
         if not (r.get("name") and r.get("date_deadline")):
             continue
         state[_key(r["name"], r["date_deadline"])] = {
-            "value": float(r.get("x_studio_contract_value") or 0), "cancelled": False}
+            "value": float(r.get("x_studio_contract_value") or 0), "cancelled": False,
+            "stage": _rel(r.get("stage_id"))}
         if r["date_deadline"] > after:
             new.append(_map_lead(r, tags))
     for r in lost:
         if not (r.get("name") and r.get("date_deadline")):
             continue
         k = _key(r["name"], r["date_deadline"])
-        state[k] = {"value": float(r.get("x_studio_contract_value") or 0), "cancelled": True}
+        state[k] = {"value": float(r.get("x_studio_contract_value") or 0), "cancelled": True,
+                    "stage": _rel(r.get("stage_id"))}
         if r["date_deadline"] > after:
             # it closed after the workbook and has since cancelled: put it back in
             # the ledger marked as such, or there is nothing to claw back against
@@ -271,6 +294,10 @@ def deals_now():
         if st:
             d = dict(d)
             d["value"] = st["value"]          # what the contract is worth now
+            # the stage moves after a deal is sold - a job parked on Hold
+            # Production today was In Production when the workbook was exported
+            if st.get("stage"):
+                d["stage"] = st["stage"]
             if st["cancelled"]:
                 d["cancelled"] = True
         out.append(d)
@@ -804,6 +831,102 @@ def recruit_lines_for(names):
     return out
 
 
+def _leg_state(events, key):
+    """Replay the hold events for one deal and return {leg: state}. The last
+    event for a leg wins, which is the same rule the dashboard replays by."""
+    out = {}
+    for e in events:
+        if e.get("target") != key:
+            continue
+        k = e.get("kind")
+        leg = (e.get("payload") or {}).get("leg")
+        if leg not in ("setter", "closer"):
+            continue
+        if k == "hold":
+            out[leg] = "held"
+        elif k == "release":
+            out[leg] = "released"
+        elif k == "hold.settle":
+            out[leg] = "settled"
+        elif k == "hold.reopen":
+            out[leg] = "held"
+    return out
+
+
+def sync_crm_holds(deals, events):
+    """Park the commission on a job the CRM has put on Hold Production.
+
+    Written as a real hold event rather than kept as a derived flag. If it were
+    only derived, a leg held before its run froze would be missing from that run
+    with nothing to say why, and when the hold lifted its own run would be in
+    the past - so the money would never be paid at all and nothing would show it
+    had gone. As an event it behaves like any hand-placed hold: it is dated, it
+    has a name against it, releasing it pays into the next open run, and the
+    Commission Event list answers "why was this short" without this dashboard.
+
+    Only legs whose run has not yet been paid are held. Holding a leg that has
+    already gone out recovers nothing - the run keeps the figures it went out
+    with - and the honest instrument there is a chargeback, so a hold would be
+    noise on the list and an invitation to think the money was coming back.
+
+    Idempotent: a leg already held, released or settled is left exactly as it
+    is, so a page reload never writes a second event, and a deliberate release
+    is never undone by the stage still sitting on Hold Production."""
+    if not LIVE_DEALS or _FAILED:
+        return 0
+    paid_through = _last_payday()
+    written = 0
+    for d in deals:
+        if (d.get("stage") or "") != HOLD_STAGE or d.get("cancelled"):
+            continue
+        close, opp = d.get("close"), d.get("opp")
+        if not (close and opp) or close < CUTOFF:
+            continue
+        if _run_of(close) <= paid_through:
+            continue                      # already paid; a hold cannot reach it
+        key = _key(opp, close)
+        state = _leg_state(events, key)
+        for leg, who in (("setter", d.get("canvasser")), ("closer", d.get("closer"))):
+            if not who or state.get(leg):
+                continue
+            try:
+                append_event("hold", key, {"leg": leg, "reason": CRM_HOLD_REASON},
+                             CRM_ACTOR, "")
+                written += 1
+            except Exception as e:
+                print(f"[commissions] could not hold {key} {leg}: {e}")
+                return written
+    if written:
+        global _events_cache
+        _events_cache = None               # the page must see what was just written
+        print(f"[commissions] {HOLD_STAGE}: {written} leg(s) held automatically")
+    return written
+
+
+def crm_hold_ready(deals, events):
+    """Legs the CRM put on hold whose job has since moved on. Surfaced as a
+    queue rather than released automatically: a stage corrected in Odoo should
+    not pay anybody without a person agreeing to it."""
+    by_key = {}
+    for d in deals:
+        if d.get("close") and d.get("opp"):
+            by_key[_key(d["opp"], d["close"])] = d
+    out = []
+    for key, d in by_key.items():
+        if (d.get("stage") or "") == HOLD_STAGE or d.get("cancelled"):
+            continue
+        state = _leg_state(events, key)
+        legs = [leg for leg, st in state.items() if st == "held"]
+        if not legs:
+            continue
+        held_by_crm = any(e.get("target") == key and e.get("kind") == "hold"
+                          and e.get("actor") == CRM_ACTOR for e in events)
+        if held_by_crm:
+            out.append({"opp": d["opp"], "close": d["close"], "stage": d.get("stage") or "",
+                        "legs": sorted(legs)})
+    return out
+
+
 def scope_data(person, scope):
     if scope["all"] and scope["role"] != "manager":
         payload = dict(DATA)
@@ -1156,7 +1279,18 @@ def handle_get(handler, path, session):
             "canEdit": who["role"] == "admin",
         }
         try:
-            payload["events"] = events_for(all_events(), payload["deals"], scope)
+            events = all_events()
+            # a job parked in the CRM has its commission held before the run
+            # freezes, not after somebody notices. Admins only: this writes, and
+            # a read-only viewer opening the page should never write anything.
+            if who["role"] == "admin" and not _events_stale and not _deals_stale:
+                try:
+                    if sync_crm_holds(payload["deals"], events):
+                        events = all_events()
+                except Exception as e:
+                    print(f"[commissions] CRM hold sync skipped: {e}")
+            payload["crmReady"] = crm_hold_ready(payload["deals"], events)
+            payload["events"] = events_for(events, payload["deals"], scope)
             if _events_stale:
                 payload["eventsStale"] = True
             if _deals_stale:

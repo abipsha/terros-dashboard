@@ -740,10 +740,14 @@ function setHold(id, leg, state, reason, by, at, paidRun) {
   h[leg] = state;
   h.by = by || ADMIN_NOW;
   /* h.at is the date the hold was PLACED, and holdAppliesTo reads it to decide
-     which runs the hold ever bore on. Settling a leg must not move it: saying
-     payroll paid it in August cannot retroactively make the hold younger than
-     the runs it was already withheld from. */
-  if (at && state !== 'settled') h.at = at;
+     which runs the hold ever bore on. Nothing that happens afterwards may move
+     it. Releasing used to: a leg held on 1 September and released on the 16th
+     then looked as though the hold had been placed on the 16th, so the run that
+     had already gone out without it was treated as having paid it - and the
+     release paid it again in the open run. Only placing a hold sets the date;
+     releasing and settling carry their own. */
+  if (at && state === 'held') h.at = at;
+  if (state === 'released') { h.releasedAt = at || TODAY_D; h.releasedBy = by || ADMIN_NOW; }
   if (reason) h.reason = reason;
   /* the run a settled leg was paid in travels with the leg, not the deal */
   if (state === 'settled') {
@@ -775,6 +779,24 @@ function allSettled() {
   return out.sort((a, b) => b.amt - a.amt);
 }
 const settledLabel = run => run === SETTLED_PRE ? 'before the ledger started' : 'the ' + dshort(run) + ' run';
+/* a hold the CRM placed carries Odoo as its actor rather than a person */
+const CRM_ACTOR = 'Odoo';
+const byLabel = by => by === CRM_ACTOR ? 'by the CRM' : 'by ' + esc(by);
+/* Legs the CRM held whose job has since moved off Hold Production. The server
+   works out which those are; releasing stays a decision somebody makes, so a
+   stage corrected in Odoo never pays anybody on its own. */
+function crmReady() {
+  const out = [];
+  (D.crmReady || []).forEach(x => {
+    const d = DEALS.find(y => y.opp === x.opp && y.close === x.close);
+    if (!d) return;
+    (x.legs || []).forEach(leg => {
+      if (legState(d, leg) !== 'held') return;
+      out.push({ d: d, leg: leg, amt: legAmt(d, leg), stage: x.stage });
+    });
+  });
+  return out.sort((a, b) => b.amt - a.amt);
+}
 /* Only runs that have already frozen can be chosen: naming the open run would
    just be a release, and that button is right beside this one. */
 const settleRuns = () => RUNDATES2.filter(r => isApproved(r)).slice().sort().reverse().slice(0, 16);
@@ -1676,6 +1698,7 @@ V.runs = () => {
 function reviewStrip(sh) {
   const holds = allHolds().filter(h => scopeName(legWho(h.d, h.leg)));
   const settled = allSettled().filter(h => scopeName(legWho(h.d, h.leg)));
+  const ready = crmReady().filter(h => scopeName(legWho(h.d, h.leg)));
   const adjs = ADJ.filter(a => a.run === sh.date);
   const cos = coPending();
   const crit = checks().filter(c => c.sev === 'crit').length;
@@ -1683,6 +1706,7 @@ function reviewStrip(sh) {
   const tabs = [
     { k: 'co', label: 'Change orders', n: cos.length, tone: cos.length ? 'warn' : 'good' },
     { k: 'holds', label: 'On hold', n: holds.length, tone: holds.length ? 'crit' : 'good' },
+    ready.length ? { k: 'crm', label: 'Ready to release', n: ready.length, tone: 'warn' } : null,
     settled.length ? { k: 'settled', label: 'Paid outside', n: settled.length, tone: 'plain' } : null,
     { k: 'adj', label: 'Adjustments', n: adjs.length, tone: 'plain' },
     summerMonths.length ? { k: 'summer', label: 'Summer bonus', n: null, tone: 'info' } : null,
@@ -1690,6 +1714,7 @@ function reviewStrip(sh) {
   ].filter(Boolean);
   const open = S.panel;
   const body = open === 'co' ? coCard() : open === 'holds' ? holdsCard(holds)
+    : open === 'crm' ? crmReadyCard(ready)
     : open === 'settled' ? settledCard(settled)
     : open === 'adj' ? adjCard(sh.date, null) : open === 'summer' ? summerCard(sh)
     : open === 'checks' ? checksCard() : '';
@@ -1713,7 +1738,8 @@ function holdsCard(holds) {
       <td><a href="#" data-deal="${h.d.id}">${esc(h.d.opp)}</a></td>
       <td>${who2(legWho(h.d, h.leg))}</td>
       <td><span class="pill plain">${h.leg === 'setter' ? 'Setter' : 'Closer'}</span></td>
-      <td class="muted">${esc(h.reason || 'No reason given')}</td>
+      <td class="muted">${esc(h.reason || 'No reason given')}${(HOLDS.get(h.d.id) || {}).by === CRM_ACTOR
+        ? '<div class="sub">Placed by the CRM &middot; job on Hold Production</div>' : ''}</td>
       <td class="n muted">${dshort(h.d.run)}</td>
       <td class="n r"><b style="color:var(--crit)">${fmt(h.amt)}</b></td>
       ${canEditAll() ? `<td class="r" style="white-space:nowrap">
@@ -1739,6 +1765,30 @@ function settledCard(list) {
       ${canEditAll() ? `<td class="r"><button class="btn ghost" data-reopen="${h.d.id}:${h.leg}">Reopen</button></td>` : ''}</tr>`).join('')
     || `<tr><td colspan="${canEditAll() ? 8 : 7}" class="muted">Nothing marked as paid outside the ledger.</td></tr>`}</tbody>
     ${list.length ? `<tfoot><tr><td colspan="6">Paid outside the ledger</td>
+      <td class="r">${fmt(list.reduce((a, h) => a + h.amt, 0))}</td>${canEditAll() ? '<td></td>' : ''}</tr></tfoot>` : ''}
+  </table></div>`;
+}
+/* the queue of CRM holds whose job has moved on */
+function crmReadyCard(list) {
+  return `<p class="hint" style="margin:0 0 14px">The CRM put these on hold because the job was parked on
+    <b>Hold Production</b>. Odoo now has them somewhere else, so the commission can go out. Releasing pays it in
+    the deal's own run where that run is still to come, and in the
+    <b>${firstOpenRun() ? dshort(firstOpenRun()) : 'next open'}</b> run where its own run has already gone out
+    &mdash; never back into a run that has already been paid.</p>
+    <div class="scroll"><table>
+    <thead><tr><th class="idx">#</th><th>Opportunity</th><th>Person</th><th>Leg</th><th>Odoo now says</th>
+      <th>Would have paid</th><th class="r">Amount</th>${canEditAll() ? '<th></th>' : ''}</tr></thead>
+    <tbody>${list.map((h, i) => `<tr>
+      <td class="idx">${i + 1}</td>
+      <td><a href="#" data-deal="${h.d.id}">${esc(h.d.opp)}</a></td>
+      <td>${who2(legWho(h.d, h.leg))}</td>
+      <td><span class="pill plain">${h.leg === 'setter' ? 'Setter' : 'Closer'}</span></td>
+      <td><span class="pill good">${esc(h.stage || 'moved on')}</span></td>
+      <td class="n muted">${dshort(h.d.run)}</td>
+      <td class="n r"><b>${fmt(h.amt)}</b></td>
+      ${canEditAll() ? `<td class="r"><button class="btn" data-release="${h.d.id}:${h.leg}">Release</button></td>` : ''}</tr>`).join('')
+    || `<tr><td colspan="${canEditAll() ? 8 : 7}" class="muted">Nothing waiting.</td></tr>`}</tbody>
+    ${list.length ? `<tfoot><tr><td colspan="6">Ready to release</td>
       <td class="r">${fmt(list.reduce((a, h) => a + h.amt, 0))}</td>${canEditAll() ? '<td></td>' : ''}</tr></tfoot>` : ''}
   </table></div>`;
 }
@@ -2301,6 +2351,7 @@ function adderCard() {
 function adminCard() {
   const can = ['Change every rate and plan', 'Assign leadership seats', 'Freeze a run for payroll',
     'Hold, release and settle commission', 'Enter, move and remove adjustments', 'Apply change orders',
+    'Release what the CRM held',
     'Add and edit people', 'See every rep in every region'];
   return `<div class="card" style="margin-top:20px">
     <div class="chead"><h2>Who has access</h2>
@@ -2772,11 +2823,13 @@ function holdCard(d) {
     if (!amt) return '';
     return `<div class="rate"><div class="rl">
         <b>${name} &mdash; ${esc(person)}</b>
-        <div class="sub">${st === 'held' ? 'Withheld from every run' + (h.seeded || !h.at ? '' : ' since ' + dshort(h.at)) + (h.by && !h.seeded ? ' by ' + esc(h.by) : '') + (h.reason ? ' &middot; ' + esc(h.reason) : '')
+        <div class="sub">${st === 'held' ? 'Withheld from every run' + (h.seeded || !h.at ? '' : ' since ' + dshort(h.at)) + (h.by && !h.seeded ? ' ' + byLabel(h.by) : '') + (h.reason ? ' &middot; ' + esc(h.reason) : '')
           : st === 'settled' ? 'Paid outside the ledger in ' + settledLabel(legPaidRun(d, key))
             + (h.by ? ' &middot; recorded by ' + esc(h.by) : '')
             + (h[key + 'PaidAt'] ? ' on ' + dshort(h[key + 'PaidAt']) : '')
-          : st === 'released' ? 'Released &mdash; pays in the ' + dshort(legRun(d, key)) + ' run'
+          : st === 'released' ? 'Released' + (h.releasedAt ? ' ' + dshort(h.releasedAt) : '')
+            + (h.releasedBy ? ' ' + byLabel(h.releasedBy) : '')
+            + ' &mdash; pays in the ' + dshort(legRun(d, key)) + ' run'
           : (d.run <= LAST_PAID ? 'Paid in the ' : 'Pays in the ') + dshort(d.run) + ' run'}</div></div>
       <b class="n" style="${st === 'held' ? 'color:var(--crit)' : ''}">${fmt(amt)}</b>
       <span class="pill ${st === 'held' ? 'crit' : st === 'released' ? 'info' : st === 'settled' ? 'plain' : 'good'}">${st === 'held' ? 'On hold' : st === 'released' ? 'Released' : st === 'settled' ? 'Paid outside' : 'Payable'}</span>
