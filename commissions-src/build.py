@@ -77,7 +77,7 @@ __HOOK__
 </script>
 """
 
-hook = ("\n    window.__t = { get S(){return S}, sheet, SESSION, render, RUNDATES2, DEALS, EMP };\n"
+hook = ("\n    window.__t = { get S(){return S}, sheet, SESSION, render, RUNDATES2, DEALS, EMP,\n      CO, ADJ, coEffect, summerWeeks, HOLDS, adderAdjustments, seedCOs, paidBasis, comBase, commValue };\n"
         if '--hook' in sys.argv else '')
 
 out = ('<!doctype html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n'

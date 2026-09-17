@@ -57,6 +57,7 @@ KINDS = ["hold", "release", "hold.settle", "hold.reopen", "hold.reason",
          "adjustment", "adjustment.remove",
          "adjustment.move",
          "changeorder.apply", "changeorder.decline", "changeorder.undo", "run.freeze",
+         "deal.adder",
          "plan.schedule", "plan.cancel"]
 # a settled leg names the run payroll paid it in, or this when it predates the ledger
 SETTLED_PRE = "pre"
@@ -65,6 +66,12 @@ HOLD_REASONS = ["Customer financing not approved", "Awaiting signed change order
                 "Contract value in dispute", "Install on hold", "Other"]
 ADJ_KINDS = ["Bonus", "Manual commission", "Reimbursement",
              "Chargeback", "Deduction", "Advance repayment"]
+# Deducting a Vivid Adder leaves the contract value alone. One event carries
+# both halves: what commission is worked out from, and the adder balance.
+ADDER_REASONS = ["Adder was not sold", "Adder was priced into the contract",
+                 "Entered on the deal in error", "Customer removed it",
+                 "Duplicated on another deal", "Other"]
+ADDER_MAX = 20          # more adders than any deal has ever carried
 
 CACHE_TTL = 60          # how long an event read is reused
 STALE_TTL = 600         # how long a cached read survives an Odoo outage
@@ -491,88 +498,150 @@ def _when(iso):
         return str(iso)
 
 
+def _plain(s):
+    """Strip anything that could be read as markup and flatten whitespace.
+
+    The note is plain prose now, so there is nothing to escape into: an
+    ampersand in an opportunity name should read as an ampersand, not as
+    &amp;. Angle brackets are the only characters worth removing, because a
+    reader that does interpret the body as HTML would swallow whatever
+    followed one."""
+    t = str("" if s is None else s).replace("<", "(").replace(">", ")")
+    return " ".join(t.split())
+
+
+def _day(iso):
+    """A pay run is a date somebody reads, not a key they parse."""
+    try:
+        return datetime.strptime(str(iso)[:10], "%Y-%m-%d").strftime("%b %-d, %Y")
+    except (TypeError, ValueError):
+        return _plain(iso)
+
+
 def _note_for(ev):
+    """One short paragraph of plain English, for somebody reading the
+    opportunity in Odoo who has never opened the dashboard.
+
+    Written as sentences rather than marked-up lines. The chatter here renders
+    the body as text, so tags arrived as tags - a note that reads
+    "The (b)closer(/b) commission..." is worse than no note. Sentences read
+    correctly whether the reader shows the line breaks or runs them together."""
     p = ev.get("payload") or {}
     leg = "setter" if p.get("leg") == "setter" else "closer"
     k = ev["kind"]
+    reason = _plain(p.get("reason"))
+
     if k == "hold":
-        title = "Commission held"
-        detail = (f"The <b>{leg}</b> commission on this deal is withheld and will not be paid "
-                  "until it is released.")
-        if p.get("reason"):
-            detail += f"<br/>Reason: <b>{_esc(p['reason'])}</b>"
+        lines = ["Commission held.",
+                 f"The {leg} commission on this deal is being withheld and will not be paid "
+                 "until someone releases it."]
+        if reason:
+            lines.append(f"The reason given is: {reason.lower()}.")
     elif k == "release":
-        title = "Commission released"
-        detail = (f"The <b>{leg}</b> commission on this deal is no longer withheld. It pays in "
-                  "the next open run.")
+        lines = ["Commission released.",
+                 f"The {leg} commission on this deal is no longer withheld. It will be paid in "
+                 "the next pay run that has not yet been frozen."]
     elif k == "hold.settle":
         run = p.get("run")
-        when = ("before the ledger started" if run in (None, "", SETTLED_PRE)
-                else f"the <b>{_esc(run)}</b> run")
-        title = "Commission paid outside the ledger"
-        detail = (f"The <b>{leg}</b> commission on this deal was held here but paid through "
-                  f"payroll in {when}. It is reported against that run so it does not look "
-                  "missing, is not added to that run's total, and will not be paid again.")
-    elif k == "adjustment.move":
-        title = "Adjustment moved to a later run"
-        detail = (f"This adjustment now pays in the <b>{_esc(p.get('run'))}</b> run. Nothing about "
-                  "the entry itself changed - the amount, the reason and who it is for are the "
-                  "same - and no run that has already been paid is touched.")
+        when = ("before this ledger started" if run in (None, "", SETTLED_PRE)
+                else f"in the {_day(run)} pay run")
+        lines = ["Commission paid outside the ledger.",
+                 f"The {leg} commission on this deal was being withheld here, but payroll had "
+                 f"already paid it {when}.",
+                 "It is recorded against that run so it does not look missing, it is not added "
+                 "to that run's total, and it will not be paid again."]
     elif k == "hold.reason":
-        title = "Hold reason corrected"
-        detail = (f"The commission on this deal is still held, for the same legs and from the "
-                  f"same date. What changed is why: <b>{_esc(p.get('reason'))}</b>. That is what "
-                  "now shows on the hold list and on the rep's statement.")
+        lines = ["Hold reason corrected.",
+                 "The commission on this deal is still held, on the same legs and from the same "
+                 "date as before. Only the reason has changed.",
+                 f"It now reads: {reason.lower()}." if reason else ""]
     elif k == "hold.reopen":
-        title = "Put back on hold"
-        detail = (f"The <b>{leg}</b> commission was marked as paid outside the ledger and that "
-                  "has been undone. It is withheld again until it is released or settled.")
+        lines = ["Put back on hold.",
+                 f"The {leg} commission had been marked as paid outside the ledger, and that has "
+                 "been undone. It is withheld again until someone releases it or records that "
+                 "payroll paid it."]
     elif k == "changeorder.apply":
-        title = "Change order applied"
-        detail = ("The contract value moved after commission had already been paid. Setter and "
-                  "closer commission, both levels of recruiting bonus and the manager override "
-                  "have been recalculated, and only the difference is paid or clawed back. Runs "
-                  "that already went out are unchanged.")
+        lines = ["Change order applied.",
+                 "The contract value on this deal changed after commission had already been paid "
+                 "on the old figure.",
+                 "The setter and closer commission, both levels of recruiting bonus and the "
+                 "manager override have been worked out again, and only the difference is being "
+                 "paid or taken back. Pay runs that have already gone out are untouched."]
+    elif k == "changeorder.decline":
+        lines = ["Change order reviewed and not applied.",
+                 "The contract value on this deal changed after commission had already been paid, "
+                 "and the difference was looked at and deliberately left alone.",
+                 "Nobody is paid or charged for it. It can be put back in the queue later."]
+    elif k == "changeorder.undo":
+        lines = ["Change order reversed.",
+                 "Commission on this deal goes back to what the original contract value paid."]
+    elif k == "adjustment.move":
+        lines = ["Adjustment moved to a later pay run.",
+                 f"It will now be paid in the {_day(p.get('run'))} run.",
+                 "Nothing else about it changed - the amount, the reason and the person it is "
+                 "for are the same - and no run that has already been paid is affected."]
+    elif k == "adjustment":
+        amount = _money(p.get("amount"))
+        where = f" in the {_day(p.get('run'))} pay run" if p.get("run") else ""
+        lines = ["Commission adjustment.",
+                 f"{_plain(p.get('type'))} of {amount} for {_plain(ev.get('target'))}{where}."]
+        if p.get("note"):
+            lines.append(f"Note: {_plain(p['note'])}")
+    elif k == "adjustment.remove":
+        lines = ["Adjustment removed.",
+                 "An adjustment entered earlier was taken off before the pay run was frozen, so "
+                 "nothing was paid on it."]
+    elif k == "deal.adder":
+        n = int(p.get("count") or 0)
+        if n:
+            word = "one Vivid Adder" if n == 1 else f"{n} Vivid Adders"
+            lines = ["Vivid Adder deducted.",
+                     f"The contract value on this job is unchanged - it is what the customer "
+                     f"signed. What has changed is the figure commission is worked out from, "
+                     f"which is now {word} lower.",
+                     "The setter and closer commission, both levels of recruiting bonus and the "
+                     "manager override all follow from that one figure, so none of them has to "
+                     "be worked out separately. The closer's quarterly Vivid Adder payment drops "
+                     "by the same amount.",
+                     "If this job had already been paid on, the difference is waiting in the "
+                     "change orders queue rather than changing a pay run that has gone out."]
+            if reason:
+                lines.append(f"The reason given is: {reason.lower()}.")
+        else:
+            lines = ["Vivid Adder put back.",
+                     "A Vivid Adder that had been deducted from this job has been restored. "
+                     "Commission is worked out on the full contract value again, and the "
+                     "quarterly Vivid Adder payment goes back up."]
     elif k == "plan.schedule":
         r = p.get("rates") or {}
-        title = "Commission plan scheduled"
-        detail = (f"From <b>{_esc(ev.get('target'))}</b>: closer "
-                  f"{_pct(r.get('closer'))}, setter {_pct(r.get('canvasser'))}, hourly setter "
-                  f"{_pct(r.get('hourly'))}. Deals closing on or after that date are paid at these "
-                  "rates; everything already closed keeps the rates it was sold under."
-                  + (f"<br>{_esc(p.get('note'))}" if p.get("note") else ""))
-    elif k == "plan.cancel":
-        title = "Scheduled plan change cancelled"
-        detail = (f"The plan due to start <b>{_esc(ev.get('target'))}</b> will not take effect. "
-                  "Nothing had been paid at those rates.")
-    elif k == "changeorder.decline":
-        title = "Change order not applied"
-        detail = ("The contract value moved after commission had already been paid, and the "
-                  "difference was reviewed and deliberately not paid on. Nobody is paid or "
-                  "clawed back for it. It can be put back in the queue later.")
-    elif k == "changeorder.undo":
-        title = "Change order reversed"
-        detail = "Commission goes back to what the original contract value paid."
-    elif k == "adjustment":
-        title = "Commission adjustment"
-        detail = (f"{_esc(p.get('type'))} of <b>{_money(p.get('amount'))}</b> for "
-                  f"<b>{_esc(ev.get('target'))}</b>")
-        detail += f", in the {_esc(p.get('run'))} pay run." if p.get("run") else "."
+        lines = ["Commission plan scheduled.",
+                 f"From {_day(ev.get('target'))}: closer {_pct(r.get('closer'))}, setter "
+                 f"{_pct(r.get('canvasser'))}, hourly setter {_pct(r.get('hourly'))}.",
+                 "Deals closing on or after that date are paid at these rates. Anything already "
+                 "closed keeps the rates it was sold under."]
         if p.get("note"):
-            detail += f"<br/>Note: {_esc(p['note'])}"
-    elif k == "adjustment.remove":
-        title = "Adjustment removed"
-        detail = "An adjustment entered earlier was removed before the run was frozen."
+            lines.append(_plain(p["note"]))
+    elif k == "plan.cancel":
+        lines = ["Scheduled plan change cancelled.",
+                 f"The plan that was due to start on {_day(ev.get('target'))} will not take "
+                 "effect. Nothing had been paid at those rates."]
     elif k == "run.freeze":
-        title = "Pay run frozen"
-        detail = (f"The <b>{_esc(ev.get('target'))}</b> run was frozen for payroll. Rates, "
-                  "contract values, holds and adjustments are captured as they stand. Anything "
-                  "entered from here rolls into the next open run.")
+        lines = ["Pay run frozen.",
+                 f"The {_day(ev.get('target'))} run was frozen for payroll. Rates, contract "
+                 "values, holds and adjustments are recorded as they stood at that moment.",
+                 "Anything entered from now on rolls into the next open run."]
     else:
-        title, detail = "Commission ledger", _esc(k)
-    return (f"<p><b>{title}</b><br/>{detail}<br/>"
-            f"<span style=\"color:#777\">{_esc(ev.get('actor'))} &middot; "
-            f"{_esc(_when(ev.get('at')))} &middot; commission ledger</span></p>")
+        lines = ["Commission ledger.", _plain(k)]
+
+    who = _plain(ev.get("actor"))
+    when = _plain(_when(ev.get("at")))
+    if who == CRM_ACTOR:
+        lines.append(f"Recorded automatically on {when}, from this job's stage in the CRM.")
+    elif who:
+        lines.append(f"Recorded by {who} on {when}, in the commission dashboard.")
+    else:
+        lines.append(f"Recorded on {when}, in the commission dashboard.")
+    return "\n".join(x for x in lines if x)
 
 
 _journal_id, _journal_looked = None, False
@@ -631,7 +700,8 @@ def _post_note(ev, lead_id):
 
 
 DEAL_KINDS = ("hold", "release", "hold.settle", "hold.reopen", "hold.reason",
-              "changeorder.apply", "changeorder.decline", "changeorder.undo")
+              "changeorder.apply", "changeorder.decline", "changeorder.undo",
+              "deal.adder")
 
 
 def _event_label(kind, target, payload, is_deal):
@@ -1078,6 +1148,22 @@ def _validate(kind, target, p):
         if not _deal_by_key(target):
             return "That deal is not in the ledger."
         return None
+    if kind == "deal.adder":
+        # count 0 puts a deducted adder back, so zero is a valid instruction
+        deal = _deal_by_key(target)
+        if not deal:
+            return "That deal is not in the ledger."
+        try:
+            n = int(p.get("count"))
+        except (TypeError, ValueError):
+            return "How many adders are coming off?"
+        if n < 0 or n > ADDER_MAX:
+            return "That is not a number of adders."
+        if n and n > int(deal.get("adder") or 0):
+            return "This deal does not carry that many adders."
+        if n and p.get("reason") and p["reason"] not in ADDER_REASONS:
+            return "Unknown reason."
+        return None
     if kind == "adjustment":
         if not target or not any(e["name"] == target for e in DATA["employees"]):
             return "That person is not on the roster."
@@ -1163,6 +1249,8 @@ def _sanitise(kind, p):
         return {"reason": cut(p.get("reason"), 120)}
     if kind == "adjustment.move":
         return {"run": cut(p.get("run"), 10)}
+    if kind == "deal.adder":
+        return {"count": int(p.get("count") or 0), "reason": cut(p.get("reason"), 120)}
     if kind == "adjustment":
         return {"type": cut(p.get("type"), 40), "amount": float(p.get("amount")),
                 "run": cut(p.get("run"), 10), "note": cut(p.get("note"), 300)}
@@ -1197,7 +1285,18 @@ def _sanitise(kind, p):
                 out[str(k)[:200]] = round(float(v), 2)
             except (TypeError, ValueError):
                 continue
-        return {"basis": out}
+        # and each closer's Vivid Adder balance for the quarter this run pays,
+        # so an adder deducted later recovers itself in a run still ahead
+        # instead of restating one that has already gone out
+        adders = {}
+        a = p.get("adders")
+        if isinstance(a, dict):
+            for k, v in list(a.items())[:400]:
+                try:
+                    adders[str(k)[:200]] = int(v)
+                except (TypeError, ValueError):
+                    continue
+        return {"basis": out, "adders": adders}
     return {}
 
 

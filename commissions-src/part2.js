@@ -197,6 +197,31 @@ const DEALS = D.deals.filter(d => d.close && d.close >= CUTOFF).map((d, i) => {
    whose payday has already passed carries its line in that run, paid. Same
    2026-onward scope as everything else on the dashboard. */
 const ADDER_RATE = 500;               /* what one VIVID Adder is worth */
+/* ---- deducting an adder ----------------------------------------------------
+   An adder that should not have been on the deal comes off here, not in Odoo.
+   The contract value is what the customer signed and stays as it is. What
+   moves is the figure commission is worked out from, and the adder balance,
+   together, out of one event. Every level of commission and override, the
+   change orders queue, the quarterly adder line and every export read those
+   two, so nothing has to be remembered separately or entered twice.
+   Read before the change orders are worked out, for the same reason a freeze
+   is: a deduction changes what a deal is worth. */
+const ADDER_OFF = new Map();          /* deal key -> {count, at, by, reason} */
+/* "closer|quarter" -> the count the run that paid that quarter froze on */
+const ADDER_PIN = new Map();
+const adderOff = d => { const r = ADDER_OFF.get(dealKey(d)); return r ? r.count : 0; };
+/* never more than the deal carried, however the event reads */
+const adderCut = d => Math.min(adderOff(d), +d.adder || 0);
+const adderOn = d => Math.max(0, (+d.adder || 0) - adderOff(d));
+const adderCutAmt = d => adderCut(d) * ADDER_RATE;
+/* The figure every commission, override and bonus is worked out from: the
+   contract value with any deducted adders taken off it, and nothing at all
+   once a job is cancelled. Wherever the ledger used to read the contract
+   value straight off the deal, it reads this. */
+function commValue(d) {
+  if (d.cancelled) return 0;
+  return Math.max(0, +((+d.value || 0) - adderCutAmt(d)).toFixed(2));
+}
 function adderDeals(person) {
   return DEALS.filter(d => d.won && d.closer === person && (+d.adder || 0) !== 0)
     .slice().sort((a, b) => (b.close || '').localeCompare(a.close || ''));
@@ -231,7 +256,7 @@ const QUARTERS = [...new Set(DEALS.filter(d => d.won && d.close).map(d => quarte
 const THIS_Q = quarterOf(NOW_D);
 function adderCount(person, q) {
   return adderDeals(person).filter(d => !q || quarterOf(d.close) === q)
-    .reduce((a, d) => a + (+d.adder || 0), 0);
+    .reduce((a, d) => a + adderOn(d), 0);
 }
 function adderBalance(person, q) { return adderCount(person, q) * S.adderRate; }
 /* one row per quarter for one closer */
@@ -240,7 +265,7 @@ function adderByQuarter(person) {
   adderDeals(person).forEach(d => {
     const q = quarterOf(d.close);
     if (!m.has(q)) m.set(q, { q: q, count: 0, deals: [] });
-    const e = m.get(q); e.count += (+d.adder || 0); e.deals.push(d);
+    const e = m.get(q); e.count += adderOn(d); e.deals.push(d);
   });
   return [...m.values()].sort((a, b) => b.q.localeCompare(a.q))
     .map(e => Object.assign(e, { amount: e.count * S.adderRate }));
@@ -251,31 +276,62 @@ function adderByQuarter(person) {
 function adderAdjustments() {
   const m = new Map();
   DEALS.forEach(d => {
-    const n = +d.adder || 0;
-    if (!d.won || !d.closer || !n || !d.close) return;
+    if (!d.won || !d.closer || !d.close) return;
+    const had = +d.adder || 0, n = adderOn(d);
     const q = quarterOf(d.close), k = d.closer + '|' + q;
-    if (!m.has(k)) m.set(k, { who: d.closer, q: q, count: 0, deals: 0 });
-    const e = m.get(k); e.count += n; e.deals += 1;
+    /* a quarter with nothing left and nothing already paid has no line at all */
+    if (!had && !ADDER_PIN.has(k)) return;
+    if (!m.has(k)) m.set(k, { who: d.closer, q: q, count: 0, deals: 0, cut: 0 });
+    const e = m.get(k);
+    e.count += n; e.cut += adderCut(d); if (had) e.deals += 1;
   });
-  return [...m.values()]
-    .sort((a, b) => a.q.localeCompare(b.q) || a.who.localeCompare(b.who))
-    .map(e => ({
-      id: 'a' + (adjSeq++), who: e.who, kind: 'Vivid Adder', auto: true, q: e.q,
-      label: 'Vivid Adder - ' + qLabel(e.q),
-      note: adders(e.count) + ' at ' + fmt0(ADDER_RATE) + ' on ' + e.deals + ' deal'
-        + (e.deals === 1 ? '' : 's') + ' closed ' + windowOf(e.q),
-      amount: e.count * ADDER_RATE, run: adderPayday(e.q)
-    }));
+  const out = [];
+  [...m.values()].sort((a, b) => a.q.localeCompare(b.q) || a.who.localeCompare(b.who))
+    .forEach(e => {
+      const k = e.who + '|' + e.q;
+      /* what the run that paid this quarter froze on, if it has been paid */
+      const pinned = ADDER_PIN.has(k) ? ADDER_PIN.get(k) : null;
+      const paid = pinned == null ? e.count : pinned;
+      if (paid) out.push({
+        id: 'a' + (adjSeq++), who: e.who, kind: 'Vivid Adder', auto: true, adderLine: 1, q: e.q,
+        pin: k, count: paid,
+        label: 'Vivid Adder - ' + qLabel(e.q),
+        note: adders(paid) + ' at ' + fmt0(ADDER_RATE) + ' on ' + e.deals + ' deal'
+          + (e.deals === 1 ? '' : 's') + ' closed ' + windowOf(e.q),
+        amount: paid * ADDER_RATE, run: adderPayday(e.q)
+      });
+      /* An adder deducted after its quarter had already been paid. The run that
+         paid it keeps the figure it went out with; the difference is recovered
+         in the next open bonus run, the same way a change order trues up
+         commission rather than restating a payroll that has gone. */
+      const diff = pinned == null ? 0 : e.count - pinned;
+      if (diff) out.push({
+        id: 'a' + (adjSeq++), who: e.who, kind: 'Vivid Adder', auto: true, adderLine: 1, q: e.q,
+        label: 'Vivid Adder correction - ' + qLabel(e.q),
+        note: adders(Math.abs(diff)) + ' deducted after the ' + qLabel(e.q) + ' balance was paid on '
+          + dshort(adderPayday(e.q)) + ', recovered here',
+        amount: diff * ADDER_RATE, run: nextBonusRun()
+      });
+    });
+  return out;
+}
+/* The adder lines are generated from the deals, not entered, so they are
+   rebuilt whenever what they are generated from moves: a deduction, or the
+   counts a freeze pins. Called once the events have been read, and again after
+   anything that writes one. */
+function refreshAdderLines() {
+  for (let i = ADJ.length - 1; i >= 0; i--) if (ADJ[i].adderLine) ADJ.splice(i, 1);
+  adderAdjustments().forEach(a => { a.key = adjKeyOf(a); ADJ.push(a); });
 }
 const closedAny = person => DEALS.some(d => d.won && d.closer === person);
 function adderLeaders(q) {
   const m = new Map();
   DEALS.forEach(d => {
-    if (!d.won || !d.closer || !(+d.adder || 0)) return;
+    if (!d.won || !d.closer || !adderOn(d)) return;
     if (q && quarterOf(d.close) !== q) return;
     if (!m.has(d.closer)) m.set(d.closer, { name: d.closer, count: 0, deals: 0, byQ: {} });
-    const e = m.get(d.closer); e.count += (+d.adder || 0); e.deals++;
-    const k = quarterOf(d.close); e.byQ[k] = (e.byQ[k] || 0) + (+d.adder || 0);
+    const e = m.get(d.closer); e.count += adderOn(d); e.deals++;
+    const k = quarterOf(d.close); e.byQ[k] = (e.byQ[k] || 0) + adderOn(d);
   });
   return [...m.values()].map(x => Object.assign(x, { amount: x.count * S.adderRate }))
     .sort((a, b) => b.amount - a.amount);
@@ -318,7 +374,7 @@ const ADJ = D.adjustments.map(a => ({
   { id: 'a' + (adjSeq++), who: 'Kerrigan Simpson', kind: 'Bonus',
     label: 'August self-gen bonus', note: '10 or more self-generated units in one run',
     amount: 500, run: OPEN_RUN }
-]).concat(adderAdjustments());
+]);   /* the Vivid Adder lines are added by refreshAdderLines, once the events have been read */
 const ADJ_KINDS = [['Bonus', 1], ['Manual commission', 1], ['Reimbursement', 1],
   ['Chargeback', -1], ['Deduction', -1], ['Advance repayment', -1]];
 const adjSign = k => (ADJ_KINDS.find(x => x[0] === k) || ['', 1])[1];
@@ -512,8 +568,10 @@ MONTHS.forEach(m => {
   if (!RUNS.some(r => r.date === d)) RUNS.push({ date: d, deals: [], total: 0, value: 0, state: d <= LAST_PAID ? 'paid' : 'next' });
 });
 /* a Vivid Adder quarter can land on a payday no other run uses - the run still
-   has to exist, or the money would have nowhere to be paid from */
-[...new Set(ADJ.filter(a => a.kind === 'Vivid Adder').map(a => a.run))].forEach(d => {
+   has to exist, or the money would have nowhere to be paid from. Taken from the
+   quarters themselves rather than from the lines, which are generated later,
+   once the events that move them have been read. */
+[...new Set(QUARTERS.map(q => adderPayday(q)))].forEach(d => {
   if (!RUNS.some(r => r.date === d)) RUNS.push({ date: d, deals: [], total: 0, value: 0, state: d <= LAST_PAID ? 'paid' : 'next' });
 });
 /* The calendar has to run ahead of the deals. Runs are built from deals that
@@ -534,8 +592,8 @@ const RUNDATES2 = RUNS.map(r => r.date);
 
 /* ---- change orders: the contract value moved after commission was paid on it ---- */
 const CO = new Map();                 /* deal id -> {delta, state, commRun, bonusRun, note} */
-const firstOpenRun = () => RUNDATES2.slice().reverse().find(d => !isApproved(d)) || OPEN_RUN;
-const nextBonusRun = () => [...BONUS_RUN.keys()].sort().find(d => !isApproved(d)) || firstOpenRun();
+function firstOpenRun() { return RUNDATES2.slice().reverse().find(d => !isApproved(d)) || OPEN_RUN; }
+function nextBonusRun() { return [...BONUS_RUN.keys()].sort().find(d => !isApproved(d)) || firstOpenRun(); }
 /* ---- what a deal is calculated on -----------------------------------------
    Three sources, in order of authority:
      1. the workbook's paid amounts, for anything paid before this existed
@@ -550,14 +608,14 @@ function paidBasis(d) {
   if (d.baseImplied) return d.baseImplied;
   const c = CAPTURED.get(dealKey(d));
   if (c != null) return c;
-  return d.cancelled ? 0 : (+d.value || 0);   /* cancelled before payday: nothing to pay */
+  return commValue(d);        /* cancelled before payday, or an adder deducted: less to pay */
 }
 /* true once the basis is settled and can no longer follow the contract value */
 const basisFixed = d => !!d.baseImplied || CAPTURED.has(dealKey(d));
 /* the value every plan should calculate on: what was paid, unless a change order has been applied */
 function comBase(d) {
   const co = CO.get(d.id);
-  if (co && co.state === 'applied') return d.cancelled ? 0 : d.value;
+  if (co && co.state === 'applied') return commValue(d);
   return paidBasis(d);
 }
 function applyCO(id, state) {
@@ -569,9 +627,13 @@ function applyCO(id, state) {
     co.commRun = isApproved(d.run) ? firstOpenRun() : null;
     const bd = BONUS_OF.get(d.month);
     co.bonusRun = bd && isApproved(bd) ? nextBonusRun() : null;
+    /* the summer bonus belongs to the month its week started in, which is not
+       always the month the deal closed in - so it is routed on its own run */
+    const sd = summerRateFor(d) ? summerPayRun(weekStart(d.close).slice(0, 7)) : null;
+    co.summerRun = sd && isApproved(sd) ? nextBonusRun() : null;
     co.at = TODAY_D; co.by = ADMIN_NOW;
   } else {
-    co.commRun = null; co.bonusRun = null;
+    co.commRun = null; co.bonusRun = null; co.summerRun = null;
     /* declining is a decision and gets a name against it; reopening clears that */
     if (state === 'declined') { co.at = TODAY_D; co.by = ADMIN_NOW; }
     else { co.at = null; co.by = null; }
@@ -582,22 +644,34 @@ function applyCO(id, state) {
    is still following the live contract value there is nothing to true up. Run
    after the freeze events have been read, so captured deals are included. */
 function seedCOs() {
+  /* a change order that has already been applied or deliberately not applied
+     keeps that decision when the queue is rebuilt - rebuilding is how a
+     deduction or a freeze reaches it, and neither is a reason to re-ask */
+  const was = new Map(CO);
   CO.clear();
   DEALS.forEach(d => {
     if (!d.won) return;
     const fixed = basisFixed(d);
     /* a cancelled job is worth nothing now - the same arithmetic as any other
        contract change, just all the way down */
-    const now = d.cancelled ? 0 : d.value;
+    const now = commValue(d);
     const delta = fixed && (d.value || d.cancelled) ? +(now - paidBasis(d)).toFixed(2) : 0;
     d.variance = delta;
     d.flagged = Math.abs(delta) > 15;
     if (!fixed || Math.abs(delta) < 15) return;
+    const cut = adderCutAmt(d);
     CO.set(d.id, { delta, state: 'pending', at: TODAY_D, commRun: null, bonusRun: null,
-      cancelled: !!d.cancelled,
+      summerRun: null, cancelled: !!d.cancelled, cut: cut,
       note: d.cancelled ? 'Job cancelled after commission had been paid'
+        : cut && Math.abs(delta + cut) < 0.01
+          ? adders(adderCut(d)) + ' deducted after commission was paid'
+        : cut ? 'Vivid Adder deducted, and the contract value moved, after commission was paid'
         : delta > 0 ? 'Contract value increased after commission was paid'
                     : 'Contract value reduced after commission was paid' });
+    const w = was.get(d.id);
+    if (w && w.state !== 'pending') Object.assign(CO.get(d.id),
+      { state: w.state, commRun: w.commRun, bonusRun: w.bonusRun, summerRun: w.summerRun,
+        at: w.at, by: w.by });
   });
 }
 const coPending = () => [...CO.entries()].filter(x => x[1].state === 'pending')
@@ -610,7 +684,11 @@ const coApplied = () => [...CO.entries()].filter(x => x[1].state === 'applied')
 /* what one change order is worth, leg by leg */
 function coEffect(d) {
   const co = CO.get(d.id); if (!co) return null;
-  const D_ = co.delta;
+  return coEffectOf(d, co.delta);
+}
+/* the same arithmetic for a difference that has not happened yet - what
+   deducting an adder would move, before anybody commits to it */
+function coEffectOf(d, D_) {
   const P = planFor(d.close);
   const sRate = d.hourly ? P.rates.hourly : P.rates.canvasser;
   const out = { setter: 0, closer: 0, recruit: [], override: [], delta: D_ };
@@ -631,8 +709,12 @@ function coEffect(d) {
     if (person) out.override.push({ to: person, region: seat.region, tier: tierOf(seat.tier).name,
       amt: D_ * tierOf(seat.tier).rate });
   });
+  /* the setter's summer weekly bonus comes off the same basis, so it moves with
+     everything else rather than quietly restating a month that has been paid */
+  const sr = summerRateFor(d);
+  if (sr) out.summer = { to: d.canvasser, rate: sr, amt: D_ * sr };
   out.total = out.setter + out.closer + out.recruit.reduce((s2, r) => s2 + r.amt, 0)
-    + out.override.reduce((s2, r) => s2 + r.amt, 0);
+    + out.override.reduce((s2, r) => s2 + r.amt, 0) + (out.summer ? out.summer.amt : 0);
   return out;
 }
 
@@ -659,7 +741,12 @@ function summerWeeks(filterMonth) {
     if (!m.has(d.canvasser)) m.set(d.canvasser, new Map());
     const w = m.get(d.canvasser);
     if (!w.has(wk)) w.set(wk, { week: wk, deals: [], value: 0, base: 0 });
-    const e = w.get(wk); e.deals.push(d); e.value += comBase(d); e.base += d.canvPay;
+    /* the same rule commission follows: a month whose bonus run has gone out
+       keeps the figures it went out with, and only an open one moves */
+    const pay = summerPayRun(wk.slice(0, 7));
+    const e = w.get(wk); e.deals.push(d);
+    e.value += pay ? basisForRun(d, pay) : comBase(d);
+    e.base += pay ? legAmtFor(d, 'setter', pay) : d.canvPay;
   });
   const out = [];
   m.forEach((weeks, name) => {
@@ -682,6 +769,17 @@ function summerWeeks(filterMonth) {
   return out.filter(r => r.total > 0 || !filterMonth)
     .sort((a, b) => b.qualifying - a.qualifying || b.deals - a.deals || b.total - a.total);
 }
+/* The tier one deal's week earns, if that week qualifies. A change order moves
+   the summer bonus too - it is worked out from the same basis as the setter
+   commission - and this is what says by how much. */
+function summerRateFor(d) {
+  if (!d.won || !d.canvasser || !d.close) return 0;
+  if (!SUMMER.on || d.close < SUMMER.start || (SUMMER.end && d.close > SUMMER.end)) return 0;
+  const wk = weekStart(d.close);
+  const n = summerDeals().filter(x => x.canvasser === d.canvasser && weekStart(x.close) === wk).length;
+  const SU = planFor(wk).summer;
+  return n >= 3 ? SU.tier3 : n === 2 ? SU.tier2 : 0;
+}
 /* a month's summer bonus is payable in the following month's bonus run, always */
 function summerPayRun(month) { return BONUS_OF.get(month) || null; }
 function summerMonthsFor(date) {
@@ -690,6 +788,8 @@ function summerMonthsFor(date) {
 
 /* one sheet per run: commission + bonuses + adjustments, per person */
 /* ---- commission holds: an admin can withhold either leg of a deal ---- */
+const ADDER_REASONS = ['Adder was not sold', 'Adder was priced into the contract',
+  'Entered on the deal in error', 'Customer removed it', 'Duplicated on another deal', 'Other'];
 const HOLD_REASONS = ['Customer financing not approved', 'Awaiting signed change order',
   'Job cancelled - chargeback pending', 'Rep eligibility under review',
   'Contract value in dispute', 'Install on hold', 'Other'];
@@ -826,7 +926,7 @@ function settleRunPicker(id) {
    ledger - the change is rolled back and the reason is shown. The server is the
    authority; this page is a view of it.
    =========================================================================== */
-const dealKey = d => d.opp + '|' + d.close;
+function dealKey(d) { return d.opp + '|' + d.close; }
 const DEAL_BY_KEY = new Map(DEALS.map(d => [dealKey(d), d]));
 let SAVING = 0;
 
@@ -871,7 +971,7 @@ function save(kind, target, payload, undo) {
 function applyEvents(events) {
   (events || []).forEach(e => {
     const p = e.payload || {};
-    if (e.kind === 'run.freeze') return;         /* read in the first pass */
+    if (e.kind === 'run.freeze' || e.kind === 'deal.adder') return;   /* read in the first pass */
     if (e.kind === 'adjustment') {
       ADJ.push({ id: 'e' + e.id, who: e.target, kind: p.type, label: p.note || p.type,
         note: 'Added ' + dshort(String(e.at).slice(0, 10)) + ' by ' + e.actor,
@@ -926,16 +1026,32 @@ function applyEvents(events) {
     if (e.kind === 'changeorder.undo') applyCO(d.id, 'pending');
   });
 }
-/* Freezes are read first: they settle which deals still follow the contract
-   value and which are pinned to a captured figure, and a change order cannot be
-   worked out before that is known. */
+/* Freezes and adder deductions are read first: between them they settle what
+   every deal is worth for commission, and a change order cannot be worked out
+   before that is known. Replayed in order, so the last deduction on a deal is
+   the one that stands and putting an adder back is another event rather than
+   an undo. */
 function captureFreezes(events) {
   (events || []).forEach(e => {
+    if (e.kind === 'deal.adder') {
+      const p = e.payload || {}, n = Math.abs(+p.count || 0);
+      if (!n) ADDER_OFF.delete(e.target);
+      else ADDER_OFF.set(e.target, { count: n, reason: p.reason || '',
+        at: String(e.at).slice(0, 10), by: e.actor });
+      return;
+    }
     if (e.kind !== 'run.freeze') return;
     FROZEN.add(e.target);
     const b = (e.payload || {}).basis;
     if (b && typeof b === 'object') {
       Object.keys(b).forEach(k => { if (!CAPTURED.has(k)) CAPTURED.set(k, +b[k]); });
+    }
+    /* what each closer's quarterly adder balance was when the run that paid it
+       froze. Without this a deduction months later would quietly restate a
+       quarter that has already gone out. */
+    const ad = (e.payload || {}).adders;
+    if (ad && typeof ad === 'object') {
+      Object.keys(ad).forEach(k => { if (!ADDER_PIN.has(k)) ADDER_PIN.set(k, +ad[k]); });
     }
   });
 }
@@ -951,10 +1067,6 @@ function adjKeyOf(a) {
 }
 const adjKey = a => String(a.id).charAt(0) === 'e' ? String(a.id).slice(1) : a.key;
 ADJ.forEach(a => { if (!a.key) a.key = adjKeyOf(a); });
-
-captureFreezes(D.events);
-seedCOs();
-applyEvents(D.events);
 
 /* Odoo was unreachable and these came from cache. Say so plainly rather than
    letting someone freeze a run against holds that may have moved since. */
@@ -1050,6 +1162,10 @@ function runSheet(date) {
         r.coLines.push({ d: x.d, what: 'Recruiting ' + l.lvl + ' on ' + l.on, amt: l.amt }); });
       eff.override.forEach(l => { const r = touch(l.to); r.co += l.amt;
         r.coLines.push({ d: x.d, what: 'Override ' + l.region, amt: l.amt }); });
+    }
+    if (x.co.summerRun === date && eff.summer) {
+      const r = touch(eff.summer.to); r.co += eff.summer.amt;
+      r.coLines.push({ d: x.d, what: 'Summer weekly bonus', amt: eff.summer.amt });
     }
   });
   ADJ.filter(a => a.run === date).forEach(a => { touch(a.who).adj += a.amount; });
@@ -1784,6 +1900,16 @@ if (SESSION) {
   const okViews = NAV_KEYS[S.role] || [];
   if (okViews.indexOf(S.view) < 0) S.view = okViews[0] || 'runs';
 }
+
+/* ---- replay -------------------------------------------------------------
+   Everything an admin has ever done is read here, in order, over the seeded
+   state. It runs after the settings above because applying a change order asks
+   which runs have already gone out, and that answer depends on the freeze rule
+   held in S. Replaying earlier used to fail on exactly that. */
+captureFreezes(D.events);
+seedCOs();
+applyEvents(D.events);
+refreshAdderLines();
 const me = () => S.role === 'rep' ? S.rep : S.role === 'manager' ? S.actor
   : S.role === 'viewer' ? S.viewer : S.admin;
 const signedIn = () => S.role === 'admin' ? S.admin : me();
@@ -1926,7 +2052,7 @@ function renderNavFixed() {
   topnav.innerHTML = `
   <div class="logo">${LOGO}</div>
   <div class="navlinks">
-    ${NAV[S.role].map(([k, t]) => `<button class="navlink" data-nav="${k}"
+    ${NAV[S.role].map(([k, t]) => `<button class="navlink" data-nav="${k}"${k === 'runs' ? ' data-reload="1"' : ''}
       aria-current="${S.view === k && !S.focus && S.dealFocus == null}">${t}</button>`).join('')}
   </div>
   <div class="navright">
@@ -1952,7 +2078,7 @@ function renderNav() {
   topnav.innerHTML = `
   <div class="logo">${LOGO}</div>
   <div class="navlinks">
-    ${NAV[S.role].map(([k, t]) => `<button class="navlink" data-nav="${k}"
+    ${NAV[S.role].map(([k, t]) => `<button class="navlink" data-nav="${k}"${k === 'runs' ? ' data-reload="1"' : ''}
       aria-current="${S.view === k && !S.focus && S.dealFocus == null}">${t}</button>`).join('')}
   </div>
   <div class="navright">
@@ -2880,7 +3006,8 @@ function dealPanel(id) {
       ? dday(BONUS_OF.get(d.month)) + '<div class="sub">' + monLabel(d.month)
         + ' recruiting, override and summer bonus</div>' : '&mdash;'],
     ['Contract value', fmt(d.value)],
-    ['Units', d.units + ' windows / doors' + (d.adder ? ' &middot; ' + d.adder + ' adder' : '')],
+    ['Units', d.units + ' windows / doors' + ((+d.adder || 0) ? ' &middot; ' + adders(adderOn(d))
+      + (adderCut(d) ? ' &middot; ' + adderCut(d) + ' deducted' : '') : '')],
     ['Setter', who2(d.canvasser) + (d.hourly ? ' <span class="pill plain">Hourly &middot; 1%</span>' : '')],
     ['Closer', who2(d.closer) + (d.selfGen ? ' <span class="pill info">Self-gen</span>' : '')]
   ];
@@ -2901,6 +3028,7 @@ function dealPanel(id) {
       ${d.notes ? `<div class="grouplabel">Notes</div><p style="margin:0">${esc(d.notes)}</p>` : ''}
     </div></div>
   ${CO.has(d.id) ? coDealCard(d) : ''}
+  ${d.won && d.closer && ((+d.adder || 0) || adderCut(d)) ? adderCard(d) : ''}
   ${d.won && (d.canvPay || d.closerPay) ? holdCard(d) : ''}`;
 }
 
@@ -2911,7 +3039,11 @@ function coDealCard(d) {
     <td class="n r"><b style="color:${amt < 0 ? 'var(--crit)' : 'var(--good)'}">${fmt(amt)}</b></td></tr>`;
   return `<div class="card pad" style="margin-top:20px">
     <h2>Change order</h2>
-    <p class="hint" style="margin:6px 0 16px">The contract value moved after this deal was paid on.
+    <p class="hint" style="margin:6px 0 16px">${co.cut && Math.abs(co.delta + co.cut) < 0.01
+      ? adders(adderCut(d)) + ' was deducted after this deal was paid on. The contract value is unchanged at '
+        + fmt0(d.value) + ' &mdash; what moved is the figure commission is worked out from.'
+      : co.cut ? 'A Vivid Adder was deducted, and the contract value moved, after this deal was paid on.'
+      : 'The contract value moved after this deal was paid on.'}
     ${co.cancelled ? '<b>This job was cancelled after commission had already gone out.</b> Clawing it back reverses '
       + 'the setter and closer commission, both levels of recruiting bonus and the override, in the next open run. '
       : ''}${co.state === 'applied' ? 'It has been applied, so only the difference is paid out.'
@@ -2920,7 +3052,9 @@ function coDealCard(d) {
       : 'Nothing has been paid on the difference yet.'}</p>
     <div class="metricgrid" style="margin-bottom:20px">
       <div class="metric"><span class="mlabel">Paid on</span><span class="mval xs">${fmt0(d.baseImplied)}</span></div>
-      <div class="metric"><span class="mlabel">Contract value now</span><span class="mval xs">${fmt0(d.value)}</span></div>
+      <div class="metric"><span class="mlabel">${adderCut(d) ? 'Pays on now' : 'Contract value now'}</span>
+        <span class="mval xs">${fmt0(commValue(d))}</span>
+        ${adderCut(d) ? `<span class="sub">contract ${fmt0(d.value)} less ${adders(adderCut(d))}</span>` : ''}</div>
       <div class="metric"><span class="mlabel">Change</span>
         <span class="mval xs" style="color:${co.delta < 0 ? 'var(--crit)' : 'var(--good)'}">${fmt0(co.delta)}</span></div>
       <div class="metric"><span class="mlabel">Status</span>
@@ -2932,13 +3066,16 @@ function coDealCard(d) {
         ${e.closer ? row('Closer commission at ' + pct(S.rates.closer), d.closer, e.closer) : ''}
         ${e.recruit.map(l => row('Recruiting ' + l.lvl + ' on ' + esc(l.on), l.to, l.amt)).join('')}
         ${e.override.map(l => row('Override &middot; ' + esc(l.tier) + ', ' + esc(l.region), l.to, l.amt)).join('')}
+        ${e.summer ? row('Summer weekly bonus at ' + pct(e.summer.rate), e.summer.to, e.summer.amt) : ''}
       </tbody>
       <tfoot><tr><td colspan="2">Total effect &middot; ${fmt(e.setter + e.closer)} commission, ${fmt(bon)} bonuses</td>
         <td class="r">${fmt(e.total)}</td></tr></tfoot></table></div>
     ${co.state === 'applied' ? `<p class="hint" style="margin:16px 0 0">Commission
       ${co.commRun ? 'trues up in the ' + dshort(co.commRun) + ' run' : 'is folded into the ' + dshort(d.run) + ' run, which has not gone out yet'}.
       Bonuses ${co.bonusRun ? 'true up in the ' + dshort(co.bonusRun) + ' bonus run'
-        : BONUS_OF.get(d.month) ? 'are folded into the ' + dshort(BONUS_OF.get(d.month)) + ' bonus run, which has not gone out yet' : 'are unaffected'}.</p>` : ''}
+        : BONUS_OF.get(d.month) ? 'are folded into the ' + dshort(BONUS_OF.get(d.month)) + ' bonus run, which has not gone out yet' : 'are unaffected'}.
+      ${e.summer ? 'The summer weekly bonus ' + (co.summerRun ? 'trues up in the ' + dshort(co.summerRun) + ' bonus run.'
+        : 'is folded into the bonus run for that week, which has not gone out yet.') : ''}</p>` : ''}
     ${admin ? `<div style="display:flex;gap:10px;margin-top:18px">
       ${co.state === 'applied' ? `<button class="btn ghost" data-co="undo:${d.id}">Undo</button>`
         : co.state === 'declined' ? `<button class="btn ghost" data-co="undo:${d.id}">Reopen</button>`
@@ -3201,6 +3338,74 @@ function adjCard(runDate, lockedPerson) {
 }
 
 /* ---- hold controls for one deal ---- */
+/* ---- taking a Vivid Adder off a deal --------------------------------------
+   The contract value is left exactly as the customer signed it. One event
+   lowers what commission is worked out from and the adder balance together,
+   and everything else - the six levels, the queue, the quarterly line, the
+   exports - follows from those two on its own. */
+function adderCard(d) {
+  const had = +d.adder || 0, off = adderCut(d), on = adderOn(d);
+  const rec = ADDER_OFF.get(dealKey(d));
+  const admin = S.role === 'admin';
+  const q = quarterOf(d.close), payday = adderPayday(q);
+  const pinned = ADDER_PIN.has(d.closer + '|' + q);
+  const one = ADDER_RATE, fixed = basisFixed(d);
+  const eff = off ? null : coEffectOf(d, -one);        /* what deducting one would move */
+  const effTotal = eff ? eff.total : 0;
+  const pick = had > 1
+    ? `<select class="pick" id="adderN" aria-label="How many adders to deduct">
+         ${Array.from({ length: had }, (x, i) => i + 1).map(n =>
+           `<option value="${n}">${adders(n)}</option>`).join('')}</select>`
+    : `<input type="hidden" id="adderN" value="1">`;
+  return `<div class="card pad" style="margin-top:20px">
+    <h2>Vivid Adder</h2>
+    <p class="hint" style="margin:6px 0 16px">${adders(had)} on this deal, worth ${fmt0(one)} each to
+    ${esc(d.closer)}, payable ${adderPaid(q) ? 'in the ' + dshort(payday) + ' bonus run' : 'on ' + dshort(payday)}
+    with the rest of the ${qLabel(q)} balance. Deducting one here leaves the contract value at
+    <b>${fmt0(d.value)}</b> &mdash; what the customer signed &mdash; and takes ${fmt0(one)} off both the figure
+    commission is worked out from and the adder balance, out of one event.</p>
+    <div class="metricgrid" style="margin-bottom:20px">
+      <div class="metric"><span class="mlabel">Contract value</span><span class="mval xs">${fmt0(d.value)}</span>
+        <span class="sub">unchanged</span></div>
+      <div class="metric"><span class="mlabel">Commission pays on</span>
+        <span class="mval xs"${off ? ' style="color:var(--c2)"' : ''}>${fmt0(commValue(d))}</span>
+        <span class="sub">${off ? adders(off) + ' deducted' : 'nothing deducted'}</span></div>
+      <div class="metric"><span class="mlabel">Adders standing</span><span class="mval xs">${on}</span>
+        <span class="sub">of ${had} sold</span></div>
+      <div class="metric"><span class="mlabel">Adder balance</span>
+        <span class="mval xs">${fmt0(on * one)}</span>
+        <span class="sub">to ${esc(d.closer)}, ${qLabel(q)}</span></div>
+    </div>
+    ${off ? `<div class="note" style="margin:0 0 16px"><span class="tag">Deducted</span>
+      ${adders(off)} taken off${rec && rec.by ? ' by ' + esc(rec.by) : ''}${rec && rec.at ? ' on ' + dshort(rec.at) : ''}${rec && rec.reason ? ' &middot; ' + esc(rec.reason) : ''}.
+      Commission is worked out on ${fmt0(commValue(d))}, and the ${qLabel(q)} balance is ${fmt0(on * one)}.
+      ${pinned ? 'The ' + qLabel(q) + ' balance had already been paid, so that run keeps the figure it went out with and '
+        + fmt0(off * one) + ' is recovered in the next open bonus run.'
+        : 'The ' + qLabel(q) + ' balance has not been paid yet, so it simply pays ' + fmt0(off * one) + ' less.'}</div>`
+      : `<div class="note" style="margin:0 0 16px"><span class="tag">What it would move</span>
+      ${fixed ? 'This deal has already been paid on, so deducting an adder raises a change order of '
+          + fmt(effTotal) + ' with every level worked out and named &mdash; setter, closer, both levels of '
+          + 'recruiting and the override &mdash; for you to apply or decline.'
+        : 'This deal has not been paid yet, so there is nothing to true up: the '
+          + dshort(d.run) + ' run simply pays on ' + fmt0(d.value - one) + ' the first time.'}
+      ${adderPaid(q) ? 'The ' + qLabel(q) + ' adder balance has already been paid, so the '
+          + fmt0(one) + ' comes back in the next open bonus run.'
+        : 'The ' + qLabel(q) + ' adder balance has not been paid yet, so it simply pays ' + fmt0(one) + ' less.'}</div>`}
+    ${admin ? `<div class="rate"${off ? '' : ' style="border-bottom:1px solid var(--line-2)"'}>
+      <div class="rl"><b>${off ? 'Deducted' : 'Deduct'}</b>
+        <div class="sub">${off ? 'Putting it back reverses all of it, the same way round' : 'How many of the ' + adders(had) + ' on this deal come off'}</div></div>
+      ${off ? '' : pick}
+      ${off ? `<button class="btn ghost" data-adder="back:${d.id}">Put it back</button>`
+        : `<button class="btn" data-adder="cut:${d.id}">Deduct</button>`}
+    </div>
+    ${off ? '' : `<div class="rate">
+      <div class="rl"><b>Reason</b><div class="sub">Shows on the deal, on the change order and in the CRM note</div></div>
+      <select class="pick" id="adderReason" aria-label="Why the adder is being deducted">
+        ${ADDER_REASONS.map(r => `<option>${esc(r)}</option>`).join('')}</select>
+    </div>`}` : ''}
+  </div>`;
+}
+
 function holdCard(d) {
   const h = HOLDS.get(d.id) || {};
   const admin = S.role === 'admin';
@@ -3304,10 +3509,19 @@ function render() {
   window.scrollTo({ top: 0 });
 }
 document.addEventListener('click', ev => {
-  const t = ev.target.closest ? ev.target.closest('[data-nav],[data-df],[data-focus],[data-deal],[data-act],[data-step],[data-hold],[data-release],[data-settle],[data-reopen],[data-adjdel],[data-adjmove],[data-co],[data-setter],[data-panel],[data-ptab],[data-adderq]') : null;
+  const t = ev.target.closest ? ev.target.closest('[data-nav],[data-reload],[data-df],[data-focus],[data-deal],[data-act],[data-step],[data-hold],[data-release],[data-settle],[data-reopen],[data-adjdel],[data-adjmove],[data-co],[data-setter],[data-panel],[data-ptab],[data-adderq]') : null;
   if (!t) return;
   ev.preventDefault();
-  if (t.dataset.nav) { S.focus = null; S.dealFocus = null; S.view = t.dataset.nav; S.q = ''; return render(); }
+  if (t.dataset.nav) {
+    /* Pay runs in the menu is also "start again": a full load, so the deals come
+       back from Odoo as they stand now rather than as this page read them when
+       it opened. Every other way back to the runs - the link on a data check, a
+       button on a deal - stays in the page, because nothing there is stale.
+       A write still in flight is never interrupted: the click falls through to
+       an ordinary switch and the reload is one more click away. */
+    if (t.dataset.reload && !SAVING) { location.href = location.pathname; return; }
+    S.focus = null; S.dealFocus = null; S.view = t.dataset.nav; S.q = ''; return render();
+  }
   if (t.dataset.step) {
     const n = +t.dataset.step;
     if (n < 0 || n >= RUNDATES2.length) return;
@@ -3340,6 +3554,35 @@ document.addEventListener('click', ev => {
     applyCO(id, state);
     render();
     save(kind, dealKey(d), {}, () => { if (before) CO.set(id, before); });
+    return;
+  }
+  /* Deducting a Vivid Adder, or putting one back. One event carries both
+     halves: what commission is worked out from, and the adder balance. */
+  if (t.dataset.adder) {
+    if (S.role !== 'admin') return;
+    const p = t.dataset.adder.split(':');
+    const id = +p[1], d = DEALS[id];
+    if (!d || !d.won || !d.closer) return;
+    const k = dealKey(d);
+    const was = ADDER_OFF.has(k) ? Object.assign({}, ADDER_OFF.get(k)) : null;
+    let count = 0, reason = '';
+    if (p[0] === 'cut') {
+      const sel = document.getElementById('adderN');
+      count = Math.min(Math.max(1, +(sel && sel.value) || 1), +d.adder || 0);
+      if (!count) return render();
+      const rs = document.getElementById('adderReason');
+      reason = (rs && rs.value) || ADDER_REASONS[0];
+      ADDER_OFF.set(k, { count: count, reason: reason, at: TODAY_D, by: ADMIN_NOW });
+    } else {
+      if (!was) return render();
+      ADDER_OFF.delete(k);
+    }
+    seedCOs(); refreshAdderLines();
+    render();
+    save('deal.adder', k, { count: count, reason: reason }, () => {
+      if (was) ADDER_OFF.set(k, was); else ADDER_OFF.delete(k);
+      seedCOs(); refreshAdderLines();
+    });
     return;
   }
   if (t.dataset.adjmove) {
@@ -3520,13 +3763,20 @@ document.addEventListener('click', ev => {
       const k = dealKey(d);
       if (!CAPTURED.has(k)) basis[k] = paidBasis(d);
     }));
+    /* and, if this run carries a quarter's Vivid Adder balance, what that
+       balance stands at. An adder deducted afterwards then recovers itself in
+       the next open bonus run instead of restating this one. */
+    const adderPins = {};
+    ADJ.forEach(a => { if (a.pin && a.run === run && !ADDER_PIN.has(a.pin)) adderPins[a.pin] = a.count; });
     FROZEN.add(run); S.addAdj = null;
     Object.keys(basis).forEach(k => CAPTURED.set(k, basis[k]));
-    seedCOs();
-    save('run.freeze', run, { basis: basis }, () => {
+    Object.keys(adderPins).forEach(k => ADDER_PIN.set(k, adderPins[k]));
+    seedCOs(); refreshAdderLines();
+    save('run.freeze', run, { basis: basis, adders: adderPins }, () => {
       FROZEN.delete(run);
       Object.keys(basis).forEach(k => CAPTURED.delete(k));
-      seedCOs();
+      Object.keys(adderPins).forEach(k => ADDER_PIN.delete(k));
+      seedCOs(); refreshAdderLines();
     });
     const next = firstOpenRun();
     render();
