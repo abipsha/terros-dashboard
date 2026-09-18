@@ -621,9 +621,13 @@ const ADDER_OFF = new Map();          /* deal key -> {count, at, by, reason} */
 /* "closer|quarter" -> the count the run that paid that quarter froze on */
 const ADDER_PIN = new Map();
 const adderOff = d => { const r = ADDER_OFF.get(dealKey(d)); return r ? r.count : 0; };
-/* never more than the deal carried, however the event reads */
-const adderCut = d => Math.min(adderOff(d), +d.adder || 0);
-const adderOn = d => Math.max(0, (+d.adder || 0) - adderOff(d));
+/* Never more than the deal carried, and never less than nothing. Odoo allows a
+   negative count - it is how an adder credited on one deal is taken back on
+   another - and a deduction against one of those would otherwise read as
+   adding $500 to what commission pays on. */
+const adderCut = d => Math.max(0, Math.min(adderOff(d), +d.adder || 0));
+/* what is left standing, which keeps the sign a negative count was entered with */
+const adderOn = d => (+d.adder || 0) - adderCut(d);
 const adderCutAmt = d => adderCut(d) * ADDER_RATE;
 /* The figure every commission, override and bonus is worked out from: the
    contract value with any deducted adders taken off it, and nothing at all
@@ -707,8 +711,9 @@ function adderAdjustments() {
         id: 'a' + (adjSeq++), who: e.who, kind: 'Vivid Adder', auto: true, adderLine: 1, q: e.q,
         pin: k, count: paid,
         label: 'Vivid Adder - ' + qLabel(e.q),
-        note: adders(paid) + ' at ' + fmt0(ADDER_RATE) + ' on ' + e.deals + ' deal'
-          + (e.deals === 1 ? '' : 's') + ' closed ' + windowOf(e.q),
+        note: (paid < 0 ? adders(-paid) + ' taken back at ' + fmt0(ADDER_RATE)
+                        : adders(paid) + ' at ' + fmt0(ADDER_RATE))
+          + ' on ' + e.deals + ' deal' + (e.deals === 1 ? '' : 's') + ' closed ' + windowOf(e.q),
         amount: paid * ADDER_RATE, run: adderPayday(e.q)
       });
       /* An adder deducted after its quarter had already been paid. The run that
@@ -2866,14 +2871,16 @@ V.person = () => {
         <th class="r">Quarter to date</th></tr></thead>
       <tbody>${(() => { let run = addBal;
         return addD.slice().sort((a, b) => (b.close || '').localeCompare(a.close || ''))
-          .map((d, i) => { const n = +d.adder || 0, at = run; run -= n * S.adderRate;
+          .map((d, i) => { const n = adderOn(d), at = run; run -= n * S.adderRate;
           return `<tr class="clickable" data-deal="${d.id}" tabindex="0">
-            <td class="idx">${i + 1}</td><td>${esc(d.opp)}</td>
+            <td class="idx">${i + 1}</td><td>${esc(d.opp)}
+              ${adderCut(d) ? '<div class="sub">' + adderCut(d) + ' deducted of ' + (+d.adder || 0) + '</div>'
+                : n < 0 ? '<div class="sub">negative count in Odoo &mdash; taken back</div>' : ''}</td>
             <td class="muted">${esc(d.team || '&mdash;')}</td>
             <td class="n muted">${dday(d.close)}</td>
             <td class="n r">${fmt0(d.value)}</td>
             <td class="n r"><b>${n}</b></td>
-            <td class="n r"><b style="color:var(--c2)">${fmt0(n * S.adderRate)}</b></td>
+            <td class="n r"><b style="color:${n < 0 ? 'var(--crit)' : 'var(--c2)'}">${fmt0(n * S.adderRate)}</b></td>
             <td class="n r muted">${fmt0(at)}</td></tr>`; }).join(''); })()
         || '<tr><td colspan="8" class="muted">No adders closed in this quarter.</td></tr>'}</tbody>
       <tfoot><tr><td colspan="4">${qLabel(addQ)} &middot; ${windowOf(addQ)}</td>
@@ -2889,7 +2896,7 @@ V.person = () => {
           <td class="muted">${windowOf(x.q)}</td>
           <td class="n r muted">${x.deals.length}</td>
           <td class="n r">${x.count}</td>
-          <td class="n r"><b style="color:var(--c2)">${fmt0(x.amount)}</b></td>
+          <td class="n r"><b style="color:${x.amount < 0 ? 'var(--crit)' : 'var(--c2)'}">${fmt0(x.amount)}</b></td>
           <td class="n">${dday(adderPayday(x.q))}
             <div class="sub">${adderPaid(x.q) ? 'paid &middot; on that run&rsquo;s adjustments'
               : 'scheduled &middot; ' + qLabel(adderPayQuarter(x.q))}</div></td>
@@ -3262,7 +3269,7 @@ function adderCard() {
           <td>${who2(x.name)}</td><td class="muted">${esc(e.team || '&mdash;')}</td>
           <td class="n r muted">${x.deals}</td>
           <td class="n r">${x.count}</td>
-          <td class="n r"><b style="color:var(--c2)">${fmt0(x.amount)}</b></td></tr>`; }).join('')
+          <td class="n r"><b style="color:${x.amount < 0 ? 'var(--crit)' : 'var(--c2)'}">${fmt0(x.amount)}</b></td></tr>`; }).join('')
       || `<tr><td colspan="5" class="muted">No adders on deals closing in ${qLabel(q)}.</td></tr>`}</tbody>
       <tfoot><tr><td colspan="3">All closers</td><td class="r">${count}</td>
         <td class="r">${fmt0(total)}</td></tr></tfoot>
@@ -3439,7 +3446,7 @@ function dealPanel(id) {
       ${d.notes ? `<div class="grouplabel">Notes</div><p style="margin:0">${esc(d.notes)}</p>` : ''}
     </div></div>
   ${CO.has(d.id) ? coDealCard(d) : ''}
-  ${d.won && d.closer && ((+d.adder || 0) || adderCut(d)) ? adderCard(d) : ''}
+  ${d.won && d.closer && ((+d.adder || 0) || adderCut(d)) ? dealAdderCard(d) : ''}
   ${d.won && (d.canvPay || d.closerPay) ? holdCard(d) : ''}`;
 }
 
@@ -3754,7 +3761,7 @@ function adjCard(runDate, lockedPerson) {
    lowers what commission is worked out from and the adder balance together,
    and everything else - the six levels, the queue, the quarterly line, the
    exports - follows from those two on its own. */
-function adderCard(d) {
+function dealAdderCard(d) {
   const had = +d.adder || 0, off = adderCut(d), on = adderOn(d);
   const rec = ADDER_OFF.get(dealKey(d));
   const admin = S.role === 'admin';
@@ -3770,11 +3777,18 @@ function adderCard(d) {
     : `<input type="hidden" id="adderN" value="1">`;
   return `<div class="card pad" style="margin-top:20px">
     <h2>Vivid Adder</h2>
-    <p class="hint" style="margin:6px 0 16px">${adders(had)} on this deal, worth ${fmt0(one)} each to
-    ${esc(d.closer)}, payable ${adderPaid(q) ? 'in the ' + dshort(payday) + ' bonus run' : 'on ' + dshort(payday)}
-    with the rest of the ${qLabel(q)} balance. Deducting one here leaves the contract value at
-    <b>${fmt0(d.value)}</b> &mdash; what the customer signed &mdash; and takes ${fmt0(one)} off both the figure
-    commission is worked out from and the adder balance, out of one event.</p>
+    <p class="hint" style="margin:6px 0 16px">${had < 0
+      ? 'This deal carries a <b>negative</b> Vivid Adder count of ' + had + ', entered in Odoo. It takes '
+        + fmt0(Math.abs(had) * one) + ' <b>off</b> ' + esc(d.closer) + '&rsquo;s ' + qLabel(q)
+        + ' balance rather than adding to it &mdash; which is how an adder credited on one deal is taken back '
+        + 'on another. There is nothing here to deduct; correcting it means correcting the count in Odoo.'
+      : had === 0
+      ? 'No Vivid Adder on this deal.'
+      : adders(had) + ' on this deal, worth ' + fmt0(one) + ' each to '
+        + esc(d.closer) + ', payable ' + (adderPaid(q) ? 'in the ' + dshort(payday) + ' bonus run' : 'on ' + dshort(payday))
+        + ' with the rest of the ' + qLabel(q) + ' balance. Deducting one here leaves the contract value at <b>'
+        + fmt0(d.value) + '</b> &mdash; what the customer signed &mdash; and takes ' + fmt0(one)
+        + ' off both the figure commission is worked out from and the adder balance, out of one event.'}</p>
     <div class="metricgrid" style="margin-bottom:20px">
       <div class="metric"><span class="mlabel">Contract value</span><span class="mval xs">${fmt0(d.value)}</span>
         <span class="sub">unchanged</span></div>
@@ -3793,7 +3807,7 @@ function adderCard(d) {
       ${pinned ? 'The ' + qLabel(q) + ' balance had already been paid, so that run keeps the figure it went out with and '
         + fmt0(off * one) + ' is recovered in the next open bonus run.'
         : 'The ' + qLabel(q) + ' balance has not been paid yet, so it simply pays ' + fmt0(off * one) + ' less.'}</div>`
-      : `<div class="note" style="margin:0 0 16px"><span class="tag">What it would move</span>
+      : had <= 0 ? '' : `<div class="note" style="margin:0 0 16px"><span class="tag">What it would move</span>
       ${fixed ? 'This deal has already been paid on, so deducting an adder raises a change order of '
           + fmt(effTotal) + ' with every level worked out and named &mdash; setter, closer, both levels of '
           + 'recruiting and the override &mdash; for you to apply or decline.'
@@ -3802,7 +3816,7 @@ function adderCard(d) {
       ${adderPaid(q) ? 'The ' + qLabel(q) + ' adder balance has already been paid, so the '
           + fmt0(one) + ' comes back in the next open bonus run.'
         : 'The ' + qLabel(q) + ' adder balance has not been paid yet, so it simply pays ' + fmt0(one) + ' less.'}</div>`}
-    ${admin ? `<div class="rate"${off ? '' : ' style="border-bottom:1px solid var(--line-2)"'}>
+    ${admin && (had > 0 || off) ? `<div class="rate"${off ? '' : ' style="border-bottom:1px solid var(--line-2)"'}>
       <div class="rl"><b>${off ? 'Deducted' : 'Deduct'}</b>
         <div class="sub">${off ? 'Putting it back reverses all of it, the same way round' : 'How many of the ' + adders(had) + ' on this deal come off'}</div></div>
       ${off ? '' : pick}
