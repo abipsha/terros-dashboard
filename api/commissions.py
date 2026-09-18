@@ -217,9 +217,11 @@ def _fetch_odoo():
     Three things come back:
 
       new       - won deals closing after the workbook stops, as before
-      state     - the contract value Odoo holds *now* for every deal in scope,
-                  so a value edited months later surfaces as a change order
-                  rather than going unnoticed
+      state     - the contract value and Vivid Adder count Odoo holds *now* for
+                  every deal in scope, so a value edited months later surfaces
+                  as a change order rather than going unnoticed, and an adder
+                  added or taken back after the export reaches the balance it
+                  belongs to instead of dying in the frozen workbook
       cancelled - deals that have since been cancelled
 
     A cancellation in this CRM is not a stage. The lead is moved back to Leads,
@@ -248,7 +250,8 @@ def _fetch_odoo():
             continue
         state[_key(r["name"], r["date_deadline"])] = {
             "value": float(r.get("x_studio_contract_value") or 0), "cancelled": False,
-            "stage": _rel(r.get("stage_id"))}
+            "stage": _rel(r.get("stage_id")),
+            "adder": int(r.get("x_studio_vivid_adder") or 0)}
         if r["date_deadline"] > after:
             new.append(_map_lead(r, tags))
     for r in lost:
@@ -256,7 +259,8 @@ def _fetch_odoo():
             continue
         k = _key(r["name"], r["date_deadline"])
         state[k] = {"value": float(r.get("x_studio_contract_value") or 0), "cancelled": True,
-                    "stage": _rel(r.get("stage_id"))}
+                    "stage": _rel(r.get("stage_id")),
+                    "adder": int(r.get("x_studio_vivid_adder") or 0)}
         if r["date_deadline"] > after:
             # it closed after the workbook and has since cancelled: put it back in
             # the ledger marked as such, or there is nothing to claw back against
@@ -306,6 +310,14 @@ def deals_now():
             # Production today was In Production when the workbook was exported
             if st.get("stage"):
                 d["stage"] = st["stage"]
+            # The adder count moves after a deal is sold too - a change order
+            # takes one back, a missed one gets added. It is a live CRM field,
+            # not a fact about the week the deal closed, so the workbook's copy
+            # goes stale the moment anyone edits it. A quarter already paid is
+            # pinned to what it paid further down, so this can only move money
+            # in a quarter still ahead.
+            if "adder" in st:
+                d["adder"] = st["adder"]
             if st["cancelled"]:
                 d["cancelled"] = True
         out.append(d)
