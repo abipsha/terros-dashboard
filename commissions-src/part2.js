@@ -2360,7 +2360,6 @@ V.person = () => {
     r.coLines.length ? { k: 'co', label: 'Change orders', n: r.coLines.length } : null,
     r.holds.length ? { k: 'holds', label: 'Held back', n: r.holds.length } : null,
     r.outsideLines.length ? { k: 'outside', label: 'Paid outside', n: r.outsideLines.length } : null,
-    addQs.length ? { k: 'adder', label: 'Vivid Adder', n: addN } : null,
     { k: 'adj', label: 'Adjustments', n: adjs.length }
   ].filter(Boolean);
   const open = tabs.some(t => t.k === S.ptab) ? S.ptab : 'deals';
@@ -2439,19 +2438,7 @@ V.person = () => {
         <td class="n r">${fmt(x.amt)}</td></tr>`).join('')}</tbody>
       <tfoot><tr><td colspan="3">Paid outside the ledger</td><td class="r">${fmt(r.outside)}</td></tr></tfoot></table></div>`,
 
-    adder: `${adderPayday(addQ) !== S.run ? `<div class="note" style="margin:0 0 14px">
-      <span class="tag">Not in this run</span> This is ${esc(name)}'s running Vivid Adder balance for
-      <b>${qLabel(addQ)}</b>, which ${adderPaid(addQ) ? 'was paid in' : 'pays in'} the
-      <b>${dshort(adderPayday(addQ))}</b> run. Nothing on this tab is part of the
-      <b>${dshort(S.run)}</b> run you have open.</div>` : ''}
-      <p class="hint" style="margin:0 0 14px">Won deals that carried a <b>VIVID Adder</b> count in Odoo,
-      with ${esc(name)} as the closer. Each adder is worth <b>${fmt0(S.adderRate)}</b>, totalled per calendar
-      quarter of the closing date. A quarter is paid <b>two quarters later</b>, as a single line on the
-      adjustments of the first bonus run of that quarter &mdash; the first Friday after the 10th of its first
-      month. ${qLabel(addQ)} ${adderPaid(addQ) ? 'was paid' : 'pays'} in the
-      <b>${dday(adderPayday(addQ))}</b> run${adderPaid(addQ) ? '' : ', and the line is already sitting in it'}.
-      This page is the working behind that line, not a separate balance.</p>
-      <div class="seg" style="margin-bottom:16px">${addQs.map(x =>
+    adder: `<div class="seg" style="margin-bottom:16px">${addQs.map(x =>
         `<button data-adderq="${x.q}" aria-pressed="${x.q === addQ}">${qLabel(x.q)}
           <span class="pill plain">${fmt0(x.amount)}</span></button>`).join('')}</div>
       <div class="scroll"><table>
@@ -2473,7 +2460,7 @@ V.person = () => {
             <td class="n r muted">${fmt0(at)}</td></tr>`; }).join(''); })()
         || '<tr><td colspan="8" class="muted">No adders closed in this quarter.</td></tr>'}</tbody>
       <tfoot><tr><td colspan="4">${qLabel(addQ)} &middot; ${windowOf(addQ)}</td>
-        <td class="r">${addD.length} deal${addD.length === 1 ? '' : 's'}</td>
+        <td class="r" data-label="">${addD.length} deal${addD.length === 1 ? '' : 's'}</td>
         <td class="r">${addN}</td><td class="r">${fmt0(addBal)}</td>
         <td class="r">${fmt0(addBal)}</td></tr></tfoot></table></div>
       ${addQs.length > 1 ? `<div class="grouplabel" style="margin-top:22px">Every quarter</div>
@@ -2508,19 +2495,10 @@ V.person = () => {
       ${r.heldBack ? `<div style="margin-top:10px"><span class="pill crit">${fmt0(r.heldBack)} held back</span></div>` : ''}
       ${r.released ? `<div style="margin-top:10px"><span class="pill info">${fmt0(r.released)} released from an earlier run</span></div>` : ''}
       ${r.outside ? `<div style="margin-top:10px"><span class="pill plain">${fmt0(r.outside)} paid outside the ledger</span></div>` : ''}
-      ${isCloser ? `<div class="adderbox" ${addQs.length ? 'data-ptab="adder" role="button" tabindex="0"' : ''}>
-        <span class="mlabel">Vivid Adder &middot; ${qLabel(addQ)}</span>
-        <b class="n">${fmt0(addBal)}</b>
-        <span class="mlabel">${addD.length ? adders(addN) + ' at ' + fmt0(S.adderRate) + ' each, over '
-            + addD.length + ' closed deal' + (addD.length === 1 ? '' : 's')
-          : 'no adders closed this quarter'}</span>
-        ${addQs.length ? (() => { const pd = adderPayday(addQ), here = pd === S.run;
-          return `<span class="when" style="margin-top:8px">
-          <span class="pill ${here ? 'info' : adderPaid(addQ) ? 'good' : 'plain'}">${here ? 'In this run' : adderPaid(addQ) ? 'Paid' : 'Not in this run'}</span>
-          ${here ? '' : dday(pd)}</span>
-          ${here ? '' : `<span class="mlabel" style="margin-top:4px">A running balance for the quarter &mdash; no part of it is in the ${dshort(S.run)} run</span>`}`; })() : ''}
-        ${addQs.length > 1 ? `<span class="mlabel" style="margin-top:6px">${fmt0(addAll)} across
-          ${addQs.length} quarters</span>` : ''}</div>` : ''}
+      ${isCloser && addQs.length ? (() => { const cur = addQs.find(x => x.q === THIS_Q);
+          return `<div style="margin-top:14px"><a class="pill plain" href="#addercard" data-adderq="${cur ? cur.q : addQs[0].q}"
+          style="cursor:pointer">Vivid Adder &middot; ${cur ? fmt0(cur.amount) + ' building for ' + qLabel(cur.q)
+            : fmt0(addAll) + ' across ' + addQs.length + ' quarters'} &darr;</a></div>`; })() : ''}
       <div style="max-width:250px;margin:22px auto 0">${attainment(r.total, avg, 'Against their recent average')}</div>
     </div></div>
     <div class="card"><div class="chead"><h2>How it adds up</h2></div>
@@ -2540,7 +2518,19 @@ V.person = () => {
         ${t.label} <span class="pill plain">${t.n}</span></button>`).join('')}</div>
     </div>
     <div class="panelbody">${panels[open] || panels.deals}</div>
-  </div>`;
+  </div>
+
+  ${isCloser && addQs.length ? (() => { const pd = adderPayday(addQ), here = pd === S.run, paid = adderPaid(addQ);
+    return `<div class="card" id="addercard">
+    <div class="chead"><div><h2>Vivid Adder Log</h2>
+      <div class="sub" style="margin-top:3px;max-width:600px">A quarterly balance, not part of any one week &mdash; ${fmt0(S.adderRate)} an adder,
+        totalled by the quarter the deal closed in, paid two quarters later as one line on that run&rsquo;s adjustments</div></div>
+      <div class="spacer"></div>
+      <div style="margin-left:auto;text-align:right"><div class="sub">${qLabel(addQ)} &middot; ${windowOf(addQ)}</div>
+        <div style="margin-top:4px"><span class="pill ${here ? 'info' : paid ? 'good' : 'warn'}">${paid ? 'Paid' : here ? 'In this run' : 'Pays'} &middot; ${dday(pd)}</span></div></div>
+    </div>
+    <div class="cbody">${panels.adder}</div>
+  </div>`; })() : ''}`;
 };
 
 /* ---- deals ---- */
@@ -3499,6 +3489,19 @@ function labelTables() {
       });
       if (lead >= 0) tds[lead].classList.add('lead');
     });
+    /* a footer stacks the same way, unless it is one label and one figure */
+    t.querySelectorAll('tfoot tr').forEach(tr => {
+      const tds = [...tr.children].filter(td => td.textContent.trim() || td.children.length);
+      tr.classList.add(tds.length <= 2 ? 'pair' : 'multi');
+      let i = 0;
+      [...tr.children].forEach(td => {
+        const span = +td.getAttribute('colspan') || 1;
+        const label = span > 1 ? '' : (ths[i] || '');
+        /* a cell that names itself ("3 deals") keeps the label it was given */
+        if (!td.hasAttribute('data-label')) td.setAttribute('data-label', /^[#\s]*$/.test(label) ? '' : label);
+        i += span;
+      });
+    });
   });
 }
 
@@ -3543,7 +3546,8 @@ document.addEventListener('click', ev => {
   }
   if (t.dataset.df) { S.dealFilter = t.dataset.df; return render(); }
   if (t.dataset.ptab) { S.ptab = t.dataset.ptab; S.addAdj = null; return render(); }
-  if (t.dataset.adderq) { S.adderQ = t.dataset.adderq; S.ptab = 'adder'; return render(); }
+  if (t.dataset.adderq) { S.adderQ = t.dataset.adderq; render();
+    const c = document.getElementById('addercard'); if (c) c.scrollIntoView({ block: 'start', behavior: 'smooth' }); return; }
   if (t.dataset.panel !== undefined) {
     S.panel = S.panel === t.dataset.panel || !t.dataset.panel ? null : t.dataset.panel;
     S.addAdj = null;

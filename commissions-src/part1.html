@@ -266,7 +266,8 @@ tr.clickable:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 @media(max-width:900px){
   .wrap{padding:16px 14px 56px}
   .row{gap:14px;margin-bottom:14px}
-  .row.two,.row.three,.row.four{grid-template-columns:1fr}
+  .row.two,.row.three{grid-template-columns:1fr}
+  .row.four{grid-template-columns:1fr 1fr}
   .card.pad{padding:18px}
   .chead{padding:16px 18px;gap:10px}
   .cbody{padding:0 18px 18px}
@@ -311,8 +312,12 @@ tr.clickable:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
   .search{width:100%;min-width:0;padding:11px 13px}
   select.pick{padding:11px 12px}
 
-  /* --- tab strips scroll rather than wrap --- */
+  /* --- tab and filter strips wrap rather than run off the edge --- */
   .tabs{flex-wrap:wrap;gap:4px;max-width:100%;width:100%}
+  .seg{display:flex;flex-wrap:wrap;max-width:100%}
+  .seg button{flex:1 1 auto;border-left:0!important;border-top:1px solid var(--line-2);margin-top:-1px}
+  .seg button+button{border-left:1px solid var(--line-2)!important}
+  .seg button:first-child{border-top:0;margin-top:0}
   .tabbtn{padding:9px 11px;font-size:12.5px}
   .chead .spacer{display:none}
 
@@ -340,9 +345,23 @@ tr.clickable:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
   table.stacked tbody td .who{justify-content:flex-end}
   table.stacked tbody td.lead .who{justify-content:flex-start}
   table.stacked tfoot{display:block;width:100%;border-top:1px solid var(--line-2)}
-  table.stacked tfoot tr{display:flex;justify-content:space-between;gap:14px}
-  table.stacked tfoot td{border:0;padding:13px 16px;flex:1;min-width:0}
-  table.stacked tfoot td:last-child{text-align:right;flex:0 0 auto}
+  table.stacked tfoot tr{display:block;padding:6px 0}
+  table.stacked tfoot tr.pair{display:flex;justify-content:space-between;gap:14px;padding:0}
+  table.stacked tfoot tr.pair td{border:0;padding:13px 16px;flex:1;min-width:0}
+  table.stacked tfoot tr.pair td:last-child{text-align:right;flex:0 0 auto}
+  table.stacked tfoot tr.pair td::before{content:none}
+  table.stacked tfoot td{display:flex;align-items:baseline;justify-content:space-between;gap:14px;
+    border:0;padding:5px 16px;text-align:right;min-width:0;font-weight:700}
+  table.stacked tfoot td::before{content:attr(data-label);color:var(--muted);font-size:12px;font-weight:600;
+    text-align:left;flex:0 0 auto;max-width:48%}
+  table.stacked tfoot td[data-label=""]::before{content:none}
+  table.stacked tfoot td[colspan]{justify-content:flex-start;padding:10px 16px 4px;color:var(--ink-strong)}
+  table.stacked tfoot td[colspan]::before{content:none}
+  table.stacked tfoot td:empty{display:none}
+  /* a value with a note under it: the note takes its own line */
+  table.stacked tbody td,table.stacked tfoot td{flex-wrap:wrap}
+  table.stacked tbody td>.sub,table.stacked tfoot td>.sub{flex:0 0 100%;text-align:right;white-space:normal}
+  table.stacked tbody td.lead>.sub{text-align:left}
   /* key-value tables keep their two columns but tighten up */
   #view table:not(.stacked) td{padding:9px 6px}
   .row.two.split{grid-template-columns:1fr}
