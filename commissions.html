@@ -2535,12 +2535,20 @@ function stepper(cur, label) {
     <button class="step" data-step="${i - 1}" ${i <= 0 ? 'disabled' : ''} aria-label="Next run">&#8250;</button>
   </div>`;
 }
+/* the CRM record a deal reads from - the same link the sales dashboard uses */
+const ODOO_BASE = 'https://myvivid.odoo.com';
+const odooLink = d => d && d.odooId ? ODOO_BASE + '/odoo/crm/' + d.odooId : '';
+const odooBtn = d => odooLink(d)
+  ? `<a class="btn ghost" href="${odooLink(d)}" target="_blank" rel="noopener" style="white-space:nowrap">Open in Odoo <span aria-hidden="true" style="opacity:.6">&#8599;</span></a>`
+  : '';
+
 function renderContext() {
   if (S.dealFocus != null) {
     const d = DEALS[S.dealFocus];
     context.innerHTML = `<button class="back" data-act="unfocus" aria-label="Back">&#8592;</button>
       <h1 style="font-size:21px">${esc(d.opp)}</h1>
-      <span class="divider"></span><span class="ctxlabel">${esc(d.team || 'Deal')}</span>`;
+      <span class="divider"></span><span class="ctxlabel">${esc(d.team || 'Deal')}</span>
+      <div class="ctxright">${odooBtn(d) || '<span class="ctxlabel" style="opacity:.6">No CRM record linked</span>'}</div>`;
     return;
   }
   if (S.focus) {
@@ -3425,6 +3433,11 @@ function dealPanel(id) {
   const rows = [
     ['Status', d.won ? '<span class="pill good">Won</span>' : '<span class="pill crit">Lost</span>'],
     ['Sales team', esc(d.team || '&mdash;')], ['Stage', esc(d.stage || '&mdash;')],
+    ['In Odoo', odooLink(d)
+      ? `<a href="${odooLink(d)}" target="_blank" rel="noopener">Lead #${d.odooId} <span aria-hidden="true" style="opacity:.6">&#8599;</span></a>
+         <div class="sub">the CRM record this deal reads from &mdash; contract value, stage and adder come from there</div>`
+      : `<span class="muted">No CRM record matched</span>
+         <div class="sub">the CRM has no won lead by this name and closing date &mdash; usually renamed in Odoo since the export</div>`],
     ['Closed', dday(d.close)],
     ['Commission pays', dday(d.run) + ' <span class="pill ' + (d.state === 'paid' ? 'good' : d.state === 'open' ? 'warn' : 'plain') + '">'
       + (d.state === 'paid' ? 'Paid' : d.state === 'open' ? 'Open' : 'Scheduled') + '</span>'
@@ -3958,6 +3971,7 @@ function render() {
 document.addEventListener('click', ev => {
   const t = ev.target.closest ? ev.target.closest('[data-nav],[data-reload],[data-df],[data-focus],[data-deal],[data-act],[data-step],[data-hold],[data-release],[data-settle],[data-reopen],[data-adjdel],[data-adjmove],[data-co],[data-setter],[data-panel],[data-ptab],[data-adderq]') : null;
   if (!t) return;
+  if (ev.target.closest('a[target="_blank"]')) return;   /* an outside link opens as a link */
   ev.preventDefault();
   if (t.dataset.nav) {
     /* Pay runs in the menu is also "start again": a full load, so the deals come

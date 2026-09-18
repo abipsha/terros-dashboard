@@ -180,6 +180,8 @@ def _map_lead(r, tags):
         "canvComm": None, "closerComm": None,
         "notes": None, "paid": None,
         "live": True,
+        # the CRM record itself, so the page can link straight to it
+        "odooId": r.get("id"),
     }
 
 
@@ -217,8 +219,8 @@ def _fetch_odoo():
     Three things come back:
 
       new       - won deals closing after the workbook stops, as before
-      state     - the contract value and Vivid Adder count Odoo holds *now* for
-                  every deal in scope, so a value edited months later surfaces
+      state     - the contract value, Vivid Adder count and record id Odoo
+                  holds *now* for every deal in scope, so a value edited months later surfaces
                   as a change order rather than going unnoticed, and an adder
                   added or taken back after the export reaches the balance it
                   belongs to instead of dying in the frozen workbook
@@ -251,7 +253,8 @@ def _fetch_odoo():
         state[_key(r["name"], r["date_deadline"])] = {
             "value": float(r.get("x_studio_contract_value") or 0), "cancelled": False,
             "stage": _rel(r.get("stage_id")),
-            "adder": int(r.get("x_studio_vivid_adder") or 0)}
+            "adder": int(r.get("x_studio_vivid_adder") or 0),
+            "id": r.get("id")}
         if r["date_deadline"] > after:
             new.append(_map_lead(r, tags))
     for r in lost:
@@ -260,7 +263,8 @@ def _fetch_odoo():
         k = _key(r["name"], r["date_deadline"])
         state[k] = {"value": float(r.get("x_studio_contract_value") or 0), "cancelled": True,
                     "stage": _rel(r.get("stage_id")),
-                    "adder": int(r.get("x_studio_vivid_adder") or 0)}
+                    "adder": int(r.get("x_studio_vivid_adder") or 0),
+                    "id": r.get("id")}
         if r["date_deadline"] > after:
             # it closed after the workbook and has since cancelled: put it back in
             # the ledger marked as such, or there is nothing to claw back against
@@ -318,6 +322,8 @@ def deals_now():
             # in a quarter still ahead.
             if "adder" in st:
                 d["adder"] = st["adder"]
+            if st.get("id"):
+                d["odooId"] = st["id"]
             if st["cancelled"]:
                 d["cancelled"] = True
         out.append(d)
