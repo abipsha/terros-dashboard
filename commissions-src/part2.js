@@ -1848,11 +1848,25 @@ function checks() {
     n: 2, rows: []
   });
   const unk = DEALS.filter(d => d.won && d.unknownRep);
+  const roster = D.roster || {};
   q.push({
     sev: 'warn', title: 'Rep on the deal is not in the employee list',
     what: unk.length + ' won deals name a setter or closer the employee lookup cannot resolve, so their plan falls '
-      + 'through to the default rate instead of the hourly one.',
+      + 'through to the default rate instead of the hourly one. '
+      + (roster.source === 'odoo'
+        ? 'The list is read from Odoo\u2019s Employees app (' + roster.count + ' in Sales), so a name here is either '
+          + 'spelt differently on the deal than on the employee, or the person is not in the Sales department.'
+        : roster.source === 'workbook'
+        ? 'The list is the workbook\u2019s because Odoo could not be reached for the roster \u2014 anyone hired '
+          + 'since the export will show here until it can be.'
+        : ''),
     n: unk.length, rows: unk
+  });
+  if (roster.source === 'workbook') q.push({
+    sev: 'warn', title: 'Employee list is the workbook\u2019s, not Odoo\u2019s',
+    what: 'The roster could not be read from Odoo on this load, so the ledger is working from the list exported with '
+      + 'the workbook. New hires, tag changes and re-hires since then are not reflected. Reload once Odoo is back.',
+    n: 1, rows: []
   });
   q.push({
     sev: 'warn', title: 'Payout history is not retained',
@@ -3446,13 +3460,23 @@ function holdCard(d) {
            <button class="btn ghost" data-settle="${d.id}:${key}:card">Already paid</button>`
         : st === 'settled'
         ? `<button class="btn ghost" data-reopen="${d.id}:${key}">Reopen</button>`
-        : `<button class="btn ghost" data-hold="${d.id}:${key}">Hold</button>`) : ''}</div>`;
+        : `<button class="btn ghost" data-hold="${d.id}:${key}">Hold this leg only</button>`) : ''}</div>`;
   };
+  /* the whole deal is the unit: a hold takes both legs, a release lets go of whatever is held */
+  const holdable = ['setter', 'closer'].filter(k => legAmt(d, k) && legState(d, k) === 'pay');
+  const heldLegs = ['setter', 'closer'].filter(k => legState(d, k) === 'held');
+  const whole = !admin || !firstOpenRun() ? '' : heldLegs.length
+    ? `<button class="btn" data-release="${d.id}:${heldLegs.length === 2 ? 'both' : heldLegs[0]}">Release
+        ${heldLegs.length === 2 ? 'both legs' : 'the ' + heldLegs[0]}</button>`
+    : holdable.length
+    ? `<button class="btn" data-hold="${d.id}:${holdable.length === 2 ? 'both' : holdable[0]}">Hold commission
+        ${holdable.length === 2 ? '&mdash; both legs' : '&mdash; ' + holdable[0] + ' only payable'}</button>` : '';
   return `<div class="card pad" style="margin-top:20px">
-    <h2>Commission hold</h2>
-    <p class="hint" style="margin:6px 0 8px">Holding a leg keeps it out of every pay run and flags it as not paid for
-    that person. The setter and the closer are held separately. Releasing pays it in the next open run rather than
-    back-dating it into a run that has frozen. A hold placed after the freeze takes effect from the
+    <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap"><h2 style="margin:0">Commission hold</h2>
+      <div style="margin-left:auto">${whole}</div></div>
+    <p class="hint" style="margin:6px 0 8px">A hold takes the whole deal out of every pay run &mdash; the setter&rsquo;s leg
+    and the closer&rsquo;s together &mdash; and flags both as not paid. One leg can still be held on its own from its row
+    below. Releasing pays in the next open run rather than back-dating into a run that has frozen. A hold placed after the freeze takes effect from the
     ${firstOpenRun() ? dshort(firstOpenRun()) : 'next'} run. If payroll already paid a held leg some other way,
     mark it <b>Already paid</b> against the cycle it went out in: it is then reported against that run but never
     paid again, and the run's own total is left exactly as it was.</p>
@@ -3479,8 +3503,6 @@ function holdCard(d) {
     </div>` : ''}
     ${leg('Setter commission', 'setter')}
     ${leg('Closer commission', 'closer')}
-    ${admin && !h.setter && !h.closer && d.canvPay && d.closerPay
-      ? `<div style="padding-top:14px"><button class="btn" data-hold="${d.id}:both">Hold both legs</button></div>` : ''}
   </div>`;
 }
 

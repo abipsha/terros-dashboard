@@ -190,6 +190,12 @@ CANCELLED_REASON = os.environ.get("ODOO_CANCELLED_REASON", "Customer Cancelled")
 # The CRM stage that means the job is parked and its commission should wait.
 HOLD_STAGE = os.environ.get("ODOO_HOLD_STAGE", "Hold Production")
 CRM_HOLD_REASON = "Install on hold"
+# A job parked on Hold Production with the deposit still to collect is waiting
+# on the customer's financing, and the hold should say so. The CRM keeps that
+# as an open activity on the lead; a done activity is deleted, so any that is
+# there is still open.
+FINANCING_REASON = "Customer financing not approved"
+DEPOSIT_ACTIVITY = os.environ.get("ODOO_DEPOSIT_ACTIVITY", "Collect Deposit")
 CRM_ACTOR = "Odoo"
 
 
@@ -321,6 +327,7 @@ EMP_FIELDS = ["name", "active", "x_studio_start_date", "work_phone",
               "category_ids"]
 SALES_DEPT = os.environ.get("ODOO_SALES_DEPT", "Sales")
 _emp_cache, _emp_at = None, 0.0
+_emp_source = "workbook"      # what the last request worked from, for the page to say
 
 
 def _clean(v):
@@ -377,15 +384,17 @@ def _fetch_employees():
 def live_employees():
     """The Odoo roster, cached on the same clock as the deals. Empty when Odoo
     cannot be reached and nothing is cached, and the workbook stands alone."""
-    global _emp_cache, _emp_at
+    global _emp_cache, _emp_at, _emp_source
     if not LIVE_DEALS or _FAILED:
+        _emp_source = "workbook"
         return []
     now = time.time()
     if _emp_cache is not None and now - _emp_at < DEALS_TTL:
+        _emp_source = "odoo"
         return _emp_cache
     try:
         rows = _fetch_employees()
-        _emp_cache, _emp_at = rows, now
+        _emp_cache, _emp_at, _emp_source = rows, now, "odoo"
         known = {e["name"] for e in (DATA.get("employees") or [])}
         fresh = [e["name"] for e in rows if e["name"] not in known]
         print(f"[commissions] Odoo roster: {len(rows)} in Sales"
@@ -393,8 +402,10 @@ def live_employees():
         return rows
     except Exception as e:
         if _emp_cache is not None:
+            _emp_source = "odoo"
             print(f"[commissions] Odoo unreachable, serving the cached roster: {e}")
             return _emp_cache
+        _emp_source = "workbook"
         print(f"[commissions] roster unavailable, serving the workbook alone: {e}")
         return []
 
@@ -1071,6 +1082,41 @@ def _leg_state(events, key):
     return out
 
 
+def _deposit_pending(lead_ids):
+    """Lead ids that still have an open activity to collect the deposit."""
+    ids = [i for i in lead_ids if i]
+    if not ids:
+        return set()
+    try:
+        rows = odoo.call_kw("mail.activity", "search_read",
+                            [[["res_model", "=", "crm.lead"], ["res_id", "in", ids]]],
+                            {"fields": ["res_id", "summary", "activity_type_id"], "limit": 2000})
+    except Exception as e:
+        print(f"[commissions] could not read lead activities: {e}")
+        return set()
+    want = DEPOSIT_ACTIVITY.lower()
+    out = set()
+    for r in rows:
+        text = ((r.get("summary") or "") + " " + (_rel(r.get("activity_type_id")) or "")).lower()
+        if want in text:
+            out.add(r.get("res_id"))
+    return out
+
+
+def _crm_reason_now(events, key):
+    """The reason currently on a deal's hold and who set it last, replaying the
+    same way the page does: a hold or reopen carries one, a hold.reason
+    corrects it in place."""
+    reason, actor = None, None
+    for e in events:
+        if e.get("target") != key:
+            continue
+        k, p = e.get("kind"), e.get("payload") or {}
+        if k in ("hold", "hold.reopen", "hold.reason") and p.get("reason"):
+            reason, actor = p["reason"], e.get("actor")
+    return reason, actor
+
+
 def sync_crm_holds(deals, events):
     """Park the commission on a job the CRM has put on Hold Production.
 
@@ -1093,27 +1139,42 @@ def sync_crm_holds(deals, events):
     if not LIVE_DEALS or _FAILED:
         return 0
     paid_through = _last_payday()
+    parked = [d for d in deals if (d.get("stage") or "") == HOLD_STAGE and not d.get("cancelled")]
+    waiting = _deposit_pending([d.get("odooId") for d in parked])
     written = 0
-    for d in deals:
-        if (d.get("stage") or "") != HOLD_STAGE or d.get("cancelled"):
-            continue
+    for d in parked:
         close, opp = d.get("close"), d.get("opp")
         if not (close and opp) or close < CUTOFF:
             continue
         if _run_of(close) <= paid_through:
             continue                      # already paid; a hold cannot reach it
         key = _key(opp, close)
+        reason = FINANCING_REASON if d.get("odooId") in waiting else CRM_HOLD_REASON
         state = _leg_state(events, key)
+        # Both legs, always: the job is parked, so neither the setter nor the
+        # closer is paid on it until it moves. A leg somebody has released or
+        # settled by hand is left alone.
         for leg, who in (("setter", d.get("canvasser")), ("closer", d.get("closer"))):
             if not who or state.get(leg):
                 continue
             try:
-                append_event("hold", key, {"leg": leg, "reason": CRM_HOLD_REASON},
-                             CRM_ACTOR, "")
+                append_event("hold", key, {"leg": leg, "reason": reason}, CRM_ACTOR, "")
                 written += 1
             except Exception as e:
                 print(f"[commissions] could not hold {key} {leg}: {e}")
                 return written
+        # The reason follows the CRM while the CRM is the one who set it: the
+        # deposit gets collected, or the activity appears later, and the hold
+        # list should say what is true now. A reason a person chose stands.
+        if any(st == "held" for st in state.values()):
+            have, who_set = _crm_reason_now(events, key)
+            if have and have != reason and who_set == CRM_ACTOR:
+                try:
+                    append_event("hold.reason", key, {"reason": reason}, CRM_ACTOR, "")
+                    written += 1
+                except Exception as e:
+                    print(f"[commissions] could not correct the reason on {key}: {e}")
+                    return written
     if written:
         global _events_cache
         _events_cache = None               # the page must see what was just written
@@ -1148,7 +1209,9 @@ def crm_hold_ready(deals, events):
 def scope_data(person, scope):
     if scope["all"] and scope["role"] != "manager":
         payload = dict(DATA)
-        payload["deals"] = deals_now()      # admins and viewers see the live feed too
+        payload["deals"] = deals_now()          # admins and viewers see the live feed too
+        payload["employees"] = employees_now()  # and the live roster, not the workbook's
+        payload["roster"] = {"source": _emp_source, "count": len(payload["employees"])}
         payload["session"] = None
         return payload
 
@@ -1192,6 +1255,7 @@ def scope_data(person, scope):
         "holds": [h for h in (DATA.get("holds") or [])
                   if f"{h.get('opp')}|{h.get('close')}" in keys],
         "employees": employees,
+        "roster": {"source": _emp_source, "count": len(roster)},
         "recruiters": DATA.get("recruiters") if scope["role"] == "manager" else [],
         "adjustments": [a for a in (DATA.get("adjustments") or []) if a.get("who") in names],
         "recruitLines": recruit_lines_for(scope["names"]),
