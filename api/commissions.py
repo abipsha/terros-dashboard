@@ -25,6 +25,7 @@ Python stdlib only.
 
 import json
 import os
+import re
 import time
 import traceback
 from datetime import datetime, timezone, timedelta
@@ -231,8 +232,14 @@ def _fetch_odoo():
     otherwise drop out of the ledger silently, taking the commission, both
     recruiting levels and the override with it, none of which were ever clawed
     back. Reading the lost reason is what turns that silence into a queue."""
-    tags = {e["name"]: (e.get("tags") or "") for e in (DATA.get("employees") or []) if e.get("name")}
+    tags = {e["name"]: (e.get("tags") or "") for e in employees_now() if e.get("name")}
     after = _workbook_last_close()
+    # A lead joins the ledger as a live deal when it closed after the workbook
+    # stops - or when the workbook simply does not have it. A deal entered in
+    # Odoo the day after the export but dated inside its window used to fall
+    # between the two: not in the workbook, not "after", paying nobody.
+    book = {_key(d["opp"], d["close"]) for d in (DATA.get("deals") or [])
+            if d.get("opp") and d.get("close")}
     fields = LEAD_FIELDS + ["lost_reason_id"]
     ctx = {"active_test": False}
 
@@ -250,12 +257,13 @@ def _fetch_odoo():
     for r in won:
         if not (r.get("name") and r.get("date_deadline")):
             continue
-        state[_key(r["name"], r["date_deadline"])] = {
+        key = _key(r["name"], r["date_deadline"])
+        state[key] = {
             "value": float(r.get("x_studio_contract_value") or 0), "cancelled": False,
             "stage": _rel(r.get("stage_id")),
             "adder": int(r.get("x_studio_vivid_adder") or 0),
             "id": r.get("id")}
-        if r["date_deadline"] > after:
+        if r["date_deadline"] > after or key not in book:
             new.append(_map_lead(r, tags))
     for r in lost:
         if not (r.get("name") and r.get("date_deadline")):
@@ -265,9 +273,11 @@ def _fetch_odoo():
                     "stage": _rel(r.get("stage_id")),
                     "adder": int(r.get("x_studio_vivid_adder") or 0),
                     "id": r.get("id")}
-        if r["date_deadline"] > after:
+        if r["date_deadline"] > after or k not in book:
             # it closed after the workbook and has since cancelled: put it back in
-            # the ledger marked as such, or there is nothing to claw back against
+            # the ledger marked as such, or there is nothing to claw back against.
+            # One the workbook never had and that was never paid comes through
+            # as a cancelled deal worth nothing, which is what it is.
             d = _map_lead(r, tags)
             d["cancelled"] = True
             new.append(d)
@@ -286,7 +296,7 @@ def live_deals():
         new, state = _fetch_odoo()
         _deals_cache, _deals_at, _deals_stale = (new, state), now, False
         cancelled = sum(1 for v in state.values() if v["cancelled"])
-        print(f"[commissions] Odoo: {len(new)} deals since the workbook, "
+        print(f"[commissions] Odoo: {len(new)} deals the workbook does not have, "
               f"{len(state)} contract values, {cancelled} cancelled")
         return _deals_cache
     except Exception as e:
@@ -296,6 +306,120 @@ def live_deals():
             return _deals_cache
         print(f"[commissions] live deals unavailable, serving the workbook alone: {e}")
         return [], {}
+
+
+# ── the roster ──────────────────────────────────────────────────
+# The workbook's employee sheet was an export of Odoo's Employees app, Sales
+# department only, taken the day the workbook froze. Anyone hired since is a
+# stranger to the ledger: their deals show "Unlisted", their setter leg falls
+# through to the default rate, no recruiting bonus flows up from them, and
+# they cannot sign in. So the roster is read the same way the deals are - from
+# Odoo, on every request, with the workbook as the fallback when Odoo is out.
+EMP_FIELDS = ["name", "active", "x_studio_start_date", "work_phone",
+              "x_studio_referred_by_level_1", "x_studio_referred_by_level_2",
+              "department_id", "job_title", "x_studio_region", "parent_id",
+              "category_ids"]
+SALES_DEPT = os.environ.get("ODOO_SALES_DEPT", "Sales")
+_emp_cache, _emp_at = None, 0.0
+
+
+def _clean(v):
+    """Odoo pads a few titles with a non-breaking space; the workbook did not."""
+    if not v or not isinstance(v, str):
+        return None
+    return re.sub(r"\s+", " ", v.replace("\xa0", " ")).strip() or None
+
+
+def _fetch_employees():
+    """The Sales roster as the workbook shaped it, straight from Odoo.
+
+    Every column the workbook carried lives on hr.employee: the two referral
+    levels behind the recruiting bonus are Studio fields there, the team is
+    the Region field, the manager is the parent, and the tags are the
+    employee categories joined in id order - which is the order the export
+    wrote them in, and the order the rate lookup matches on."""
+    ctx = {"active_test": False}
+    cats = odoo.call_kw("hr.employee.category", "search_read", [[]],
+                        {"fields": ["id", "name"], "order": "id asc", "context": ctx})
+    cname = {c["id"]: _clean(c.get("name")) for c in cats}
+    rows = odoo.call_kw("hr.employee", "search_read", [[]],
+                        {"fields": EMP_FIELDS, "order": "id asc", "limit": 5000,
+                         "context": ctx})
+    known = {e["name"] for e in (DATA.get("employees") or []) if e.get("name")}
+    out = []
+    for r in rows:
+        name = _clean(r.get("name"))
+        if not name:
+            continue
+        dept = _rel(r.get("department_id")) or None
+        # the workbook was the Sales department; ops and installers stay out,
+        # but nobody the workbook already knows is ever dropped
+        if dept != SALES_DEPT and name not in known:
+            continue
+        ids = sorted(r.get("category_ids") or [])
+        out.append({
+            "name": name,
+            "active": bool(r.get("active")),
+            "start": r.get("x_studio_start_date") or None,
+            "phone": _clean(r.get("work_phone")),
+            "ref1": _clean(_rel(r.get("x_studio_referred_by_level_1"))),
+            "ref2": _clean(_rel(r.get("x_studio_referred_by_level_2"))),
+            "dept": dept,
+            "job": _clean(r.get("job_title")),
+            "team": _clean(r.get("x_studio_region")),
+            "manager": _clean(_rel(r.get("parent_id"))),
+            "tags": ", ".join(cname[i] for i in ids if cname.get(i)) or None,
+            "odooId": r.get("id"),
+        })
+    return out
+
+
+def live_employees():
+    """The Odoo roster, cached on the same clock as the deals. Empty when Odoo
+    cannot be reached and nothing is cached, and the workbook stands alone."""
+    global _emp_cache, _emp_at
+    if not LIVE_DEALS or _FAILED:
+        return []
+    now = time.time()
+    if _emp_cache is not None and now - _emp_at < DEALS_TTL:
+        return _emp_cache
+    try:
+        rows = _fetch_employees()
+        _emp_cache, _emp_at = rows, now
+        known = {e["name"] for e in (DATA.get("employees") or [])}
+        fresh = [e["name"] for e in rows if e["name"] not in known]
+        print(f"[commissions] Odoo roster: {len(rows)} in Sales"
+              + (f", new since the workbook: {', '.join(fresh)}" if fresh else ""))
+        return rows
+    except Exception as e:
+        if _emp_cache is not None:
+            print(f"[commissions] Odoo unreachable, serving the cached roster: {e}")
+            return _emp_cache
+        print(f"[commissions] roster unavailable, serving the workbook alone: {e}")
+        return []
+
+
+def employees_now():
+    """The roster the ledger works from: Odoo's version of everyone the
+    workbook listed, in the workbook's order, then anyone Odoo has added
+    since. A workbook row with no record in Odoo is kept as it was."""
+    live = live_employees()
+    book = DATA.get("employees") or []
+    if not live:
+        return book
+    by = {e["name"]: e for e in live}
+    out, seen = [], set()
+    for e in book:
+        n = e.get("name")
+        if n in seen:
+            continue
+        seen.add(n)
+        out.append(by.get(n, e))
+    for e in live:
+        if e["name"] not in seen:
+            seen.add(e["name"])
+            out.append(e)
+    return out
 
 
 def deals_now():
@@ -863,7 +987,7 @@ def build_scope(person, role):
     if "vp" in seats:
         regions.update(all_regions)
 
-    for e in DATA["employees"]:
+    for e in employees_now():
         if e.get("manager") == person:
             names.add(e["name"])
 
@@ -903,7 +1027,7 @@ def recruit_lines_for(names):
                 bump(closed, d.get("closer"), base)
                 bump(set_, d.get("canvasser"), base)
 
-        for e in DATA["employees"]:
+        for e in employees_now():
             s = selfg.get(e["name"], 0.0)
             c = closed.get(e["name"], 0.0)
             t = set_.get(e["name"], 0.0)
@@ -1041,14 +1165,15 @@ def scope_data(person, scope):
     for d in deals:
         keep.add(d.get("canvasser"))
         keep.add(d.get("closer"))
-    for e in DATA["employees"]:
+    roster = employees_now()
+    for e in roster:
         if e.get("ref1") in names or e.get("ref2") in names:
             keep.add(e["name"])                       # their recruits
         if e["name"] in names and e.get("manager"):
             keep.add(e["manager"])
 
     employees = []
-    for e in DATA["employees"]:
+    for e in roster:
         if e["name"] not in keep:
             continue
         if e["name"] in names or scope["role"] == "manager":
@@ -1107,7 +1232,7 @@ def identify(session):
     # not listed: match the local part against the roster, so a new rep works
     # without an edit here. Own statement only.
     guess = email.split("@")[0].replace(".", " ").replace("_", " ").replace("-", " ").lower()
-    for e in DATA["employees"]:
+    for e in employees_now():
         if e["name"].lower() == guess:
             return {"email": email, "name": e["name"], "role": None}
     return None
@@ -1183,7 +1308,7 @@ def _validate(kind, target, p):
             return "Unknown reason."
         return None
     if kind == "adjustment":
-        if not target or not any(e["name"] == target for e in DATA["employees"]):
+        if not target or not any(e["name"] == target for e in employees_now()):
             return "That person is not on the roster."
         if p.get("type") not in ADJ_KINDS:
             return "Unknown adjustment type."
