@@ -57,7 +57,8 @@ CUTOFF  = "2026-01-01"
 KINDS = ["hold", "release", "hold.settle", "hold.reopen", "hold.reason",
          "adjustment", "adjustment.remove",
          "adjustment.move",
-         "changeorder.apply", "changeorder.decline", "changeorder.undo", "run.freeze",
+         "changeorder.apply", "changeorder.decline", "changeorder.undo", "changeorder.settle",
+         "run.freeze",
          "deal.adder",
          "plan.schedule", "plan.cancel"]
 # a settled leg names the run payroll paid it in, or this when it predates the ledger
@@ -725,6 +726,15 @@ def _note_for(ev):
                  "The contract value on this deal changed after commission had already been paid, "
                  "and the difference was looked at and deliberately left alone.",
                  "Nobody is paid or charged for it. It can be put back in the queue later."]
+    elif k == "changeorder.settle":
+        run = p.get("run")
+        when = ("before this ledger started" if run in (None, "", SETTLED_PRE)
+                else f"in the {_day(run)} pay run")
+        lines = ["Change order already applied.",
+                 "The contract value on this deal changed after commission had been paid, and "
+                 f"the difference was already paid or recovered {when}, outside this ledger.",
+                 "Commission is now worked out on the new value. Nothing is paid or taken back "
+                 "again for it."]
     elif k == "changeorder.undo":
         lines = ["Change order reversed.",
                  "Commission on this deal goes back to what the original contract value paid."]
@@ -854,7 +864,7 @@ def _post_note(ev, lead_id):
 
 DEAL_KINDS = ("hold", "release", "hold.settle", "hold.reopen", "hold.reason",
               "changeorder.apply", "changeorder.decline", "changeorder.undo",
-              "deal.adder")
+              "changeorder.settle", "deal.adder")
 
 
 def _event_label(kind, target, payload, is_deal):
@@ -1355,6 +1365,25 @@ def _validate(kind, target, p):
         if not _deal_by_key(target):
             return "That deal is not in the ledger."
         return None
+    if kind == "changeorder.settle":
+        # the difference was paid or recovered in an earlier cycle, or before
+        # the ledger: the same shape check a settled hold gets
+        if not _deal_by_key(target):
+            return "That deal is not in the ledger."
+        run = p.get("run")
+        if run != SETTLED_PRE:
+            if not _is_date(run):
+                return "Name the payroll cycle it was applied in."
+            try:
+                if datetime.strptime(run, "%Y-%m-%d").weekday() != 4:
+                    return "Pay runs fall on a Friday."
+            except ValueError:
+                return "Name the payroll cycle it was applied in."
+            if run > _today():
+                return "A run that has not happened yet cannot have applied it."
+            if run < CUTOFF:
+                return "That is before the ledger starts."
+        return None
     if kind == "deal.adder":
         # count 0 puts a deducted adder back, so zero is a valid instruction
         deal = _deal_by_key(target)
@@ -1454,6 +1483,8 @@ def _sanitise(kind, p):
         return {"leg": cut(p.get("leg"), 10), "reason": cut(p.get("reason"), 120)}
     if kind == "hold.reason":
         return {"reason": cut(p.get("reason"), 120)}
+    if kind == "changeorder.settle":
+        return {"run": cut(p.get("run"), 10) or SETTLED_PRE}
     if kind == "adjustment.move":
         return {"run": cut(p.get("run"), 10)}
     if kind == "deal.adder":

@@ -653,8 +653,10 @@ const adderCut = d => Math.max(0, Math.min(adderOff(d), +d.adder || 0));
 function cancelledOut(d) {
   if (!d.cancelled) return false;
   const co = CO.get(d.id);
-  return !co || co.state === 'applied';
+  return !co || co.state === 'applied' || co.state === 'settled';
 }
+/* settled outside the ledger: whatever was clawed back then included the adder */
+const settledOut = d => d.cancelled && CO.has(d.id) && CO.get(d.id).state === 'settled';
 const adderOn = d => cancelledOut(d) ? 0 : (+d.adder || 0) - adderCut(d);
 const adderCutAmt = d => adderCut(d) * ADDER_RATE;
 /* The figure every commission, override and bonus is worked out from: the
@@ -724,9 +726,10 @@ function adderAdjustments() {
     const q = quarterOf(d.close), k = d.closer + '|' + q;
     /* a quarter with nothing left and nothing already paid has no line at all */
     if (!had && !ADDER_PIN.has(k)) return;
-    if (!m.has(k)) m.set(k, { who: d.closer, q: q, count: 0, deals: 0, cut: 0 });
+    if (!m.has(k)) m.set(k, { who: d.closer, q: q, count: 0, deals: 0, cut: 0, settled: 0 });
     const e = m.get(k);
     e.count += n; e.cut += adderCut(d); if (had) e.deals += 1;
+    if (settledOut(d)) e.settled += Math.max(0, had - adderCut(d));
   });
   const out = [];
   [...m.values()].sort((a, b) => a.q.localeCompare(b.q) || a.who.localeCompare(b.who))
@@ -748,7 +751,7 @@ function adderAdjustments() {
          paid it keeps the figure it went out with; the difference is recovered
          in the next open bonus run, the same way a change order trues up
          commission rather than restating a payroll that has gone. */
-      const diff = pinned == null ? 0 : e.count - pinned;
+      const diff = pinned == null ? 0 : e.count - (pinned - e.settled);
       if (diff) out.push({
         id: 'a' + (adjSeq++), who: e.who, kind: 'Vivid Adder', auto: true, adderLine: 1, q: e.q,
         label: 'Vivid Adder correction - ' + qLabel(e.q),
@@ -1059,14 +1062,23 @@ const basisFixed = d => !!d.baseImplied || CAPTURED.has(dealKey(d));
 /* the value every plan should calculate on: what was paid, unless a change order has been applied */
 function comBase(d) {
   const co = CO.get(d.id);
-  if (co && co.state === 'applied') return commValue(d);
+  if (co && (co.state === 'applied' || co.state === 'settled')) return commValue(d);
   return paidBasis(d);
 }
-function applyCO(id, state) {
+/* Applied, declined, or settled. Settled means the difference was already
+   paid or recovered some other way - in an earlier cycle, or outside the books
+   before this ledger existed. The deal is then treated exactly as if the change
+   order had been applied, except that no true-up is written into any run: that
+   money has already moved, and writing it again would move it twice. */
+function applyCO(id, state, run) {
   const co = CO.get(id); if (!co) return;
   const d = DEALS[id];
   co.state = state;
-  if (state === 'applied') {
+  co.settledRun = state === 'settled' ? (run || SETTLED_PRE) : null;
+  if (state === 'settled') {
+    co.commRun = null; co.bonusRun = null; co.summerRun = null;
+    co.at = TODAY_D; co.by = ADMIN_NOW;
+  } else if (state === 'applied') {
     /* if the run that paid it is already closed, the difference is trued up in the next open run */
     co.commRun = isApproved(d.run) ? firstOpenRun() : null;
     const bd = BONUS_OF.get(d.month);
@@ -1115,13 +1127,15 @@ function seedCOs() {
     const w = was.get(d.id);
     if (w && w.state !== 'pending') Object.assign(CO.get(d.id),
       { state: w.state, commRun: w.commRun, bonusRun: w.bonusRun, summerRun: w.summerRun,
-        at: w.at, by: w.by });
+        settledRun: w.settledRun || null, at: w.at, by: w.by });
   });
 }
 const coPending = () => [...CO.entries()].filter(x => x[1].state === 'pending')
   .map(x => ({ d: DEALS[x[0]], co: x[1] })).sort((a, b) => Math.abs(b.co.delta) - Math.abs(a.co.delta));
 /* looked at and deliberately not paid on - out of the queue, still on the record */
 const coDeclined = () => [...CO.entries()].filter(x => x[1].state === 'declined')
+  .map(x => ({ d: DEALS[x[0]], co: x[1] })).sort((a, b) => Math.abs(b.co.delta) - Math.abs(a.co.delta));
+const coSettled = () => [...CO.entries()].filter(x => x[1].state === 'settled')
   .map(x => ({ d: DEALS[x[0]], co: x[1] })).sort((a, b) => Math.abs(b.co.delta) - Math.abs(a.co.delta));
 const coApplied = () => [...CO.entries()].filter(x => x[1].state === 'applied')
   .map(x => ({ d: DEALS[x[0]], co: x[1] }));
@@ -1474,6 +1488,7 @@ function applyEvents(events) {
         rec.reasonAt = String(e.at).slice(0, 10); }
     }
     if (e.kind === 'changeorder.apply') applyCO(d.id, 'applied');
+    if (e.kind === 'changeorder.settle') applyCO(d.id, 'settled', p.run || SETTLED_PRE);
     if (e.kind === 'changeorder.decline') applyCO(d.id, 'declined');
     if (e.kind === 'changeorder.undo') applyCO(d.id, 'pending');
   });
@@ -3463,7 +3478,7 @@ function dealPanel(id) {
   const d = DEALS[id];
   const rows = [
     ['Status', d.cancelled ? '<span class="pill crit">Cancelled</span>' + (CO.has(d.id) ? ' <span class="sub" style="display:inline">'
-        + ({ applied: 'clawed back', declined: 'left as paid', pending: 'claw-back waiting in the queue' }[CO.get(d.id).state] || '') + '</span>' : '')
+        + ({ applied: 'clawed back', settled: 'clawed back outside the ledger', declined: 'left as paid', pending: 'claw-back waiting in the queue' }[CO.get(d.id).state] || '') + '</span>' : '')
       : d.won ? '<span class="pill good">Won</span>' : '<span class="pill crit">Lost</span>'],
     ['Sales team', esc(d.team || '&mdash;')], ['Stage', esc(d.stage || '&mdash;')],
     ['In Odoo', odooLink(d)
@@ -3520,6 +3535,9 @@ function coDealCard(d) {
     ${co.cancelled ? '<b>This job was cancelled after commission had already gone out.</b> Clawing it back reverses '
       + 'the setter and closer commission, both levels of recruiting bonus and the override, in the next open run. '
       : ''}${co.state === 'applied' ? 'It has been applied, so only the difference is paid out.'
+      : co.state === 'settled' ? 'It was <b>already applied outside this ledger</b>' + (co.settledRun ? ' &mdash; in ' + settledLabel(co.settledRun) : '')
+        + (co.by ? ', recorded by ' + esc(co.by) : '') + (co.at ? ' on ' + dshort(co.at) : '')
+        + '. The deal is treated as paid on the new value, and nothing is trued up again. Undo puts it back in the queue.'
       : co.state === 'declined' ? 'It was reviewed and deliberately not applied' + (co.by ? ' by ' + esc(co.by) : '')
         + (co.at ? ' on ' + dshort(co.at) : '') + ', so the difference does not move. Reopening puts it back in the queue.'
       : 'Nothing has been paid on the difference yet.'}</p>
@@ -3531,7 +3549,7 @@ function coDealCard(d) {
       <div class="metric"><span class="mlabel">Change</span>
         <span class="mval xs" style="color:${co.delta < 0 ? 'var(--crit)' : 'var(--good)'}">${fmt0(co.delta)}</span></div>
       <div class="metric"><span class="mlabel">Status</span>
-        <span style="margin-top:8px"><span class="pill ${co.state === 'applied' ? 'info' : co.state === 'declined' ? 'plain' : 'warn'}">${co.state === 'applied' ? 'Applied' : co.state === 'declined' ? 'Not applied' : 'Waiting'}</span></span></div>
+        <span style="margin-top:8px"><span class="pill ${co.state === 'applied' ? 'info' : co.state === 'settled' ? 'good' : co.state === 'declined' ? 'plain' : 'warn'}">${co.state === 'applied' ? 'Applied' : co.state === 'settled' ? 'Applied outside' : co.state === 'declined' ? 'Not applied' : 'Waiting'}</span></span></div>
     </div>
     <div class="scroll"><table><thead><tr><th>What it changes</th><th>Who</th><th class="r">Amount</th></tr></thead>
       <tbody>
@@ -3553,11 +3571,15 @@ function coDealCard(d) {
       ${e.adder ? 'The ' + adders(e.adder.count) + ' ' + (e.adder.paid
         ? 'had already been paid with the ' + qLabel(e.adder.q) + ' balance, so ' + fmt0(-e.adder.amt) + ' is recovered in the next open bonus run.'
         : 'simply ' + (e.adder.count === 1 ? 'comes' : 'come') + ' off the ' + qLabel(e.adder.q) + ' balance before it pays on ' + dshort(e.adder.payday) + '.') : ''}</p>` : ''}
-    ${admin ? `<div style="display:flex;gap:10px;margin-top:18px">
-      ${co.state === 'applied' ? `<button class="btn ghost" data-co="undo:${d.id}">Undo</button>`
+    ${admin ? `<div style="display:flex;gap:10px;margin-top:18px;flex-wrap:wrap;align-items:center">
+      ${co.state === 'applied' || co.state === 'settled' ? `<button class="btn ghost" data-co="undo:${d.id}">Undo</button>`
         : co.state === 'declined' ? `<button class="btn ghost" data-co="undo:${d.id}">Reopen</button>`
-        : `<button class="btn" data-co="apply:${d.id}">Apply change order</button>
-           <button class="btn ghost" data-co="decline:${d.id}">Do not apply</button>`}</div>` : ''}
+        : `<button class="btn" data-co="apply:${d.id}">${co.cancelled ? 'Claw back' : 'Apply change order'}</button>
+           <button class="btn ghost" data-co="decline:${d.id}">${co.cancelled ? 'Leave it' : 'Do not apply'}</button>
+           <span style="flex:1 1 100%;display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:6px">
+             <button class="btn ghost" data-co="settle:${d.id}">Already applied</button>
+             <span class="sub">in</span> ${settleRunPicker('coSettleRun:' + d.id)}
+             <span class="sub">&mdash; the difference was paid or recovered then, so nothing is trued up again</span></span>`}</div>` : ''}
   </div>`;
 }
 
@@ -3690,7 +3712,7 @@ function freezeCard(sh) {
 /* ---- change orders waiting to be applied ---- */
 function coCard() {
   const wr = canEditAll();   /* read-only viewers get the table, not the buttons */
-  const pend = coPending(), app = coApplied(), dec = coDeclined();
+  const pend = coPending(), app = coApplied(), dec = coDeclined(), stl = coSettled();
   const net = pend.reduce((a, x) => a + (coEffect(x.d) || { total: 0 }).total, 0);
   const show = S.coAll ? pend : pend.slice(0, 8);
   return `<div class="card">
@@ -3723,7 +3745,8 @@ function coCard() {
           <td class="n r">${fmt(bon)}</td>
           <td class="n r"><b style="color:${e.total < 0 ? 'var(--crit)' : 'var(--c4)'}">${fmt(e.total)}</b></td>
           ${wr ? `<td class="r" style="white-space:nowrap"><button class="btn" data-co="apply:${x.d.id}">${x.co.cancelled ? 'Claw back' : 'Apply'}</button>
-            <button class="btn ghost" data-co="decline:${x.d.id}">${x.co.cancelled ? 'Leave it' : 'Do not apply'}</button></td>` : ''}</tr>`; }).join('')}</tbody>
+            <button class="btn ghost" data-co="decline:${x.d.id}">${x.co.cancelled ? 'Leave it' : 'Do not apply'}</button>
+            <div style="margin-top:6px;display:flex;gap:6px;align-items:center;white-space:nowrap"><button class="btn ghost" data-co="settle:${x.d.id}">Already applied</button>${settleRunPicker('coSettleRun:' + x.d.id)}</div></td>` : ''}</tr>`; }).join('')}</tbody>
         <tfoot><tr><td colspan="8">${pend.length} waiting${pend.length > show.length ? ' &middot; showing ' + show.length : ''}</td>
           <td class="r">${fmt(net)}</td>
           <td class="r"${wr ? '' : ' colspan="2"'}>${pend.length > 8 ? `<button class="btn ghost" data-co="${S.coAll ? 'less' : 'all'}">${S.coAll ? 'Show less' : 'Show all'}</button>` : ''}</td></tr></tfoot>
@@ -3737,6 +3760,23 @@ function coCard() {
           <td class="n muted">${x.co.commRun ? dshort(x.co.commRun) : 'folded into ' + dshort(x.d.run)}</td>
           <td class="n muted">${x.co.bonusRun ? dshort(x.co.bonusRun) : (BONUS_OF.get(x.d.month) ? 'folded into ' + dshort(BONUS_OF.get(x.d.month)) : '&mdash;')}</td>
           <td class="n r"><b style="color:var(--c4)">${fmt(e.total)}</b></td>
+          ${wr ? `<td class="r"><button class="btn ghost" data-co="undo:${x.d.id}">Undo</button></td>` : ''}</tr>`; }).join('')}</tbody>
+      </table></div>` : ''}
+      ${stl.length ? `<div class="grouplabel">Applied outside the ledger</div>
+      <p class="hint" style="margin:0 0 12px">The difference was already paid or recovered &mdash; in an earlier cycle,
+      or before this ledger existed. The deal is treated as paid on the new value, and nothing is trued up again.
+      Undo puts it back in the queue.</p>
+      <div class="scroll"><table>
+        <thead><tr><th>Opportunity</th><th class="r">Paid on</th><th class="r">Now</th><th class="r">Change</th>
+          <th class="r">Effect</th><th>Applied in</th><th>Recorded</th>${wr ? '<th></th>' : ''}</tr></thead>
+        <tbody>${stl.map(x => { const e = coEffect(x.d); return `<tr class="clickable" data-deal="${x.d.id}" tabindex="0">
+          <td>${esc(x.d.opp)}${x.co.cancelled ? ' <span class="pill crit">Cancelled</span>' : ''}<div class="sub">closed ${dshort(x.d.close)}</div></td>
+          <td class="n r muted">${fmt0(x.d.baseImplied)}</td>
+          <td class="n r muted">${fmt0(commValue(x.d))}</td>
+          <td class="n r"><b style="color:${x.co.delta < 0 ? 'var(--crit)' : 'var(--good)'}">${fmt0(x.co.delta)}</b></td>
+          <td class="n r muted">${fmt(e.total)}</td>
+          <td class="n muted">${settledLabel(x.co.settledRun || SETTLED_PRE)}</td>
+          <td class="n muted">${x.co.at ? dshort(x.co.at) : '&mdash;'}${x.co.by ? '<div class="sub">' + esc(x.co.by) + '</div>' : ''}</td>
           ${wr ? `<td class="r"><button class="btn ghost" data-co="undo:${x.d.id}">Undo</button></td>` : ''}</tr>`; }).join('')}</tbody>
       </table></div>` : ''}
       ${dec.length ? `<div class="grouplabel">Not applied</div>
@@ -3830,6 +3870,7 @@ function cancelledAdderCard(d, had, off, on) {
       + esc(d.closer) + '&rsquo;s ' + qLabel(q) + ' balance'
       + (!co ? ', because nothing was ever paid on this deal.'
         : st === 'applied' ? ' with the claw-back above' + (paid ? ', and ' + fmt0(standing * one) + ' is recovered in the next open bonus run.' : ', before that balance pays on ' + dshort(payday) + '.')
+        : st === 'settled' ? ' with the claw-back, which was applied outside this ledger &mdash; so nothing is recovered here again.'
         : st === 'declined' ? ' only if the cancellation is clawed back. It was reviewed and left as paid, so the adder stands with the commission.'
         : ' when the cancellation is clawed back &mdash; that decision is waiting in the change order above.')
       : '.'}</p>
@@ -4087,12 +4128,15 @@ document.addEventListener('click', ev => {
     const id = +p[1], d = DEALS[id];
     if (!d) return;
     const before = CO.get(id) ? Object.assign({}, CO.get(id)) : null;
-    const state = p[0] === 'apply' ? 'applied' : p[0] === 'decline' ? 'declined' : 'pending';
-    const kind = p[0] === 'apply' ? 'changeorder.apply'
-      : p[0] === 'decline' ? 'changeorder.decline' : 'changeorder.undo';
-    applyCO(id, state); refreshAdderLines();
+    const state = p[0] === 'apply' ? 'applied' : p[0] === 'decline' ? 'declined'
+      : p[0] === 'settle' ? 'settled' : 'pending';
+    const kind = p[0] === 'apply' ? 'changeorder.apply' : p[0] === 'decline' ? 'changeorder.decline'
+      : p[0] === 'settle' ? 'changeorder.settle' : 'changeorder.undo';
+    const sel = document.getElementById('coSettleRun:' + id);
+    const run = state === 'settled' ? ((sel && sel.value) || SETTLED_PRE) : null;
+    applyCO(id, state, run); refreshAdderLines();
     render();
-    save(kind, dealKey(d), {}, () => { if (before) CO.set(id, before); refreshAdderLines(); });
+    save(kind, dealKey(d), run ? { run: run } : {}, () => { if (before) CO.set(id, before); refreshAdderLines(); });
     return;
   }
   /* Deducting a Vivid Adder, or putting one back. One event carries both
