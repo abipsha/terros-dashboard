@@ -646,7 +646,16 @@ const adderOff = d => { const r = ADDER_OFF.get(dealKey(d)); return r ? r.count 
    adding $500 to what commission pays on. */
 const adderCut = d => Math.max(0, Math.min(adderOff(d), +d.adder || 0));
 /* what is left standing, which keeps the sign a negative count was entered with */
-const adderOn = d => (+d.adder || 0) - adderCut(d);
+/* A cancelled job earns no adder. It comes off on the same decision as the
+   commission: a deal that was never paid on has nothing to decide, so it is
+   gone at once; one that was paid keeps it until the cancellation is clawed
+   back, and gets it back if that is undone. "Leave it" leaves it. */
+function cancelledOut(d) {
+  if (!d.cancelled) return false;
+  const co = CO.get(d.id);
+  return !co || co.state === 'applied';
+}
+const adderOn = d => cancelledOut(d) ? 0 : (+d.adder || 0) - adderCut(d);
 const adderCutAmt = d => adderCut(d) * ADDER_RATE;
 /* The figure every commission, override and bonus is worked out from: the
    contract value with any deducted adders taken off it, and nothing at all
@@ -743,7 +752,7 @@ function adderAdjustments() {
       if (diff) out.push({
         id: 'a' + (adjSeq++), who: e.who, kind: 'Vivid Adder', auto: true, adderLine: 1, q: e.q,
         label: 'Vivid Adder correction - ' + qLabel(e.q),
-        note: adders(Math.abs(diff)) + ' deducted after the ' + qLabel(e.q) + ' balance was paid on '
+        note: adders(Math.abs(diff)) + ' came off after the ' + qLabel(e.q) + ' balance was paid on '
           + dshort(adderPayday(e.q)) + ', recovered here',
         amount: diff * ADDER_RATE, run: nextBonusRun()
       });
@@ -1148,8 +1157,16 @@ function coEffectOf(d, D_) {
      everything else rather than quietly restating a month that has been paid */
   const sr = summerRateFor(d);
   if (sr) out.summer = { to: d.canvasser, rate: sr, amt: D_ * sr };
+  /* every adder still standing on a cancelled job comes off with it */
+  const standing = (+d.adder || 0) - adderCut(d);
+  if (d.cancelled && standing > 0 && d.closer) {
+    const q = quarterOf(d.close);
+    out.adder = { to: d.closer, count: standing, amt: -standing * ADDER_RATE, q: q,
+      paid: ADDER_PIN.has(d.closer + '|' + q) || adderPaid(q), payday: adderPayday(q) };
+  }
   out.total = out.setter + out.closer + out.recruit.reduce((s2, r) => s2 + r.amt, 0)
-    + out.override.reduce((s2, r) => s2 + r.amt, 0) + (out.summer ? out.summer.amt : 0);
+    + out.override.reduce((s2, r) => s2 + r.amt, 0) + (out.summer ? out.summer.amt : 0)
+    + (out.adder ? out.adder.amt : 0);
   return out;
 }
 
@@ -3021,7 +3038,7 @@ V.deals = () => {
     <tbody>${list.slice(0, 200).map((d, i) => `<tr class="clickable" data-deal="${d.id}" tabindex="0">
       <td class="idx">${i + 1}</td>
       <td>${esc(d.opp)}${d.selfGen ? ' <span class="pill info">Self-gen</span>' : ''}
-        ${d.flagged ? ' <span class="pill crit">Variance</span>' : ''}${d.unknownRep ? ' <span class="pill warn">Unlisted</span>' : ''}
+        ${d.cancelled ? ' <span class="pill crit">Cancelled</span>' : d.flagged ? ' <span class="pill crit">Variance</span>' : ''}${d.unknownRep ? ' <span class="pill warn">Unlisted</span>' : ''}
         ${HOLDS.has(d.id) ? (legState(d, 'setter') === 'held' || legState(d, 'closer') === 'held'
           ? ' <span class="pill crit">On hold</span>'
           : legState(d, 'setter') === 'settled' || legState(d, 'closer') === 'settled'
@@ -3445,7 +3462,9 @@ V.checks = () => `
 function dealPanel(id) {
   const d = DEALS[id];
   const rows = [
-    ['Status', d.won ? '<span class="pill good">Won</span>' : '<span class="pill crit">Lost</span>'],
+    ['Status', d.cancelled ? '<span class="pill crit">Cancelled</span>' + (CO.has(d.id) ? ' <span class="sub" style="display:inline">'
+        + ({ applied: 'clawed back', declined: 'left as paid', pending: 'claw-back waiting in the queue' }[CO.get(d.id).state] || '') + '</span>' : '')
+      : d.won ? '<span class="pill good">Won</span>' : '<span class="pill crit">Lost</span>'],
     ['Sales team', esc(d.team || '&mdash;')], ['Stage', esc(d.stage || '&mdash;')],
     ['In Odoo', odooLink(d)
       ? `<a href="${odooLink(d)}" target="_blank" rel="noopener">Lead #${d.odooId} <span aria-hidden="true" style="opacity:.6">&#8599;</span></a>
@@ -3477,8 +3496,8 @@ function dealPanel(id) {
         <tr><td>Closer</td><td class="n r muted">${pct(S.rates.closer)}</td><td class="n r">${fmt(d.closerPay)}</td></tr>
       </tbody><tfoot><tr><td colspan="2">Total</td><td class="r">${fmt(d.total)}</td></tr></tfoot></table>
       ${d.flagged ? `<div class="note" style="margin:22px 0 0"><span class="tag">Value changed after it was paid</span>
-        Commission was worked out on a contract value of <b>${fmt(d.baseImplied)}</b>, but the deal now reads
-        <b>${fmt(d.value)}</b> &mdash; a gap of ${fmt(d.variance)}. Nobody was paid on the difference.</div>` : ''}
+        Commission was worked out on a contract value of <b>${fmt(d.baseImplied)}</b>, but the deal now
+        ${d.cancelled ? 'is cancelled and worth <b>' + fmt(0) + '</b>' : 'reads <b>' + fmt(commValue(d)) + '</b>'} &mdash; a gap of ${fmt(d.variance)}. Nobody was paid on the difference.</div>` : ''}
       ${d.notes ? `<div class="grouplabel">Notes</div><p style="margin:0">${esc(d.notes)}</p>` : ''}
     </div></div>
   ${CO.has(d.id) ? coDealCard(d) : ''}
@@ -3521,15 +3540,19 @@ function coDealCard(d) {
         ${e.recruit.map(l => row('Recruiting ' + l.lvl + ' on ' + esc(l.on), l.to, l.amt)).join('')}
         ${e.override.map(l => row('Override &middot; ' + esc(l.tier) + ', ' + esc(l.region), l.to, l.amt)).join('')}
         ${e.summer ? row('Summer weekly bonus at ' + pct(e.summer.rate), e.summer.to, e.summer.amt) : ''}
+        ${e.adder ? row('Vivid Adder &times;' + e.adder.count + ' &middot; ' + qLabel(e.adder.q), e.adder.to, e.adder.amt) : ''}
       </tbody>
-      <tfoot><tr><td colspan="2">Total effect &middot; ${fmt(e.setter + e.closer)} commission, ${fmt(bon)} bonuses</td>
+      <tfoot><tr><td colspan="2">Total effect &middot; ${fmt(e.setter + e.closer)} commission, ${fmt(bon - (e.adder ? e.adder.amt : 0))} bonuses${e.adder ? ', ' + fmt(e.adder.amt) + ' adder' : ''}</td>
         <td class="r">${fmt(e.total)}</td></tr></tfoot></table></div>
     ${co.state === 'applied' ? `<p class="hint" style="margin:16px 0 0">Commission
       ${co.commRun ? 'trues up in the ' + dshort(co.commRun) + ' run' : 'is folded into the ' + dshort(d.run) + ' run, which has not gone out yet'}.
       Bonuses ${co.bonusRun ? 'true up in the ' + dshort(co.bonusRun) + ' bonus run'
         : BONUS_OF.get(d.month) ? 'are folded into the ' + dshort(BONUS_OF.get(d.month)) + ' bonus run, which has not gone out yet' : 'are unaffected'}.
       ${e.summer ? 'The summer weekly bonus ' + (co.summerRun ? 'trues up in the ' + dshort(co.summerRun) + ' bonus run.'
-        : 'is folded into the bonus run for that week, which has not gone out yet.') : ''}</p>` : ''}
+        : 'is folded into the bonus run for that week, which has not gone out yet.') : ''}
+      ${e.adder ? 'The ' + adders(e.adder.count) + ' ' + (e.adder.paid
+        ? 'had already been paid with the ' + qLabel(e.adder.q) + ' balance, so ' + fmt0(-e.adder.amt) + ' is recovered in the next open bonus run.'
+        : 'simply ' + (e.adder.count === 1 ? 'comes' : 'come') + ' off the ' + qLabel(e.adder.q) + ' balance before it pays on ' + dshort(e.adder.payday) + '.') : ''}</p>` : ''}
     ${admin ? `<div style="display:flex;gap:10px;margin-top:18px">
       ${co.state === 'applied' ? `<button class="btn ghost" data-co="undo:${d.id}">Undo</button>`
         : co.state === 'declined' ? `<button class="btn ghost" data-co="undo:${d.id}">Reopen</button>`
@@ -3687,7 +3710,7 @@ function coCard() {
         <thead><tr><th class="idx">#</th><th>Opportunity</th><th>Team</th><th class="r">Paid on</th>
           <th class="r">Now</th><th class="r">Change</th><th class="r">Commission</th><th class="r">Bonuses</th>
           <th class="r">Total effect</th>${wr ? '<th></th>' : ''}</tr></thead>
-        <tbody>${show.map((x, i) => { const e = coEffect(x.d); const bon = e.total - e.setter - e.closer;
+        <tbody>${show.map((x, i) => { const e = coEffect(x.d); const bon = e.total - e.setter - e.closer - (e.adder ? e.adder.amt : 0);
           return `<tr class="clickable" data-deal="${x.d.id}" tabindex="0">
           <td class="idx">${i + 1}</td>
           <td>${esc(x.d.opp)}${x.co.cancelled ? ' <span class="pill crit">Cancelled</span>' : ''}
@@ -3792,6 +3815,37 @@ function adjCard(runDate, lockedPerson) {
 }
 
 /* ---- hold controls for one deal ---- */
+/* A cancelled job's adder card: nothing to deduct, and the adder's fate is
+   tied to the cancellation's. */
+function cancelledAdderCard(d, had, off, on) {
+  const q = quarterOf(d.close), payday = adderPayday(q), one = ADDER_RATE;
+  const co = CO.get(d.id), st = co ? co.state : null;
+  const paid = ADDER_PIN.has(d.closer + '|' + q) || adderPaid(q);
+  const standing = had - off;
+  const gone = on === 0 && standing > 0;
+  return `<div class="card pad" style="margin-top:20px">
+    <h2>Vivid Adder</h2>
+    <p class="hint" style="margin:6px 0 16px">This job was <b>cancelled</b>. A cancelled job earns no adder
+    ${standing > 0 ? '&mdash; the ' + adders(standing) + ' sold with it ' + (gone ? 'has been taken off' : 'comes off') + ' '
+      + esc(d.closer) + '&rsquo;s ' + qLabel(q) + ' balance'
+      + (!co ? ', because nothing was ever paid on this deal.'
+        : st === 'applied' ? ' with the claw-back above' + (paid ? ', and ' + fmt0(standing * one) + ' is recovered in the next open bonus run.' : ', before that balance pays on ' + dshort(payday) + '.')
+        : st === 'declined' ? ' only if the cancellation is clawed back. It was reviewed and left as paid, so the adder stands with the commission.'
+        : ' when the cancellation is clawed back &mdash; that decision is waiting in the change order above.')
+      : '.'}</p>
+    <div class="metricgrid">
+      <div class="metric"><span class="mlabel">Contract value</span><span class="mval xs">${fmt0(d.value)}</span>
+        <span class="sub">as sold &middot; cancelled</span></div>
+      <div class="metric"><span class="mlabel">Commission pays on</span><span class="mval xs">${fmt0(commValue(d))}</span>
+        <span class="sub">cancelled</span></div>
+      <div class="metric"><span class="mlabel">Adders standing</span><span class="mval xs">${on}</span>
+        <span class="sub">of ${had} sold</span></div>
+      <div class="metric"><span class="mlabel">Adder balance</span><span class="mval xs">${fmt0(on * one)}</span>
+        <span class="sub">to ${esc(d.closer)}, ${qLabel(q)}</span></div>
+    </div>
+  </div>`;
+}
+
 /* ---- taking a Vivid Adder off a deal --------------------------------------
    The contract value is left exactly as the customer signed it. One event
    lowers what commission is worked out from and the adder balance together,
@@ -3801,6 +3855,7 @@ function dealAdderCard(d) {
   const had = +d.adder || 0, off = adderCut(d), on = adderOn(d);
   const rec = ADDER_OFF.get(dealKey(d));
   const admin = S.role === 'admin';
+  if (d.cancelled) return cancelledAdderCard(d, had, off, on);
   const q = quarterOf(d.close), payday = adderPayday(q);
   const pinned = ADDER_PIN.has(d.closer + '|' + q);
   const one = ADDER_RATE, fixed = basisFixed(d);
@@ -3848,7 +3903,7 @@ function dealAdderCard(d) {
           + fmt(effTotal) + ' with every level worked out and named &mdash; setter, closer, both levels of '
           + 'recruiting and the override &mdash; for you to apply or decline.'
         : 'This deal has not been paid yet, so there is nothing to true up: the '
-          + dshort(d.run) + ' run simply pays on ' + fmt0(d.value - one) + ' the first time.'}
+          + dshort(d.run) + ' run simply pays on ' + fmt0(commValue(d) - one) + ' the first time.'}
       ${adderPaid(q) ? 'The ' + qLabel(q) + ' adder balance has already been paid, so the '
           + fmt0(one) + ' comes back in the next open bonus run.'
         : 'The ' + qLabel(q) + ' adder balance has not been paid yet, so it simply pays ' + fmt0(one) + ' less.'}</div>`}
@@ -3991,7 +4046,7 @@ function render() {
   window.scrollTo({ top: 0 });
 }
 document.addEventListener('click', ev => {
-  const t = ev.target.closest ? ev.target.closest('[data-nav],[data-reload],[data-df],[data-focus],[data-deal],[data-act],[data-step],[data-hold],[data-release],[data-settle],[data-reopen],[data-adjdel],[data-adjmove],[data-co],[data-setter],[data-panel],[data-ptab],[data-adderq]') : null;
+  const t = ev.target.closest ? ev.target.closest('[data-nav],[data-reload],[data-df],[data-focus],[data-deal],[data-act],[data-step],[data-hold],[data-release],[data-settle],[data-reopen],[data-adjdel],[data-adjmove],[data-co],[data-setter],[data-panel],[data-ptab],[data-adderq],[data-adder]') : null;
   if (!t) return;
   if (ev.target.closest('a[target="_blank"]')) return;   /* an outside link opens as a link */
   ev.preventDefault();
@@ -4035,25 +4090,27 @@ document.addEventListener('click', ev => {
     const state = p[0] === 'apply' ? 'applied' : p[0] === 'decline' ? 'declined' : 'pending';
     const kind = p[0] === 'apply' ? 'changeorder.apply'
       : p[0] === 'decline' ? 'changeorder.decline' : 'changeorder.undo';
-    applyCO(id, state);
+    applyCO(id, state); refreshAdderLines();
     render();
-    save(kind, dealKey(d), {}, () => { if (before) CO.set(id, before); });
+    save(kind, dealKey(d), {}, () => { if (before) CO.set(id, before); refreshAdderLines(); });
     return;
   }
   /* Deducting a Vivid Adder, or putting one back. One event carries both
      halves: what commission is worked out from, and the adder balance. */
   if (t.dataset.adder) {
-    if (S.role !== 'admin') return;
+    if (S.role !== 'admin') return toast('Only a full admin can deduct an adder.', true);
     const p = t.dataset.adder.split(':');
     const id = +p[1], d = DEALS[id];
-    if (!d || !d.won || !d.closer) return;
+    if (!d || !d.won || !d.closer) return toast('This deal has no closer to hold an adder against.', true);
+    if (d.cancelled) return toast('This job is cancelled: its adder comes off with the claw-back, not here.', true);
+    if (!LIVE) return toast('Nothing is saved in the standalone preview.', true);
     const k = dealKey(d);
     const was = ADDER_OFF.has(k) ? Object.assign({}, ADDER_OFF.get(k)) : null;
     let count = 0, reason = '';
     if (p[0] === 'cut') {
       const sel = document.getElementById('adderN');
       count = Math.min(Math.max(1, +(sel && sel.value) || 1), +d.adder || 0);
-      if (!count) return render();
+      if (!count) return toast('This deal carries no adder to deduct.', true);
       const rs = document.getElementById('adderReason');
       reason = (rs && rs.value) || ADDER_REASONS[0];
       ADDER_OFF.set(k, { count: count, reason: reason, at: TODAY_D, by: ADMIN_NOW });
