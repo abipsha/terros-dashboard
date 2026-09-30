@@ -695,6 +695,9 @@ def _note_for(ev):
         lines = ["Commission released.",
                  f"The {leg} commission on this deal is no longer withheld. It will be paid in "
                  "the next pay run that has not yet been frozen."]
+        if ev.get("actor") == CRM_ACTOR:
+            lines.append("The job has moved off Hold Production, so the hold the CRM placed "
+                         "when it was parked has been lifted.")
     elif k == "hold.settle":
         run = p.get("run")
         when = ("before this ledger started" if run in (None, "", SETTLED_PRE)
@@ -1113,6 +1116,23 @@ def _deposit_pending(lead_ids):
     return out
 
 
+def _leg_last(events, key):
+    """For each leg, the last hold-type event that set its state: {leg: (state, actor)}.
+    What decides whether the CRM may act on a leg is who acted on it last."""
+    out = {}
+    for e in events:
+        if e.get("target") != key:
+            continue
+        k, leg = e.get("kind"), (e.get("payload") or {}).get("leg")
+        if leg not in ("setter", "closer"):
+            continue
+        st = {"hold": "held", "hold.reopen": "held", "release": "released",
+              "hold.settle": "settled"}.get(k)
+        if st:
+            out[leg] = (st, e.get("actor"))
+    return out
+
+
 def _crm_reason_now(events, key):
     """The reason currently on a deal's hold and who set it last, replaying the
     same way the page does: a hold or reopen carries one, a hold.reason
@@ -1161,11 +1181,16 @@ def sync_crm_holds(deals, events):
         key = _key(opp, close)
         reason = FINANCING_REASON if d.get("odooId") in waiting else CRM_HOLD_REASON
         state = _leg_state(events, key)
+        last = _leg_last(events, key)
         # Both legs, always: the job is parked, so neither the setter nor the
         # closer is paid on it until it moves. A leg somebody has released or
-        # settled by hand is left alone.
+        # settled by hand is left alone; one the CRM itself released, because
+        # the job moved on and has now come back, is held again.
         for leg, who in (("setter", d.get("canvasser")), ("closer", d.get("closer"))):
-            if not who or state.get(leg):
+            if not who:
+                continue
+            st, by = last.get(leg, (None, None))
+            if st and not (st == "released" and by == CRM_ACTOR):
                 continue
             try:
                 append_event("hold", key, {"leg": leg, "reason": reason}, CRM_ACTOR, "")
@@ -1185,17 +1210,48 @@ def sync_crm_holds(deals, events):
                 except Exception as e:
                     print(f"[commissions] could not correct the reason on {key}: {e}")
                     return written
-    if written:
+    # And the other direction. The hold went on because of the stage, so it
+    # comes off when the stage moves on - for a hold the CRM placed and nobody
+    # has touched since. A hold a person placed, or a CRM hold whose reason a
+    # person corrected, is theirs to release. The release lands in the next
+    # open run, never in one that has gone out, so the worst a stage slip can
+    # do is a week's delay.
+    released = 0
+    for d in deals:
+        if (d.get("stage") or "") == HOLD_STAGE or d.get("cancelled"):
+            continue
+        close, opp = d.get("close"), d.get("opp")
+        if not (close and opp) or close < CUTOFF:
+            continue
+        key = _key(opp, close)
+        last = _leg_last(events, key)
+        held = [leg for leg, (st, by) in last.items() if st == "held" and by == CRM_ACTOR]
+        if not held:
+            continue
+        _, reason_by = _crm_reason_now(events, key)
+        if reason_by and reason_by != CRM_ACTOR:
+            continue                      # a person took this hold over
+        for leg in held:
+            try:
+                append_event("release", key, {"leg": leg}, CRM_ACTOR, "")
+                released += 1
+            except Exception as e:
+                print(f"[commissions] could not release {key} {leg}: {e}")
+                break
+    if written or released:
         global _events_cache
         _events_cache = None               # the page must see what was just written
-        print(f"[commissions] {HOLD_STAGE}: {written} leg(s) held automatically")
-    return written
+        if written:
+            print(f"[commissions] {HOLD_STAGE}: {written} leg(s) held automatically")
+        if released:
+            print(f"[commissions] {HOLD_STAGE}: {released} leg(s) released, the job moved on")
+    return written + released
 
 
 def crm_hold_ready(deals, events):
-    """Legs the CRM put on hold whose job has since moved on. Surfaced as a
-    queue rather than released automatically: a stage corrected in Odoo should
-    not pay anybody without a person agreeing to it."""
+    """Legs the CRM put on hold whose job has since moved on but which the
+    CRM will not release itself - because a person corrected the reason and
+    so took the hold over. Surfaced for that person to decide."""
     by_key = {}
     for d in deals:
         if d.get("close") and d.get("opp"):

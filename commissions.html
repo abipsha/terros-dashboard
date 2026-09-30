@@ -2772,8 +2772,9 @@ function settledCard(list) {
 /* the queue of CRM holds whose job has moved on */
 function crmReadyCard(list) {
   return `<p class="hint" style="margin:0 0 14px">The CRM put these on hold because the job was parked on
-    <b>Hold Production</b>. Odoo now has them somewhere else, so the commission can go out. Releasing pays it in
-    the deal's own run where that run is still to come, and in the
+    <b>Hold Production</b>, and Odoo now has them somewhere else. A hold the CRM placed comes off by itself when
+    the job moves on &mdash; these did not, because somebody changed the reason and so took the hold over. They
+    are yours to release. Releasing pays it in the deal's own run where that run is still to come, and in the
     <b>${firstOpenRun() ? dshort(firstOpenRun()) : 'next open'}</b> run where its own run has already gone out
     &mdash; never back into a run that has already been paid.</p>
     <div class="scroll"><table>
