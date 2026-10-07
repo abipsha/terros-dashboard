@@ -387,10 +387,10 @@ const ADJ = D.adjustments.map(a => ({
 })).concat([
   { id: 'a' + (adjSeq++), who: 'Blake Holmes', kind: 'Chargeback',
     label: 'Teema McIntosh / 6819 Red Cloud Trl', note: 'Cancelled after the 3-day ROC window',
-    amount: -412.5, run: OPEN_RUN },
-  { id: 'a' + (adjSeq++), who: 'Kerrigan Simpson', kind: 'Bonus',
-    label: 'August self-gen bonus', note: '10 or more self-generated units in one run',
-    amount: 500, run: OPEN_RUN }
+    amount: -412.5, run: OPEN_RUN }
+  /* The self-gen bonus (10 or more self-generated units in one run, $500) is
+     switched off for now. If it comes back, add it as an adjustment event
+     through the page rather than a line here, so it lands on one run only. */
 ]);   /* the Vivid Adder lines are added by refreshAdderLines, once the events have been read */
 const ADJ_KINDS = [['Bonus', 1], ['Manual commission', 1], ['Reimbursement', 1],
   ['Chargeback', -1], ['Deduction', -1], ['Advance repayment', -1]];
