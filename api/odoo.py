@@ -121,7 +121,10 @@ def get_won_deals(start_date: str, end_date: str) -> list:
     while True:
         batch = call_kw("crm.lead", "search_read", [domain], {
             "fields": fields, "limit": limit, "offset": offset,
-            "order": "date_closed desc",
+            # id is the tie-breaker: many deals share a date, and a page cut on a
+            # non-unique sort returns some records twice and skips others, so the
+            # totals moved every time anything in the CRM was edited
+            "order": "date_closed desc, id desc",
             "context": {"active_test": False},
         })
         if not batch:
@@ -130,7 +133,21 @@ def get_won_deals(start_date: str, end_date: str) -> list:
         if len(batch) < limit:
             break
         offset += limit
-    return records
+    return _unique_by_id(records)
+
+
+def _unique_by_id(records):
+    """Drop any record a page boundary handed back twice. The sort now carries
+    a unique tie-breaker so this should never trigger, but a duplicate here
+    double-counts a sale on the competition board, so it is cheap insurance."""
+    seen, out = set(), []
+    for r in records:
+        rid = r.get("id")
+        if rid in seen:
+            continue
+        seen.add(rid)
+        out.append(r)
+    return out
 
 
 def _office_name(team_id_val):
@@ -179,7 +196,7 @@ def get_deals_list(start_date: str, end_date: str, force: bool = False) -> dict:
         while True:
             batch = call_kw("crm.lead", "search_read", [domain], {
                 "fields": fields, "limit": limit, "offset": offset,
-                "order": "date_deadline desc",
+                "order": "date_deadline desc, id desc",   # see _unique_by_id
                 "context": {"active_test": False},
             })
             if not batch:
@@ -188,6 +205,7 @@ def get_deals_list(start_date: str, end_date: str, force: bool = False) -> dict:
             if len(batch) < limit:
                 break
             offset += limit
+        records = _unique_by_id(records)
 
         # Fetch tag names
         all_tag_ids = list({tid for r in records for tid in (r.get("tag_ids") or [])})

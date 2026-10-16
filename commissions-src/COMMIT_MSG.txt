@@ -1,0 +1,11 @@
+Stable paging for the Odoo deal lists (Tahiti tracker fluctuation)
+
+Both paginated crm.lead reads in api/odoo.py sorted on a date alone. Many
+deals share a date, so each 200-row page cut landed inside a run of ties and
+Postgres handed back some records twice and skipped others - which records
+changed whenever anything in the CRM was edited. The competition board and
+the deals list therefore moved up and down by whole accounts through the day
+(Dane Covington: 1.30M true, read as 1.34M and 1.275M on the same day).
+
+The sort now carries id as a tie-breaker, and the merged pages are de-duped
+by id as insurance.

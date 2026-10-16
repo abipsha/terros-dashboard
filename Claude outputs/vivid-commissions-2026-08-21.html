@@ -1,0 +1,350 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Payroll &middot; Aug 21, 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;600;700&family=Newsreader:opsz,wght@6..72,400;6..72,500&family=JetBrains+Mono:wght@400;500;700&display=swap">
+<style>
+:root{--paper:#FCFCFD;--surface:#F5F6FA;--sunken:#EDEFF5;--ink:#14161F;--soft:#4A4F63;
+--faint:#7B8098;--rule:#E3E5ED;--rule-soft:#EDEFF4;--crit:#A5352A;--good:#1C7355;
+--accent:#4B4ACF;
+--display:'Familjen Grotesk','Helvetica Neue',Arial,sans-serif;
+--body:'Newsreader',Georgia,'Times New Roman',serif;
+--mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#101218;--surface:#191C24;--sunken:#1F222C;
+--ink:#E9EAEF;--soft:#A8ADC0;--faint:#767C92;--rule:#2A2E3A;--rule-soft:#22252F;
+--crit:#E28A7C;--good:#6FBF9B;--accent:#9C9BF0}}
+*{box-sizing:border-box}
+html,body{max-width:100%;overflow-x:hidden}
+body{background:var(--paper);color:var(--ink);font-family:var(--body);font-size:16px;
+line-height:1.5;margin:0;-webkit-font-smoothing:antialiased}
+.wrap{max-width:900px;margin:0 auto;padding:44px 20px 80px;display:flex;
+flex-direction:column;gap:34px}
+.eyebrow{font-family:var(--mono);font-size:10.5px;letter-spacing:.15em;text-transform:uppercase;
+color:var(--faint);margin:0 0 12px}
+h1{font-family:var(--display);font-weight:700;font-size:clamp(28px,5vw,42px);line-height:1.05;
+letter-spacing:-.02em;margin:0 0 12px;text-wrap:balance}
+.standfirst{font-size:17.5px;color:var(--soft);margin:0;max-width:62ch}
+h2{font-family:var(--display);font-weight:600;font-size:22px;letter-spacing:-.015em;
+margin:0 0 6px;padding-top:22px;border-top:2px solid var(--ink)}
+.note{font-size:15px;color:var(--soft);margin:0 0 18px;max-width:70ch}
+.figs{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1px;
+background:var(--rule);border:1px solid var(--rule)}
+.fig{background:var(--paper);padding:16px 18px}
+.fig .k{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.1em;
+text-transform:uppercase;color:var(--faint);margin-bottom:7px}
+.fig b{font-family:var(--mono);font-size:23px;font-weight:700;font-variant-numeric:tabular-nums;
+display:block;letter-spacing:-.02em;overflow-wrap:anywhere}
+.nav{display:flex;flex-wrap:wrap;gap:8px}
+.nav a{font-family:var(--mono);font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;
+text-decoration:none;color:var(--soft);border:1px solid var(--rule);padding:7px 12px}
+.nav a:hover{color:var(--ink);border-color:var(--faint)}
+table{border-collapse:collapse;width:100%;font-size:15px;table-layout:auto}
+th{font-family:var(--display);font-weight:600;font-size:10px;letter-spacing:.07em;
+text-transform:uppercase;text-align:left;color:var(--faint);
+border-bottom:1.5px solid var(--rule);padding:0 14px 8px 0;vertical-align:bottom}
+td{border-bottom:1px solid var(--rule-soft);padding:11px 14px 11px 0;vertical-align:top;
+overflow-wrap:anywhere}
+th:last-child,td:last-child{padding-right:0}
+th.n,td.n{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums;
+white-space:nowrap}
+td .v{display:block}
+td .sub{display:block;font-family:var(--mono);font-size:11px;color:var(--faint);
+margin-top:3px;letter-spacing:.02em}
+td.neg{color:var(--crit)}
+td.zero{color:var(--faint)}
+tr.total td{border-top:1.5px solid var(--rule);border-bottom:none;font-weight:700;
+padding-top:12px}
+.person{border:1px solid var(--rule);background:var(--surface);padding:18px 20px;
+display:flex;flex-direction:column;gap:12px;break-inside:avoid}
+.people{display:flex;flex-direction:column;gap:14px}
+.phead{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
+.person h3{font-family:var(--display);font-weight:600;font-size:17px;margin:0}
+.person .who{font-family:var(--mono);font-size:11px;color:var(--faint);margin:4px 0 0}
+.paid{font-family:var(--mono);font-size:19px;font-weight:700;font-variant-numeric:tabular-nums}
+.flag{font-family:var(--mono);font-size:11px;color:var(--crit)}
+.foot{border-top:1px solid var(--rule);padding-top:16px;font-family:var(--mono);
+font-size:11px;color:var(--faint);line-height:1.8}
+.empty{color:var(--faint);font-size:15px;margin:0}
+@media(max-width:620px){
+  .wrap{padding:28px 16px 56px}
+  .person{padding:14px}
+  table,tbody,tr,td{display:block;width:100%}
+  thead{display:none}
+  tr{border-bottom:1px solid var(--rule);padding:10px 0}
+  tr:last-child{border-bottom:none}
+  td{border:none;padding:3px 0;display:flex;align-items:baseline;gap:14px}
+  td:before{content:attr(data-l);font-family:var(--display);font-size:10px;
+    letter-spacing:.07em;text-transform:uppercase;color:var(--faint);
+    flex:0 0 8.5em;padding-top:2px}
+  td .v{flex:1 1 auto;min-width:0;text-align:right}
+  td.zero{display:none}
+  td:empty{display:none}
+  tr.total td{border-top:none}
+  tr.total td:first-child .v{text-align:right}
+}
+@media print{body{background:#fff}.person{break-inside:avoid}h2{break-after:avoid}
+  .nav{display:none}}</style></head><body><div class="wrap">
+<header>
+  <p class="eyebrow">Vivid Windows &middot; Commission ledger</p>
+  <h1>Payroll &middot; Aug 21, 2026 run</h1>
+  <p class="standfirst">This run is paid and will not change.
+    Covers deals closing Wed Aug 5 - Tue Aug 11, 2026.</p>
+</header>
+<section><div class="figs">
+  <div class="fig"><span class="k">Payable</span><b>$48,836.20</b></div>
+  <div class="fig"><span class="k">People</span><b>15</b></div>
+  <div class="fig"><span class="k">Deals</span><b>19</b></div>
+  <div class="fig"><span class="k">Withheld</span>
+    <b style="color:var(--crit)">$6,361.67</b></div>
+</div></section>
+<nav class="nav"><a href="#s-summary">Summary</a><a href="#s-each-person">Each person</a><a href="#s-accounts">Accounts</a><a href="#s-withheld">Withheld</a></nav>
+<section id="s-summary"><h2>Summary</h2>
+  <p class="note">What each person is paid this run. The full split by rate is in the CSV and the workbook.</p><table>
+    <thead><tr><th class="">Person</th><th class="n">Commission</th><th class="n">Bonuses</th><th class="n">Adjustments</th><th class="n">Total</th></tr></thead>
+    <tbody><tr><td class="" data-l="Person"><span class="v">Brian Gwyn<span class="sub">Eastern Idaho</span></span></td><td class="n" data-l="Commission"><span class="v">$9,353.20</span></td><td class="n zero" data-l="Bonuses"><span class="v">&mdash;</span></td><td class="n zero" data-l="Adjustments"><span class="v">&mdash;</span></td><td class="n" data-l="Total"><span class="v">$9,353.20</span></td></tr><tr><td class="" data-l="Person"><span class="v">Nick Brown<span class="sub">Eastern Idaho</span></span></td><td class="n" data-l="Commission"><span class="v">$7,037.60</span></td><td class="n zero" data-l="Bonuses"><span class="v">&mdash;</span></td><td class="n zero" data-l="Adjustments"><span class="v">&mdash;</span></td><td class="n" data-l="Total"><span class="v">$7,037.60</span></td></tr><tr><td class="" data-l="Person"><span class="v">Dane Covington<span class="sub">Northern Utah</span></span></td><td class="n" data-l="Commission"><span class="v">$5,805.72</span></td><td class="n zero" data-l="Bonuses"><span class="v">&mdash;</span></td><td class="n zero" data-l="Adjustments"><span class="v">&mdash;</span></td><td class="n" data-l="Total"><span class="v">$5,805.72</span></td></tr><tr><td class="" data-l="Person"><span class="v">Nathan Lewis<span class="sub">Northern California</span></span></td><td class="n" data-l="Commission"><span class="v">$5,463.00</span></td><td class="n zero" data-l="Bonuses"><span class="v">&mdash;</span></td><td class="n zero" data-l="Adjustments"><span class="v">&mdash;</span></td><td class="n" data-l="Total"><span class="v">$5,463.00</span></td></tr><tr><td class="" data-l="Person"><span class="v">Amber Heer<span class="sub">Eastern Idaho</span></span></td><td class="n" data-l="Commission"><span class="v">$5,078.15</span></td><td class="n zero" data-l="Bonuses"><span class="v">&mdash;</span></td><td class="n zero" data-l="Adjustments"><span class="v">&mdash;</span></td><td class="n" data-l="Total"><span class="v">$5,078.15</span></td></tr><tr><td class="" data-l="Person"><span class="v">Kimberly Simmerman<span class="sub">Southern Utah</span></span></td><td class="n" data-l="Commission"><span class="v">$3,465.85</span></td><td class="n zero" data-l="Bonuses"><span class="v">&mdash;</span></td><td class="n zero" data-l="Adjustments"><span class="v">&mdash;</span></td><td class="n" data-l="Total"><span class="v">$3,465.85</span></td></tr><tr><td class="" data-l="Person"><span class="v">Jordan Naylor<span class="sub">Southern Utah</span></span></td><td class="n" data-l="Commission"><span class="v">$3,460.50</span></td><td class="n zero" data-l="Bonuses"><span class="v">&mdash;</span></td><td class="n zero" data-l="Adjustments"><span class="v">&mdash;</span></td><td class="n" data-l="Total"><span class="v">$3,460.50</span></td></tr><tr><td class="" data-l="Person"><span class="v">Jordan Alldredge<span class="sub">Inside Sales</span></span></td><td class="n" data-l="Commission"><span class="v">$1,601.45</span></td><td class="n zero" data-l="Bonuses"><span class="v">&mdash;</span></td><td class="n zero" data-l="Adjustments"><span class="v">&mdash;</span></td><td class="n" data-l="Total"><span class="v">$1,601.45</span></td></tr><tr><td class="" data-l="Person"><span class="v">Colter Busk<span class="sub">Southern Utah</span></span></td><td class="n" data-l="Commission"><span class="v">$1,491.65</span></td><td class="n zero" data-l="Bonuses"><span class="v">&mdash;</span></td><td class="n zero" data-l="Adjustments"><span class="v">&mdash;</span></td><td class="n" data-l="Total"><span class="v">$1,491.65</span></td></tr><tr><td class="" data-l="Person"><span class="v">Kerrigan Simpson<span class="sub">Eastern Idaho</span></span></td><td class="n" data-l="Commission"><span class="v">$1,481.48</span></td><td class="n zero" data-l="Bonuses"><span class="v">&mdash;</span></td><td class="n zero" data-l="Adjustments"><span class="v">&mdash;</span></td><td class="n" data-l="Total"><span class="v">$1,481.48</span></td></tr><tr><td class="" data-l="Person"><span class="v">Brian Gwyn Jr<span class="sub">Eastern Idaho</span></span></td><td class="n" data-l="Commission"><span class="v">$1,393.10</span></td><td class="n zero" data-l="Bonuses"><span class="v">&mdash;</span></td><td class="n zero" data-l="Adjustments"><span class="v">&mdash;</span></td><td class="n" data-l="Total"><span class="v">$1,393.10</span></td></tr><tr><td class="" data-l="Person"><span class="v">Tanner Crosland<span class="sub">Northern Utah</span></span></td><td class="n" data-l="Commission"><span class="v">$1,169.55</span></td><td class="n zero" data-l="Bonuses"><span class="v">&mdash;</span></td><td class="n zero" data-l="Adjustments"><span class="v">&mdash;</span></td><td class="n" data-l="Total"><span class="v">$1,169.55</span></td></tr><tr><td class="" data-l="Person"><span class="v">Travis Dykman<span class="sub">Eastern Idaho</span></span></td><td class="n" data-l="Commission"><span class="v">$812.40</span></td><td class="n zero" data-l="Bonuses"><span class="v">&mdash;</span></td><td class="n zero" data-l="Adjustments"><span class="v">&mdash;</span></td><td class="n" data-l="Total"><span class="v">$812.40</span></td></tr><tr><td class="" data-l="Person"><span class="v">Caleb Fransen<span class="sub">Eastern Idaho</span></span></td><td class="n" data-l="Commission"><span class="v">$768.15</span></td><td class="n zero" data-l="Bonuses"><span class="v">&mdash;</span></td><td class="n zero" data-l="Adjustments"><span class="v">&mdash;</span></td><td class="n" data-l="Total"><span class="v">$768.15</span></td></tr><tr><td class="" data-l="Person"><span class="v">Justin Covington<span class="sub">Northern Utah</span></span></td><td class="n" data-l="Commission"><span class="v">$454.40</span></td><td class="n zero" data-l="Bonuses"><span class="v">&mdash;</span></td><td class="n zero" data-l="Adjustments"><span class="v">&mdash;</span></td><td class="n" data-l="Total"><span class="v">$454.40</span></td></tr><tr class="total"><td class="" data-l="Person"><span class="v">15 people</span></td><td class="n" data-l="Commission"><span class="v">$48,836.20</span></td><td class="n zero" data-l="Bonuses"><span class="v">&mdash;</span></td><td class="n zero" data-l="Adjustments"><span class="v">&mdash;</span></td><td class="n" data-l="Total"><span class="v">$48,836.20</span></td></tr></tbody>
+  </table></section><section id="s-each-person"><h2>Each person</h2>
+  <p class="note">One section per person, ready to hand over.</p><div class="people"><article class="person">
+      <div class="phead">
+        <div><h3>Brian Gwyn</h3>
+          <p class="who">Eastern Idaho · Sales Consultant</p></div>
+        <div style="text-align:right">
+          <div class="paid">$9,353.20</div>
+          
+          </div>
+      </div>
+      <table>
+    <thead><tr><th class="">Account</th><th class="">Earned as</th><th class="n">Amount</th></tr></thead>
+    <tbody><tr><td class="" data-l="Account"><span class="v">Cathy Dixon 2 / 502 Maple Leaf Dr<span class="sub">Eastern Idaho · Aug 5, 2026</span></span></td><td class="" data-l="Earned as"><span class="v">Self-gen<span class="sub">Set and closed by the same person · setter $284.35 + closer $511.83</span></span></td><td class="n" data-l="Amount"><span class="v">$796.18</span></td></tr><tr><td class="" data-l="Account"><span class="v">Robert &amp; Jackie Kastner / 279 Peterson Ln<span class="sub">Eastern Idaho · Aug 7, 2026</span></span></td><td class="" data-l="Earned as"><span class="v">Closer</span></td><td class="n" data-l="Amount"><span class="v">$1,912.32</span></td></tr><tr><td class="" data-l="Account"><span class="v">Lael &amp; Judy Heap / 132 Jacknife Creek Road<span class="sub">Eastern Idaho · Aug 11, 2026</span></span></td><td class="" data-l="Earned as"><span class="v">Closer</span></td><td class="n" data-l="Amount"><span class="v">$3,417.75</span></td></tr><tr><td class="" data-l="Account"><span class="v">Shawn Stewart / 737 County Road 107<span class="sub">Eastern Idaho · Aug 11, 2026</span></span></td><td class="" data-l="Earned as"><span class="v">Closer</span></td><td class="n" data-l="Amount"><span class="v">$2,507.58</span></td></tr><tr><td class="" data-l="Account"><span class="v">Sheila &amp; Tom Hogan / 14310 N 175 E<span class="sub">Eastern Idaho · Aug 11, 2026</span></span></td><td class="" data-l="Earned as"><span class="v">Closer</span></td><td class="n" data-l="Amount"><span class="v">$719.37</span></td></tr><tr class="total"><td class="" data-l="Account"><span class="v">Paid this run</span></td><td class="" data-l="Earned as"><span class="v"></span></td><td class="n" data-l="Amount"><span class="v">$9,353.20</span></td></tr></tbody>
+  </table>
+      
+      
+    </article><article class="person">
+      <div class="phead">
+        <div><h3>Nick Brown</h3>
+          <p class="who">Eastern Idaho · Sales Consultant</p></div>
+        <div style="text-align:right">
+          <div class="paid">$7,037.60</div>
+          
+          </div>
+      </div>
+      <table>
+    <thead><tr><th class="">Account</th><th class="">Earned as</th><th class="n">Amount</th></tr></thead>
+    <tbody><tr><td class="" data-l="Account"><span class="v">Ruth Irick / 705 Adams St<span class="sub">Eastern Idaho · Aug 5, 2026</span></span></td><td class="" data-l="Earned as"><span class="v">Self-gen<span class="sub">Set and closed by the same person · setter $393.35 + closer $708.03</span></span></td><td class="n" data-l="Amount"><span class="v">$1,101.38</span></td></tr><tr><td class="" data-l="Account"><span class="v">Sarah Scott / 2416 Chapel Rd<span class="sub">Eastern Idaho · Aug 6, 2026</span></span></td><td class="" data-l="Earned as"><span class="v">Closer</span></td><td class="n" data-l="Amount"><span class="v">$3,091.23</span></td></tr><tr><td class="" data-l="Account"><span class="v">Sean Lowery / 177 Trail Drive Rd<span class="sub">Eastern Idaho · Aug 7, 2026</span></span></td><td class="" data-l="Earned as"><span class="v">Closer</span></td><td class="n" data-l="Amount"><span class="v">$1,382.67</span></td></tr><tr><td class="" data-l="Account"><span class="v">Korry Wheeler / 330 Adams St<span class="sub">Eastern Idaho · Aug 10, 2026</span></span></td><td class="" data-l="Earned as"><span class="v">Closer</span></td><td class="n" data-l="Amount"><span class="v">$1,462.32</span></td></tr><tr class="total"><td class="" data-l="Account"><span class="v">Paid this run</span></td><td class="" data-l="Earned as"><span class="v"></span></td><td class="n" data-l="Amount"><span class="v">$7,037.60</span></td></tr></tbody>
+  </table>
+      
+      
+    </article><article class="person">
+      <div class="phead">
+        <div><h3>Dane Covington</h3>
+          <p class="who">Northern Utah · Sales Consultant</p></div>
+        <div style="text-align:right">
+          <div class="paid">$5,805.72</div>
+          
+          </div>
+      </div>
+      <table>
+    <thead><tr><th class="">Account</th><th class="">Earned as</th><th class="n">Amount</th></tr></thead>
+    <tbody><tr><td class="" data-l="Account"><span class="v">Christina Hunter / 1320 4th West Ave<span class="sub">Inside Sales · Aug 6, 2026</span></span></td><td class="" data-l="Earned as"><span class="v">Closer</span></td><td class="n" data-l="Amount"><span class="v">$2,882.61</span></td></tr><tr><td class="" data-l="Account"><span class="v">Jamie Thornock / 1332 6th West Ave<span class="sub">Northern Utah · Aug 6, 2026</span></span></td><td class="" data-l="Earned as"><span class="v">Closer</span></td><td class="n" data-l="Amount"><span class="v">$1,476.99</span></td></tr><tr><td class="" data-l="Account"><span class="v">Mark Housley / 1805 Dell Rio Dr<span class="sub">Northern Utah · Aug 6, 2026</span></span></td><td class="" data-l="Earned as"><span class="v">Closer</span></td><td class="n" data-l="Amount"><span class="v">$628.20</span></td></tr><tr><td class="" data-l="Account"><span class="v">Jeff Gale / 628 N 600 E<span class="sub">Northern Utah · Aug 10, 2026</span></span></td><td class="" data-l="Earned as"><span class="v">Closer</span></td><td class="n" data-l="Amount"><span class="v">$817.92</span></td></tr><tr class="total"><td class="" data-l="Account"><span class="v">Paid this run</span></td><td class="" data-l="Earned as"><span class="v"></span></td><td class="n" data-l="Amount"><span class="v">$5,805.72</span></td></tr></tbody>
+  </table>
+      
+      
+    </article><article class="person">
+      <div class="phead">
+        <div><h3>Nathan Lewis</h3>
+          <p class="who">Northern California · Sales Consultant</p></div>
+        <div style="text-align:right">
+          <div class="paid">$5,463.00</div>
+          
+          </div>
+      </div>
+      <table>
+    <thead><tr><th class="">Account</th><th class="">Earned as</th><th class="n">Amount</th></tr></thead>
+    <tbody><tr><td class="" data-l="Account"><span class="v">Gregory Romeril / 265 W 1650 N<span class="sub">Southern Utah · Aug 10, 2026</span></span></td><td class="" data-l="Earned as"><span class="v">Closer</span></td><td class="n" data-l="Amount"><span class="v">$2,778.03</span></td></tr><tr><td class="" data-l="Account"><span class="v">Larry &amp; Lorreena Desenberg / 2614 S 2160  E<span class="sub">Southern Utah · Aug 11, 2026</span></span></td><td class="" data-l="Earned as"><span class="v">Closer</span></td><td class="n" data-l="Amount"><span class="v">$2,684.97</span></td></tr><tr class="total"><td class="" data-l="Account"><span class="v">Paid this run</span></td><td class="" data-l="Earned as"><span class="v"></span></td><td class="n" data-l="Amount"><span class="v">$5,463.00</span></td></tr></tbody>
+  </table>
+      
+      
+    </article><article class="person">
+      <div class="phead">
+        <div><h3>Amber Heer</h3>
+          <p class="who">Eastern Idaho · Sales Consultant</p></div>
+        <div style="text-align:right">
+          <div class="paid">$5,078.15</div>
+          
+          </div>
+      </div>
+      <table>
+    <thead><tr><th class="">Account</th><th class="">Earned as</th><th class="n">Amount</th></tr></thead>
+    <tbody><tr><td class="" data-l="Account"><span class="v">Sarah Scott / 2416 Chapel Rd<span class="sub">Eastern Idaho · Aug 6, 2026</span></span></td><td class="" data-l="Earned as"><span class="v">Setter</span></td><td class="n" data-l="Amount"><span class="v">$1,717.35</span></td></tr><tr><td class="" data-l="Account"><span class="v">Robert &amp; Jackie Kastner / 279 Peterson Ln<span class="sub">Eastern Idaho · Aug 7, 2026</span></span></td><td class="" data-l="Earned as"><span class="v">Setter</span></td><td class="n" data-l="Amount"><span class="v">$1,062.40</span></td></tr><tr><td class="" data-l="Account"><span class="v">Lael &amp; Judy Heap / 132 Jacknife Creek Road<span class="sub">Eastern Idaho · Aug 11, 2026</span></span></td><td class="" data-l="Earned as"><span class="v">Setter</span></td><td class="n" data-l="Amount"><span class="v">$1,898.75</span></td></tr><tr><td class="" data-l="Account"><span class="v">Sheila &amp; Tom Hogan / 14310 N 175 E<span class="sub">Eastern Idaho · Aug 11, 2026</span></span></td><td class="" data-l="Earned as"><span class="v">Setter</span></td><td class="n" data-l="Amount"><span class="v">$399.65</span></td></tr><tr class="total"><td class="" data-l="Account"><span class="v">Paid this run</span></td><td class="" data-l="Earned as"><span class="v"></span></td><td class="n" data-l="Amount"><span class="v">$5,078.15</span></td></tr></tbody>
+  </table>
+      
+      
+    </article><article class="person">
+      <div class="phead">
+        <div><h3>Kimberly Simmerman</h3>
+          <p class="who">Southern Utah · Sales Consultant</p></div>
+        <div style="text-align:right">
+          <div class="paid">$3,465.85</div>
+          
+          </div>
+      </div>
+      <table>
+    <thead><tr><th class="">Account</th><th class="">Earned as</th><th class="n">Amount</th></tr></thead>
+    <tbody><tr><td class="" data-l="Account"><span class="v">Rianna &amp; Caleb Gillespire / 1773 N 230 W<span class="sub">Southern Utah · Aug 5, 2026</span></span></td><td class="" data-l="Earned as"><span class="v">Setter</span></td><td class="n" data-l="Amount"><span class="v">$474.75</span></td></tr><tr><td class="" data-l="Account"><span class="v">THOMAS GONZALES / 387 W 1600 N<span class="sub">Southern Utah · Aug 8, 2026</span></span></td><td class="" data-l="Earned as"><span class="v">Setter</span></td><td class="n" data-l="Amount"><span class="v">$971.65</span></td></tr><tr><td class="" data-l="Account"><span class="v">TRAVIS TEEPLES / 784 W North Cedar Blvd<span class="sub">Southern Utah · Aug 8, 2026</span></span></td><td class="" data-l="Earned as"><span class="v">Setter</span></td><td class="n" data-l="Amount"><span class="v">$476.10</span></td></tr><tr><td class="" data-l="Account"><span class="v">Gregory Romeril / 265 W 1650 N<span class="sub">Southern Utah · Aug 10, 2026</span></span></td><td class="" data-l="Earned as"><span class="v">Setter</span></td><td class="n" data-l="Amount"><span class="v">$1,543.35</span></td></tr><tr class="total"><td class="" data-l="Account"><span class="v">Paid this run</span></td><td class="" data-l="Earned as"><span class="v"></span></td><td class="n" data-l="Amount"><span class="v">$3,465.85</span></td></tr></tbody>
+  </table>
+      
+      
+    </article><article class="person">
+      <div class="phead">
+        <div><h3>Jordan Naylor</h3>
+          <p class="who">Southern Utah · Sales Consultant</p></div>
+        <div style="text-align:right">
+          <div class="paid">$3,460.50</div>
+          
+          </div>
+      </div>
+      <table>
+    <thead><tr><th class="">Account</th><th class="">Earned as</th><th class="n">Amount</th></tr></thead>
+    <tbody><tr><td class="" data-l="Account"><span class="v">Rianna &amp; Caleb Gillespire / 1773 N 230 W<span class="sub">Southern Utah · Aug 5, 2026</span></span></td><td class="" data-l="Earned as"><span class="v">Closer</span></td><td class="n" data-l="Amount"><span class="v">$854.55</span></td></tr><tr><td class="" data-l="Account"><span class="v">THOMAS GONZALES / 387 W 1600 N<span class="sub">Southern Utah · Aug 8, 2026</span></span></td><td class="" data-l="Earned as"><span class="v">Closer</span></td><td class="n" data-l="Amount"><span class="v">$1,748.97</span></td></tr><tr><td class="" data-l="Account"><span class="v">TRAVIS TEEPLES / 784 W North Cedar Blvd<span class="sub">Southern Utah · Aug 8, 2026</span></span></td><td class="" data-l="Earned as"><span class="v">Closer</span></td><td class="n" data-l="Amount"><span class="v">$856.98</span></td></tr><tr class="total"><td class="" data-l="Account"><span class="v">Paid this run</span></td><td class="" data-l="Earned as"><span class="v"></span></td><td class="n" data-l="Amount"><span class="v">$3,460.50</span></td></tr></tbody>
+  </table>
+      
+      <p class="note" style="margin:6px 0 0">Withheld &mdash; not paid, and not in the figure above.</p>
+        <table>
+    <thead><tr><th class="">Account</th><th class="">Why</th><th class="n">Withheld</th></tr></thead>
+    <tbody><tr><td class="" data-l="Account"><span class="v">Adrian &amp; Isaac Blackwell / 4137 W 16TH Street Rd<span class="sub">Southern Utah · Aug 15, 2026</span></span></td><td class="" data-l="Why"><span class="v">Closer · Install on hold<span class="sub">Carried in from the workbook · would have paid in the Aug 28, 2026 run</span></span></td><td class="n" data-l="Withheld"><span class="v">$2,631.78</span></td></tr><tr class="total"><td class="" data-l="Account"><span class="v">Withheld in total</span></td><td class="" data-l="Why"><span class="v"></span></td><td class="n" data-l="Withheld"><span class="v">$2,631.78</span></td></tr></tbody>
+  </table>
+    </article><article class="person">
+      <div class="phead">
+        <div><h3>Jordan Alldredge</h3>
+          <p class="who">Inside Sales · Sales Consultant</p></div>
+        <div style="text-align:right">
+          <div class="paid">$1,601.45</div>
+          
+          </div>
+      </div>
+      <table>
+    <thead><tr><th class="">Account</th><th class="">Earned as</th><th class="n">Amount</th></tr></thead>
+    <tbody><tr><td class="" data-l="Account"><span class="v">Christina Hunter / 1320 4th West Ave<span class="sub">Inside Sales · Aug 6, 2026</span></span></td><td class="" data-l="Earned as"><span class="v">Setter</span></td><td class="n" data-l="Amount"><span class="v">$1,601.45</span></td></tr><tr class="total"><td class="" data-l="Account"><span class="v">Paid this run</span></td><td class="" data-l="Earned as"><span class="v"></span></td><td class="n" data-l="Amount"><span class="v">$1,601.45</span></td></tr></tbody>
+  </table>
+      
+      
+    </article><article class="person">
+      <div class="phead">
+        <div><h3>Colter Busk</h3>
+          <p class="who">Southern Utah · Sales Consultant</p></div>
+        <div style="text-align:right">
+          <div class="paid">$1,491.65</div>
+          
+          </div>
+      </div>
+      <table>
+    <thead><tr><th class="">Account</th><th class="">Earned as</th><th class="n">Amount</th></tr></thead>
+    <tbody><tr><td class="" data-l="Account"><span class="v">Larry &amp; Lorreena Desenberg / 2614 S 2160  E<span class="sub">Southern Utah · Aug 11, 2026</span></span></td><td class="" data-l="Earned as"><span class="v">Setter</span></td><td class="n" data-l="Amount"><span class="v">$1,491.65</span></td></tr><tr class="total"><td class="" data-l="Account"><span class="v">Paid this run</span></td><td class="" data-l="Earned as"><span class="v"></span></td><td class="n" data-l="Amount"><span class="v">$1,491.65</span></td></tr></tbody>
+  </table>
+      
+      
+    </article><article class="person">
+      <div class="phead">
+        <div><h3>Kerrigan Simpson</h3>
+          <p class="who">Eastern Idaho · Sales Consultant</p></div>
+        <div style="text-align:right">
+          <div class="paid">$1,481.48</div>
+          
+          </div>
+      </div>
+      <table>
+    <thead><tr><th class="">Account</th><th class="">Earned as</th><th class="n">Amount</th></tr></thead>
+    <tbody><tr><td class="" data-l="Account"><span class="v">Anthony Quintana / 11250 S Bellerive Dr<span class="sub">Eastern Idaho · Aug 11, 2026</span></span></td><td class="" data-l="Earned as"><span class="v">Self-gen<span class="sub">Set and closed by the same person · setter $529.10 + closer $952.38</span></span></td><td class="n" data-l="Amount"><span class="v">$1,481.48</span></td></tr><tr class="total"><td class="" data-l="Account"><span class="v">Paid this run</span></td><td class="" data-l="Earned as"><span class="v"></span></td><td class="n" data-l="Amount"><span class="v">$1,481.48</span></td></tr></tbody>
+  </table>
+      
+      
+    </article><article class="person">
+      <div class="phead">
+        <div><h3>Brian Gwyn Jr</h3>
+          <p class="who">Eastern Idaho · Sales Consultant</p></div>
+        <div style="text-align:right">
+          <div class="paid">$1,393.10</div>
+          
+          </div>
+      </div>
+      <table>
+    <thead><tr><th class="">Account</th><th class="">Earned as</th><th class="n">Amount</th></tr></thead>
+    <tbody><tr><td class="" data-l="Account"><span class="v">Shawn Stewart / 737 County Road 107<span class="sub">Eastern Idaho · Aug 11, 2026</span></span></td><td class="" data-l="Earned as"><span class="v">Setter</span></td><td class="n" data-l="Amount"><span class="v">$1,393.10</span></td></tr><tr class="total"><td class="" data-l="Account"><span class="v">Paid this run</span></td><td class="" data-l="Earned as"><span class="v"></span></td><td class="n" data-l="Amount"><span class="v">$1,393.10</span></td></tr></tbody>
+  </table>
+      
+      
+    </article><article class="person">
+      <div class="phead">
+        <div><h3>Tanner Crosland</h3>
+          <p class="who">Northern Utah · Sales Consultant</p></div>
+        <div style="text-align:right">
+          <div class="paid">$1,169.55</div>
+          
+          </div>
+      </div>
+      <table>
+    <thead><tr><th class="">Account</th><th class="">Earned as</th><th class="n">Amount</th></tr></thead>
+    <tbody><tr><td class="" data-l="Account"><span class="v">Jamie Thornock / 1332 6th West Ave<span class="sub">Northern Utah · Aug 6, 2026</span></span></td><td class="" data-l="Earned as"><span class="v">Setter</span></td><td class="n" data-l="Amount"><span class="v">$820.55</span></td></tr><tr><td class="" data-l="Account"><span class="v">Mark Housley / 1805 Dell Rio Dr<span class="sub">Northern Utah · Aug 6, 2026</span></span></td><td class="" data-l="Earned as"><span class="v">Setter</span></td><td class="n" data-l="Amount"><span class="v">$349.00</span></td></tr><tr class="total"><td class="" data-l="Account"><span class="v">Paid this run</span></td><td class="" data-l="Earned as"><span class="v"></span></td><td class="n" data-l="Amount"><span class="v">$1,169.55</span></td></tr></tbody>
+  </table>
+      
+      
+    </article><article class="person">
+      <div class="phead">
+        <div><h3>Travis Dykman</h3>
+          <p class="who">Eastern Idaho · Sales Consultant</p></div>
+        <div style="text-align:right">
+          <div class="paid">$812.40</div>
+          
+          </div>
+      </div>
+      <table>
+    <thead><tr><th class="">Account</th><th class="">Earned as</th><th class="n">Amount</th></tr></thead>
+    <tbody><tr><td class="" data-l="Account"><span class="v">Korry Wheeler / 330 Adams St<span class="sub">Eastern Idaho · Aug 10, 2026</span></span></td><td class="" data-l="Earned as"><span class="v">Setter</span></td><td class="n" data-l="Amount"><span class="v">$812.40</span></td></tr><tr class="total"><td class="" data-l="Account"><span class="v">Paid this run</span></td><td class="" data-l="Earned as"><span class="v"></span></td><td class="n" data-l="Amount"><span class="v">$812.40</span></td></tr></tbody>
+  </table>
+      
+      
+    </article><article class="person">
+      <div class="phead">
+        <div><h3>Caleb Fransen</h3>
+          <p class="who">Eastern Idaho · Sales Consultant</p></div>
+        <div style="text-align:right">
+          <div class="paid">$768.15</div>
+          
+          </div>
+      </div>
+      <table>
+    <thead><tr><th class="">Account</th><th class="">Earned as</th><th class="n">Amount</th></tr></thead>
+    <tbody><tr><td class="" data-l="Account"><span class="v">Sean Lowery / 177 Trail Drive Rd<span class="sub">Eastern Idaho · Aug 7, 2026</span></span></td><td class="" data-l="Earned as"><span class="v">Setter</span></td><td class="n" data-l="Amount"><span class="v">$768.15</span></td></tr><tr class="total"><td class="" data-l="Account"><span class="v">Paid this run</span></td><td class="" data-l="Earned as"><span class="v"></span></td><td class="n" data-l="Amount"><span class="v">$768.15</span></td></tr></tbody>
+  </table>
+      
+      
+    </article><article class="person">
+      <div class="phead">
+        <div><h3>Justin Covington</h3>
+          <p class="who">Northern Utah · Sales Consultant</p></div>
+        <div style="text-align:right">
+          <div class="paid">$454.40</div>
+          
+          </div>
+      </div>
+      <table>
+    <thead><tr><th class="">Account</th><th class="">Earned as</th><th class="n">Amount</th></tr></thead>
+    <tbody><tr><td class="" data-l="Account"><span class="v">Jeff Gale / 628 N 600 E<span class="sub">Northern Utah · Aug 10, 2026</span></span></td><td class="" data-l="Earned as"><span class="v">Setter</span></td><td class="n" data-l="Amount"><span class="v">$454.40</span></td></tr><tr class="total"><td class="" data-l="Account"><span class="v">Paid this run</span></td><td class="" data-l="Earned as"><span class="v"></span></td><td class="n" data-l="Amount"><span class="v">$454.40</span></td></tr></tbody>
+  </table>
+      
+      
+    </article></div></section><section id="s-accounts"><h2>Accounts</h2>
+  <p class="note">Every account each person earned on. A deal they both set and closed is one line, marked self-gen, with the split underneath.</p><table>
+    <thead><tr><th class="">Person</th><th class="">Account</th><th class="">Earned as</th><th class="n">Amount</th></tr></thead>
+    <tbody><tr><td class="" data-l="Person"><span class="v">Brian Gwyn</span></td><td class="" data-l="Account"><span class="v">Cathy Dixon 2 / 502 Maple Leaf Dr<span class="sub">Eastern Idaho · Aug 5, 2026</span></span></td><td class="" data-l="Earned as"><span class="v">Self-gen<span class="sub">Set and closed by the same person · setter $284.35 + closer $511.83</span></span></td><td class="n" data-l="Amount"><span class="v">$796.18</span></td></tr><tr><td class="" data-l="Person"><span class="v">Brian Gwyn</span></td><td class="" data-l="Account"><span class="v">Robert &amp; Jackie Kastner / 279 Peterson Ln<span class="sub">Eastern Idaho · Aug 7, 2026</span></span></td><td class="" data-l="Earned as"><span class="v">Closer</span></td><td class="n" data-l="Amount"><span class="v">$1,912.32</span></td></tr><tr><td class="" data-l="Person"><span class="v">Brian Gwyn</span></td><td class="" data-l="Account"><span class="v">Lael &amp; Judy Heap / 132 Jacknife Creek Road<span class="sub">Eastern Idaho · Aug 11, 2026</span></span></td><td class="" data-l="Earned as"><span class="v">Closer</span></td><td class="n" data-l="Amount"><span class="v">$3,417.75</span></td></tr><tr><td class="" data-l="Person"><span class="v">Brian Gwyn</span></td><td class="" data-l="Account"><span class="v">Shawn Stewart / 737 County Road 107<span class="sub">Eastern Idaho · Aug 11, 2026</span></span></td><td class="" data-l="Earned as"><span class="v">Closer</span></td><td class="n" data-l="Amount"><span class="v">$2,507.58</span></td></tr><tr><td class="" data-l="Person"><span class="v">Brian Gwyn</span></td><td class="" data-l="Account"><span class="v">Sheila &amp; Tom Hogan / 14310 N 175 E<span class="sub">Eastern Idaho · Aug 11, 2026</span></span></td><td class="" data-l="Earned as"><span class="v">Closer</span></td><td class="n" data-l="Amount"><span class="v">$719.37</span></td></tr><tr><td class="" data-l="Person"><span class="v">Nick Brown</span></td><td class="" data-l="Account"><span class="v">Ruth Irick / 705 Adams St<span class="sub">Eastern Idaho · Aug 5, 2026</span></span></td><td class="" data-l="Earned as"><span class="v">Self-gen<span class="sub">Set and closed by the same person · setter $393.35 + closer $708.03</span></span></td><td class="n" data-l="Amount"><span class="v">$1,101.38</span></td></tr><tr><td class="" data-l="Person"><span class="v">Nick Brown</span></td><td class="" data-l="Account"><span class="v">Sarah Scott / 2416 Chapel Rd<span class="sub">Eastern Idaho · Aug 6, 2026</span></span></td><td class="" data-l="Earned as"><span class="v">Closer</span></td><td class="n" data-l="Amount"><span class="v">$3,091.23</span></td></tr><tr><td class="" data-l="Person"><span class="v">Nick Brown</span></td><td class="" data-l="Account"><span class="v">Sean Lowery / 177 Trail Drive Rd<span class="sub">Eastern Idaho · Aug 7, 2026</span></span></td><td class="" data-l="Earned as"><span class="v">Closer</span></td><td class="n" data-l="Amount"><span class="v">$1,382.67</span></td></tr><tr><td class="" data-l="Person"><span class="v">Nick Brown</span></td><td class="" data-l="Account"><span class="v">Korry Wheeler / 330 Adams St<span class="sub">Eastern Idaho · Aug 10, 2026</span></span></td><td class="" data-l="Earned as"><span class="v">Closer</span></td><td class="n" data-l="Amount"><span class="v">$1,462.32</span></td></tr><tr><td class="" data-l="Person"><span class="v">Dane Covington</span></td><td class="" data-l="Account"><span class="v">Christina Hunter / 1320 4th West Ave<span class="sub">Inside Sales · Aug 6, 2026</span></span></td><td class="" data-l="Earned as"><span class="v">Closer</span></td><td class="n" data-l="Amount"><span class="v">$2,882.61</span></td></tr><tr><td class="" data-l="Person"><span class="v">Dane Covington</span></td><td class="" data-l="Account"><span class="v">Jamie Thornock / 1332 6th West Ave<span class="sub">Northern Utah · Aug 6, 2026</span></span></td><td class="" data-l="Earned as"><span class="v">Closer</span></td><td class="n" data-l="Amount"><span class="v">$1,476.99</span></td></tr><tr><td class="" data-l="Person"><span class="v">Dane Covington</span></td><td class="" data-l="Account"><span class="v">Mark Housley / 1805 Dell Rio Dr<span class="sub">Northern Utah · Aug 6, 2026</span></span></td><td class="" data-l="Earned as"><span class="v">Closer</span></td><td class="n" data-l="Amount"><span class="v">$628.20</span></td></tr><tr><td class="" data-l="Person"><span class="v">Dane Covington</span></td><td class="" data-l="Account"><span class="v">Jeff Gale / 628 N 600 E<span class="sub">Northern Utah · Aug 10, 2026</span></span></td><td class="" data-l="Earned as"><span class="v">Closer</span></td><td class="n" data-l="Amount"><span class="v">$817.92</span></td></tr><tr><td class="" data-l="Person"><span class="v">Nathan Lewis</span></td><td class="" data-l="Account"><span class="v">Gregory Romeril / 265 W 1650 N<span class="sub">Southern Utah · Aug 10, 2026</span></span></td><td class="" data-l="Earned as"><span class="v">Closer</span></td><td class="n" data-l="Amount"><span class="v">$2,778.03</span></td></tr><tr><td class="" data-l="Person"><span class="v">Nathan Lewis</span></td><td class="" data-l="Account"><span class="v">Larry &amp; Lorreena Desenberg / 2614 S 2160  E<span class="sub">Southern Utah · Aug 11, 2026</span></span></td><td class="" data-l="Earned as"><span class="v">Closer</span></td><td class="n" data-l="Amount"><span class="v">$2,684.97</span></td></tr><tr><td class="" data-l="Person"><span class="v">Amber Heer</span></td><td class="" data-l="Account"><span class="v">Sarah Scott / 2416 Chapel Rd<span class="sub">Eastern Idaho · Aug 6, 2026</span></span></td><td class="" data-l="Earned as"><span class="v">Setter</span></td><td class="n" data-l="Amount"><span class="v">$1,717.35</span></td></tr><tr><td class="" data-l="Person"><span class="v">Amber Heer</span></td><td class="" data-l="Account"><span class="v">Robert &amp; Jackie Kastner / 279 Peterson Ln<span class="sub">Eastern Idaho · Aug 7, 2026</span></span></td><td class="" data-l="Earned as"><span class="v">Setter</span></td><td class="n" data-l="Amount"><span class="v">$1,062.40</span></td></tr><tr><td class="" data-l="Person"><span class="v">Amber Heer</span></td><td class="" data-l="Account"><span class="v">Lael &amp; Judy Heap / 132 Jacknife Creek Road<span class="sub">Eastern Idaho · Aug 11, 2026</span></span></td><td class="" data-l="Earned as"><span class="v">Setter</span></td><td class="n" data-l="Amount"><span class="v">$1,898.75</span></td></tr><tr><td class="" data-l="Person"><span class="v">Amber Heer</span></td><td class="" data-l="Account"><span class="v">Sheila &amp; Tom Hogan / 14310 N 175 E<span class="sub">Eastern Idaho · Aug 11, 2026</span></span></td><td class="" data-l="Earned as"><span class="v">Setter</span></td><td class="n" data-l="Amount"><span class="v">$399.65</span></td></tr><tr><td class="" data-l="Person"><span class="v">Kimberly Simmerman</span></td><td class="" data-l="Account"><span class="v">Rianna &amp; Caleb Gillespire / 1773 N 230 W<span class="sub">Southern Utah · Aug 5, 2026</span></span></td><td class="" data-l="Earned as"><span class="v">Setter</span></td><td class="n" data-l="Amount"><span class="v">$474.75</span></td></tr><tr><td class="" data-l="Person"><span class="v">Kimberly Simmerman</span></td><td class="" data-l="Account"><span class="v">THOMAS GONZALES / 387 W 1600 N<span class="sub">Southern Utah · Aug 8, 2026</span></span></td><td class="" data-l="Earned as"><span class="v">Setter</span></td><td class="n" data-l="Amount"><span class="v">$971.65</span></td></tr><tr><td class="" data-l="Person"><span class="v">Kimberly Simmerman</span></td><td class="" data-l="Account"><span class="v">TRAVIS TEEPLES / 784 W North Cedar Blvd<span class="sub">Southern Utah · Aug 8, 2026</span></span></td><td class="" data-l="Earned as"><span class="v">Setter</span></td><td class="n" data-l="Amount"><span class="v">$476.10</span></td></tr><tr><td class="" data-l="Person"><span class="v">Kimberly Simmerman</span></td><td class="" data-l="Account"><span class="v">Gregory Romeril / 265 W 1650 N<span class="sub">Southern Utah · Aug 10, 2026</span></span></td><td class="" data-l="Earned as"><span class="v">Setter</span></td><td class="n" data-l="Amount"><span class="v">$1,543.35</span></td></tr><tr><td class="" data-l="Person"><span class="v">Jordan Naylor</span></td><td class="" data-l="Account"><span class="v">Rianna &amp; Caleb Gillespire / 1773 N 230 W<span class="sub">Southern Utah · Aug 5, 2026</span></span></td><td class="" data-l="Earned as"><span class="v">Closer</span></td><td class="n" data-l="Amount"><span class="v">$854.55</span></td></tr><tr><td class="" data-l="Person"><span class="v">Jordan Naylor</span></td><td class="" data-l="Account"><span class="v">THOMAS GONZALES / 387 W 1600 N<span class="sub">Southern Utah · Aug 8, 2026</span></span></td><td class="" data-l="Earned as"><span class="v">Closer</span></td><td class="n" data-l="Amount"><span class="v">$1,748.97</span></td></tr><tr><td class="" data-l="Person"><span class="v">Jordan Naylor</span></td><td class="" data-l="Account"><span class="v">TRAVIS TEEPLES / 784 W North Cedar Blvd<span class="sub">Southern Utah · Aug 8, 2026</span></span></td><td class="" data-l="Earned as"><span class="v">Closer</span></td><td class="n" data-l="Amount"><span class="v">$856.98</span></td></tr><tr><td class="" data-l="Person"><span class="v">Jordan Alldredge</span></td><td class="" data-l="Account"><span class="v">Christina Hunter / 1320 4th West Ave<span class="sub">Inside Sales · Aug 6, 2026</span></span></td><td class="" data-l="Earned as"><span class="v">Setter</span></td><td class="n" data-l="Amount"><span class="v">$1,601.45</span></td></tr><tr><td class="" data-l="Person"><span class="v">Colter Busk</span></td><td class="" data-l="Account"><span class="v">Larry &amp; Lorreena Desenberg / 2614 S 2160  E<span class="sub">Southern Utah · Aug 11, 2026</span></span></td><td class="" data-l="Earned as"><span class="v">Setter</span></td><td class="n" data-l="Amount"><span class="v">$1,491.65</span></td></tr><tr><td class="" data-l="Person"><span class="v">Kerrigan Simpson</span></td><td class="" data-l="Account"><span class="v">Anthony Quintana / 11250 S Bellerive Dr<span class="sub">Eastern Idaho · Aug 11, 2026</span></span></td><td class="" data-l="Earned as"><span class="v">Self-gen<span class="sub">Set and closed by the same person · setter $529.10 + closer $952.38</span></span></td><td class="n" data-l="Amount"><span class="v">$1,481.48</span></td></tr><tr><td class="" data-l="Person"><span class="v">Brian Gwyn Jr</span></td><td class="" data-l="Account"><span class="v">Shawn Stewart / 737 County Road 107<span class="sub">Eastern Idaho · Aug 11, 2026</span></span></td><td class="" data-l="Earned as"><span class="v">Setter</span></td><td class="n" data-l="Amount"><span class="v">$1,393.10</span></td></tr><tr><td class="" data-l="Person"><span class="v">Tanner Crosland</span></td><td class="" data-l="Account"><span class="v">Jamie Thornock / 1332 6th West Ave<span class="sub">Northern Utah · Aug 6, 2026</span></span></td><td class="" data-l="Earned as"><span class="v">Setter</span></td><td class="n" data-l="Amount"><span class="v">$820.55</span></td></tr><tr><td class="" data-l="Person"><span class="v">Tanner Crosland</span></td><td class="" data-l="Account"><span class="v">Mark Housley / 1805 Dell Rio Dr<span class="sub">Northern Utah · Aug 6, 2026</span></span></td><td class="" data-l="Earned as"><span class="v">Setter</span></td><td class="n" data-l="Amount"><span class="v">$349.00</span></td></tr><tr><td class="" data-l="Person"><span class="v">Travis Dykman</span></td><td class="" data-l="Account"><span class="v">Korry Wheeler / 330 Adams St<span class="sub">Eastern Idaho · Aug 10, 2026</span></span></td><td class="" data-l="Earned as"><span class="v">Setter</span></td><td class="n" data-l="Amount"><span class="v">$812.40</span></td></tr><tr><td class="" data-l="Person"><span class="v">Caleb Fransen</span></td><td class="" data-l="Account"><span class="v">Sean Lowery / 177 Trail Drive Rd<span class="sub">Eastern Idaho · Aug 7, 2026</span></span></td><td class="" data-l="Earned as"><span class="v">Setter</span></td><td class="n" data-l="Amount"><span class="v">$768.15</span></td></tr><tr><td class="" data-l="Person"><span class="v">Justin Covington</span></td><td class="" data-l="Account"><span class="v">Jeff Gale / 628 N 600 E<span class="sub">Northern Utah · Aug 10, 2026</span></span></td><td class="" data-l="Earned as"><span class="v">Setter</span></td><td class="n" data-l="Amount"><span class="v">$454.40</span></td></tr><tr class="total"><td class="" data-l="Person"><span class="v">All accounts</span></td><td class="" data-l="Account"><span class="v"></span></td><td class="" data-l="Earned as"><span class="v"></span></td><td class="n" data-l="Amount"><span class="v">$48,836.20</span></td></tr></tbody>
+  </table></section><section id="s-withheld"><h2>Withheld</h2>
+  <p class="note">Every leg on hold across the ledger, not only this run. None of it is payable, and none of it is counted in any figure above.</p><table>
+    <thead><tr><th class="">Person</th><th class="">Account</th><th class="">Why</th><th class="n">Withheld</th></tr></thead>
+    <tbody><tr><td class="" data-l="Person"><span class="v">Carl Crosland</span></td><td class="" data-l="Account"><span class="v">Billie Kramer / 3305 15th Ave<span class="sub">Northern Utah · Aug 17, 2026</span></span></td><td class="" data-l="Why"><span class="v">Closer · Customer financing not approved<span class="sub">Carried in from the workbook · would have paid in the Aug 28, 2026 run</span></span></td><td class="n" data-l="Withheld"><span class="v">$1,658.79</span></td></tr><tr><td class="" data-l="Person"><span class="v">Diane Oswald</span></td><td class="" data-l="Account"><span class="v">Shaelin &amp; Sawyer Barrow / 90 Arapaho St<span class="sub">Southern Utah · Aug 17, 2026</span></span></td><td class="" data-l="Why"><span class="v">Setter · Rep eligibility under review<span class="sub">Carried in from the workbook · would have paid in the Aug 28, 2026 run</span></span></td><td class="n" data-l="Withheld"><span class="v">$1,149.55</span></td></tr><tr><td class="" data-l="Person"><span class="v">Jason Trolson</span></td><td class="" data-l="Account"><span class="v">Billie Kramer / 3305 15th Ave<span class="sub">Northern Utah · Aug 17, 2026</span></span></td><td class="" data-l="Why"><span class="v">Setter · Customer financing not approved<span class="sub">Carried in from the workbook · would have paid in the Aug 28, 2026 run</span></span></td><td class="n" data-l="Withheld"><span class="v">$921.55</span></td></tr><tr><td class="" data-l="Person"><span class="v">Jordan Naylor</span></td><td class="" data-l="Account"><span class="v">Adrian &amp; Isaac Blackwell / 4137 W 16TH Street Rd<span class="sub">Southern Utah · Aug 15, 2026</span></span></td><td class="" data-l="Why"><span class="v">Closer · Install on hold<span class="sub">Carried in from the workbook · would have paid in the Aug 28, 2026 run</span></span></td><td class="n" data-l="Withheld"><span class="v">$2,631.78</span></td></tr><tr class="total"><td class="" data-l="Person"><span class="v">Withheld in total</span></td><td class="" data-l="Account"><span class="v"></span></td><td class="" data-l="Why"><span class="v"></span></td><td class="n" data-l="Withheld"><span class="v">$6,361.67</span></td></tr></tbody>
+  </table></section>
+<p class="foot">
+  Generated Sep 16, 2026 from the commission ledger &middot; 15 people,
+  $48,836.20 payable.<br>
+  Rates are those in force on each deal&rsquo;s closing date. Figures match the dashboard person by person.
+</p>
+</div></body></html>

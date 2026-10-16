@@ -1,0 +1,1041 @@
+<title>Change Orders Waiting</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;600;700&family=Newsreader:opsz,wght@6..72,400;6..72,500&family=JetBrains+Mono:wght@400;500;700&display=swap">
+<style>
+:root{
+  --paper:#FCFCFD; --surface:#F4F5F9; --sunken:#EDEFF5;
+  --ink:#14161F; --soft:#4A4F63; --faint:#7B8098;
+  --rule:#E3E5ED; --rule-soft:#EDEFF4;
+  --crit:#A5352A; --crit-bg:#F9E9E6;
+  --good:#1C7355; --good-bg:#E5F1EC;
+  --accent:#4B4ACF;
+  --display:'Familjen Grotesk','Helvetica Neue',Arial,sans-serif;
+  --body:'Newsreader',Georgia,'Times New Roman',serif;
+  --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#101218; --surface:#191C24; --sunken:#1F222C;
+  --ink:#E9EAEF; --soft:#A8ADC0; --faint:#767C92;
+  --rule:#2A2E3A; --rule-soft:#22252F;
+  --crit:#E28A7C; --crit-bg:#2C1D1A;
+  --good:#6FBF9B; --good-bg:#142520;
+  --accent:#9C9BF0;
+}}
+:root[data-theme="dark"]{
+  --paper:#101218; --surface:#191C24; --sunken:#1F222C;
+  --ink:#E9EAEF; --soft:#A8ADC0; --faint:#767C92;
+  --rule:#2A2E3A; --rule-soft:#22252F;
+  --crit:#E28A7C; --crit-bg:#2C1D1A;
+  --good:#6FBF9B; --good-bg:#142520;
+  --accent:#9C9BF0;
+}
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font-family:var(--body);font-size:16.5px;line-height:1.55;-webkit-font-smoothing:antialiased}
+.wrap{max-width:960px;margin:0 auto;padding-block:46px 90px;padding-left:20px;padding-right:20px;display:flex;flex-direction:column;gap:38px}
+.n{font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+.neg{color:var(--crit)} .pos{color:var(--good)} .nil{color:var(--faint)}
+.eyebrow{font-family:var(--mono);font-size:10.5px;letter-spacing:.15em;text-transform:uppercase;color:var(--faint);margin:0 0 12px}
+h1{font-family:var(--display);font-weight:700;font-size:clamp(30px,5.2vw,44px);line-height:1.05;letter-spacing:-.02em;margin:0 0 14px;text-wrap:balance}
+.standfirst{font-size:18px;color:var(--soft);margin:0;max-width:62ch}
+h2{font-family:var(--display);font-weight:600;font-size:23px;letter-spacing:-.015em;margin:0 0 4px;padding-top:24px;border-top:2px solid var(--ink)}
+.sub{color:var(--soft);font-size:15.5px;margin:0 0 18px;max-width:64ch}
+.figs{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:1px;background:var(--rule);border:1px solid var(--rule)}
+.fig{background:var(--paper);padding:18px 20px}
+.fig .k{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);margin-bottom:8px}
+.fig b{font-family:var(--mono);font-size:26px;font-weight:700;font-variant-numeric:tabular-nums;display:block;letter-spacing:-.02em}
+.fig .note{display:block;font-size:14px;color:var(--soft);margin-top:6px}
+.deal{border:1px solid var(--rule);background:var(--surface);padding:20px 22px;display:flex;flex-direction:column;gap:14px}
+.deals{display:flex;flex-direction:column;gap:16px}
+.dhead{display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap}
+.dtitle{flex:1 1 260px;min-width:0}
+.deal h3{font-family:var(--display);font-weight:600;font-size:18px;margin:0;letter-spacing:-.01em;overflow-wrap:anywhere}
+.meta{font-family:var(--mono);font-size:11.5px;color:var(--faint);margin:5px 0 0;letter-spacing:.02em}
+.lede{margin:0;font-size:15px;color:var(--soft);max-width:70ch}
+.tag{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;padding:5px 9px;background:var(--sunken);color:var(--soft);white-space:nowrap}
+.tag.crit{background:var(--crit-bg);color:var(--crit)}
+.strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:1px;background:var(--rule);border:1px solid var(--rule)}
+.strip>div{background:var(--paper);padding:12px 14px}
+.strip .k{display:block;font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);margin-bottom:6px}
+.strip b{font-size:19px;font-weight:700;letter-spacing:-.01em}
+.strip b.small{font-size:13px;font-weight:500;color:var(--soft)}
+.scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:15px}
+th{font-family:var(--display);font-weight:600;font-size:11px;letter-spacing:.06em;text-transform:uppercase;text-align:left;color:var(--faint);border-bottom:1.5px solid var(--rule);padding:0 14px 7px 0;white-space:nowrap}
+td{border-bottom:1px solid var(--rule-soft);padding:8px 14px 8px 0;vertical-align:top}
+th.n,td.n{text-align:right;padding-right:0}
+th:last-child,td:last-child{padding-right:0}
+td.who{color:var(--soft)}
+tfoot td{border-bottom:none;border-top:1.5px solid var(--rule);font-weight:500;padding-top:10px;color:var(--soft)}
+tfoot td.n{font-weight:700;font-size:16px}
+.people table{font-size:15px}
+.people td:first-child{width:70%}
+.foot{border-top:1px solid var(--rule);padding-top:18px;font-family:var(--mono);font-size:11px;color:var(--faint);line-height:1.8}
+.note-box{border-left:3px solid var(--accent);background:var(--sunken);padding:14px 16px;font-size:15px;color:var(--soft)}
+.note-box b{color:var(--ink)}
+@media (max-width:560px){body{font-size:16px}.wrap{padding-block:30px 60px}.deal{padding:16px}}
+@media print{body{background:#fff}.deal{break-inside:avoid}}
+</style>
+
+<div class="wrap">
+
+<header>
+  <p class="eyebrow">Vivid Windows &middot; Commission ledger &middot; 16 September 2026</p>
+  <h1>Change orders waiting</h1>
+  <p class="standfirst">Every deal sitting in the change order queue, with the full breakdown of who
+  is affected and by how much. Nothing here has been applied &mdash; these are the decisions still
+  to make before the 18 Sep 2026 run freezes.</p>
+</header>
+
+<section>
+  <div class="figs">
+    <div class="fig"><span class="k">Net effect</span><b class="neg">&minus;$19,054.09</b>
+      <span class="note">across 36 deals</span></div>
+    <div class="fig"><span class="k">Commission</span><b class="neg">&minus;$11,127.74</b>
+      <span class="note">setter and closer legs</span></div>
+    <div class="fig"><span class="k">Bonuses</span><b class="neg">&minus;$7,926.35</b>
+      <span class="note">recruiting and override</span></div>
+    <div class="fig"><span class="k">People affected</span><b>31</b>
+      <span class="note">24 owe money back</span></div>
+  </div>
+</section>
+
+<section>
+  <div class="note-box">Applying a change order pays or recovers <b>only the difference</b>, in the
+  <b>18 Sep 2026</b> run. The run that originally paid the deal keeps the figures it went out with &mdash;
+  nothing here rewrites a payroll that has already gone. Declining one records that the difference was
+  reviewed and deliberately left alone, and it can be reopened later.</div>
+</section>
+
+<section>
+  <h2>Cancellations</h2>
+  <p class="sub">Jobs cancelled after their commission had already been paid. The contract value is still
+  in the CRM &mdash; what changed is that the job is gone, so the whole amount comes back.</p>
+  <div class="deals">
+<article class="deal" id="co0">
+  <header class="dhead">
+    <div class="dtitle">
+      <h3>Shawn Stewart / 737 County Road 107</h3>
+      <p class="meta">Eastern Idaho &middot; closed 11 Aug 2026 &middot; paid in the 21 Aug 2026 run</p>
+    </div>
+    <span class="tag crit">Cancelled</span>
+  </header>
+  <p class="lede">This job was cancelled after commission had already gone out. Clawing it back reverses the setter and closer commission, both levels of recruiting bonus and the override.</p>
+  <div class="strip">
+    <div><span class="k">Paid on</span><b class="n">$27,862</b></div>
+    <div><span class="k">Contract value now</span><b class="n">$27,862</b></div>
+    <div><span class="k">Change</span><b class="n neg">&minus;$27,862</b></div>
+    <div><span class="k">Lands in</span><b class="n small">18 Sep 2026 run</b></div>
+  </div>
+  <div class="scroll">
+  <table>
+    <thead><tr><th>What it changes</th><th>Who</th><th class="n">Amount</th></tr></thead>
+    <tbody><tr><td>Setter commission at 5%</td><td class="who">Brian Gwyn Jr</td><td class="n neg">&minus;$1,393.10</td></tr><tr><td>Closer commission at 9%</td><td class="who">Brian Gwyn</td><td class="n neg">&minus;$2,507.58</td></tr><tr><td>Recruiting L1 on Brian Gwyn</td><td class="who">Tyler Mickelsen</td><td class="n neg">&minus;$208.97</td></tr><tr><td>Recruiting L1 on Brian Gwyn Jr</td><td class="who">Brian Gwyn</td><td class="n neg">&minus;$208.97</td></tr><tr><td>Recruiting L2 on Brian Gwyn Jr</td><td class="who">Tyler Mickelsen</td><td class="n neg">&minus;$69.66</td></tr><tr><td>Override · Team Manager, Eastern Idaho</td><td class="who">JJ Gurney</td><td class="n neg">&minus;$1,114.48</td></tr><tr><td>Override · Director, Eastern Idaho</td><td class="who">JJ Gurney</td><td class="n neg">&minus;$1,114.48</td></tr></tbody>
+    <tfoot><tr>
+      <td colspan="2">Total effect &middot; &minus;$3,900.68 commission, &minus;$2,716.55 bonuses</td>
+      <td class="n neg">&minus;$6,617.23</td></tr></tfoot>
+  </table>
+  </div>
+</article>
+<article class="deal" id="co1">
+  <header class="dhead">
+    <div class="dtitle">
+      <h3>MARY SPROUSE / 1332 Park Ridge Ct</h3>
+      <p class="meta">Southern Utah &middot; closed 19 Aug 2026 &middot; paid in the 4 Sep 2026 run</p>
+    </div>
+    <span class="tag crit">Cancelled</span>
+  </header>
+  <p class="lede">This job was cancelled after commission had already gone out. Clawing it back reverses the setter and closer commission, both levels of recruiting bonus and the override.</p>
+  <div class="strip">
+    <div><span class="k">Paid on</span><b class="n">$11,485</b></div>
+    <div><span class="k">Contract value now</span><b class="n">$11,485</b></div>
+    <div><span class="k">Change</span><b class="n neg">&minus;$11,485</b></div>
+    <div><span class="k">Lands in</span><b class="n small">18 Sep 2026 run</b></div>
+  </div>
+  <div class="scroll">
+  <table>
+    <thead><tr><th>What it changes</th><th>Who</th><th class="n">Amount</th></tr></thead>
+    <tbody><tr><td>Setter commission at 5%</td><td class="who">Colter Busk</td><td class="n neg">&minus;$574.25</td></tr><tr><td>Closer commission at 9%</td><td class="who">Jordan Naylor</td><td class="n neg">&minus;$1,033.65</td></tr><tr><td>Recruiting L1 on Jordan Naylor</td><td class="who">JJ Gurney</td><td class="n neg">&minus;$86.14</td></tr><tr><td>Recruiting L2 on Jordan Naylor</td><td class="who">Brock Morrison</td><td class="n neg">&minus;$28.71</td></tr><tr><td>Recruiting L1 on Colter Busk</td><td class="who">JJ Gurney</td><td class="n neg">&minus;$86.14</td></tr><tr><td>Recruiting L2 on Colter Busk</td><td class="who">Brock Morrison</td><td class="n neg">&minus;$28.71</td></tr><tr><td>Override · Team Manager, Southern Utah</td><td class="who">Jordan Naylor</td><td class="n neg">&minus;$459.40</td></tr><tr><td>Override · Director, Southern Utah</td><td class="who">JJ Gurney</td><td class="n neg">&minus;$459.40</td></tr></tbody>
+    <tfoot><tr>
+      <td colspan="2">Total effect &middot; &minus;$1,607.90 commission, &minus;$1,148.50 bonuses</td>
+      <td class="n neg">&minus;$2,756.40</td></tr></tfoot>
+  </table>
+  </div>
+</article></div>
+</section>
+
+<section>
+  <h2>Contract value changes</h2>
+  <p class="sub">34 deals whose contract value moved after the commission was paid on the old figure.
+  Largest recovery first; the ones at the end owe money <i>out</i>, not back.</p>
+  <div class="deals">
+<article class="deal" id="co100">
+  <header class="dhead">
+    <div class="dtitle">
+      <h3>Amy &amp; Roger Gold / 12 N Cove Dr</h3>
+      <p class="meta">Southern Utah &middot; closed 13 Jun 2026 &middot; paid in the 26 Jun 2026 run</p>
+    </div>
+    <span class="tag">Value changed</span>
+  </header>
+  <p class="lede">The contract value moved after this deal was paid on. Only the difference is paid or recovered; the run that has already gone out keeps its figures.</p>
+  <div class="strip">
+    <div><span class="k">Paid on</span><b class="n">$41,340</b></div>
+    <div><span class="k">Contract value now</span><b class="n">$16,420</b></div>
+    <div><span class="k">Change</span><b class="n neg">&minus;$24,920</b></div>
+    <div><span class="k">Lands in</span><b class="n small">18 Sep 2026 run</b></div>
+  </div>
+  <div class="scroll">
+  <table>
+    <thead><tr><th>What it changes</th><th>Who</th><th class="n">Amount</th></tr></thead>
+    <tbody><tr><td>Setter commission at 5%</td><td class="who">Kimberly Simmerman</td><td class="n neg">&minus;$1,246.00</td></tr><tr><td>Closer commission at 9%</td><td class="who">Jordan Naylor</td><td class="n neg">&minus;$2,242.80</td></tr><tr><td>Recruiting L1 on Jordan Naylor</td><td class="who">JJ Gurney</td><td class="n neg">&minus;$186.90</td></tr><tr><td>Recruiting L2 on Jordan Naylor</td><td class="who">Brock Morrison</td><td class="n neg">&minus;$62.30</td></tr><tr><td>Recruiting L1 on Kimberly Simmerman</td><td class="who">JJ Gurney</td><td class="n neg">&minus;$186.90</td></tr><tr><td>Recruiting L2 on Kimberly Simmerman</td><td class="who">Brock Morrison</td><td class="n neg">&minus;$62.30</td></tr><tr><td>Override · Team Manager, Southern Utah</td><td class="who">Jordan Naylor</td><td class="n neg">&minus;$996.80</td></tr><tr><td>Override · Director, Southern Utah</td><td class="who">JJ Gurney</td><td class="n neg">&minus;$996.80</td></tr></tbody>
+    <tfoot><tr>
+      <td colspan="2">Total effect &middot; &minus;$3,488.80 commission, &minus;$2,492.00 bonuses</td>
+      <td class="n neg">&minus;$5,980.80</td></tr></tfoot>
+  </table>
+  </div>
+</article>
+<article class="deal" id="co101">
+  <header class="dhead">
+    <div class="dtitle">
+      <h3>Leroy  Sloan / 1329 N 1570  W</h3>
+      <p class="meta">Southern Utah &middot; closed 6 Jun 2026 &middot; paid in the 19 Jun 2026 run</p>
+    </div>
+    <span class="tag">Value changed</span>
+  </header>
+  <p class="lede">The contract value moved after this deal was paid on. Only the difference is paid or recovered; the run that has already gone out keeps its figures.</p>
+  <div class="strip">
+    <div><span class="k">Paid on</span><b class="n">$14,959</b></div>
+    <div><span class="k">Contract value now</span><b class="n">$5,262</b></div>
+    <div><span class="k">Change</span><b class="n neg">&minus;$9,697</b></div>
+    <div><span class="k">Lands in</span><b class="n small">18 Sep 2026 run</b></div>
+  </div>
+  <div class="scroll">
+  <table>
+    <thead><tr><th>What it changes</th><th>Who</th><th class="n">Amount</th></tr></thead>
+    <tbody><tr><td>Setter commission at 5%</td><td class="who">Brett Turley</td><td class="n neg">&minus;$484.85</td></tr><tr><td>Closer commission at 9%</td><td class="who">Jordan Naylor</td><td class="n neg">&minus;$872.73</td></tr><tr><td>Recruiting L1 on Jordan Naylor</td><td class="who">JJ Gurney</td><td class="n neg">&minus;$72.73</td></tr><tr><td>Recruiting L2 on Jordan Naylor</td><td class="who">Brock Morrison</td><td class="n neg">&minus;$24.24</td></tr><tr><td>Recruiting L1 on Brett Turley</td><td class="who">Ethan Saxton</td><td class="n neg">&minus;$72.73</td></tr><tr><td>Recruiting L2 on Brett Turley</td><td class="who">Nathan Lewis</td><td class="n neg">&minus;$24.24</td></tr><tr><td>Override · Team Manager, Southern Utah</td><td class="who">Jordan Naylor</td><td class="n neg">&minus;$387.88</td></tr><tr><td>Override · Director, Southern Utah</td><td class="who">JJ Gurney</td><td class="n neg">&minus;$387.88</td></tr></tbody>
+    <tfoot><tr>
+      <td colspan="2">Total effect &middot; &minus;$1,357.58 commission, &minus;$969.70 bonuses</td>
+      <td class="n neg">&minus;$2,327.28</td></tr></tfoot>
+  </table>
+  </div>
+</article>
+<article class="deal" id="co102">
+  <header class="dhead">
+    <div class="dtitle">
+      <h3>PATRICK  BEAMAN / 2845 E Umatilla Dr</h3>
+      <p class="meta">Northern Utah &middot; closed 27 Apr 2026 &middot; paid in the 8 May 2026 run</p>
+    </div>
+    <span class="tag">Value changed</span>
+  </header>
+  <p class="lede">The contract value moved after this deal was paid on. Only the difference is paid or recovered; the run that has already gone out keeps its figures.</p>
+  <div class="strip">
+    <div><span class="k">Paid on</span><b class="n">$19,430</b></div>
+    <div><span class="k">Contract value now</span><b class="n">$12,881</b></div>
+    <div><span class="k">Change</span><b class="n neg">&minus;$6,549</b></div>
+    <div><span class="k">Lands in</span><b class="n small">18 Sep 2026 run</b></div>
+  </div>
+  <div class="scroll">
+  <table>
+    <thead><tr><th>What it changes</th><th>Who</th><th class="n">Amount</th></tr></thead>
+    <tbody><tr><td>Setter commission at 5%</td><td class="who">Jaron Hartshorn</td><td class="n neg">&minus;$327.45</td></tr><tr><td>Closer commission at 9%</td><td class="who">Kerrigan Simpson</td><td class="n neg">&minus;$589.41</td></tr><tr><td>Recruiting L1 on Kerrigan Simpson</td><td class="who">Mavryck Holmgren</td><td class="n neg">&minus;$49.12</td></tr><tr><td>Recruiting L2 on Kerrigan Simpson</td><td class="who">Brock Morrison</td><td class="n neg">&minus;$16.37</td></tr><tr><td>Recruiting L1 on Jaron Hartshorn</td><td class="who">Adrian Xanthos</td><td class="n neg">&minus;$49.12</td></tr><tr><td>Recruiting L2 on Jaron Hartshorn</td><td class="who">Terry Xanthos</td><td class="n neg">&minus;$16.37</td></tr><tr><td>Recruiting 2% on Kerrigan Simpson</td><td class="who">Mavryck Holmgren</td><td class="n neg">&minus;$130.98</td></tr><tr><td>Override · Team Manager, Northern Utah</td><td class="who">Carl Crosland</td><td class="n neg">&minus;$261.96</td></tr><tr><td>Override · Director, Northern Utah</td><td class="who">JJ Gurney</td><td class="n neg">&minus;$261.96</td></tr></tbody>
+    <tfoot><tr>
+      <td colspan="2">Total effect &middot; &minus;$916.86 commission, &minus;$785.88 bonuses</td>
+      <td class="n neg">&minus;$1,702.74</td></tr></tfoot>
+  </table>
+  </div>
+</article>
+<article class="deal" id="co103">
+  <header class="dhead">
+    <div class="dtitle">
+      <h3>Benetton &amp; Kelsey Hunt / 3033 Limestone Dr</h3>
+      <p class="meta">Southern Utah &middot; closed 23 Jun 2026 &middot; paid in the 3 Jul 2026 run</p>
+    </div>
+    <span class="tag">Value changed</span>
+  </header>
+  <p class="lede">The contract value moved after this deal was paid on. Only the difference is paid or recovered; the run that has already gone out keeps its figures.</p>
+  <div class="strip">
+    <div><span class="k">Paid on</span><b class="n">$47,588</b></div>
+    <div><span class="k">Contract value now</span><b class="n">$40,824</b></div>
+    <div><span class="k">Change</span><b class="n neg">&minus;$6,764</b></div>
+    <div><span class="k">Lands in</span><b class="n small">18 Sep 2026 run</b></div>
+  </div>
+  <div class="scroll">
+  <table>
+    <thead><tr><th>What it changes</th><th>Who</th><th class="n">Amount</th></tr></thead>
+    <tbody><tr><td>Setter commission at 5%</td><td class="who">Diane Oswald</td><td class="n neg">&minus;$338.20</td></tr><tr><td>Closer commission at 9%</td><td class="who">Nathan Lewis</td><td class="n neg">&minus;$608.76</td></tr><tr><td>Recruiting L1 on Nathan Lewis</td><td class="who">Tyler Mickelsen</td><td class="n neg">&minus;$50.73</td></tr><tr><td>Recruiting L1 on Diane Oswald</td><td class="who">JJ Gurney</td><td class="n neg">&minus;$50.73</td></tr><tr><td>Recruiting L2 on Diane Oswald</td><td class="who">Brock Morrison</td><td class="n neg">&minus;$16.91</td></tr><tr><td>Override · Team Manager, Southern Utah</td><td class="who">Jordan Naylor</td><td class="n neg">&minus;$270.56</td></tr><tr><td>Override · Director, Southern Utah</td><td class="who">JJ Gurney</td><td class="n neg">&minus;$270.56</td></tr></tbody>
+    <tfoot><tr>
+      <td colspan="2">Total effect &middot; &minus;$946.96 commission, &minus;$659.49 bonuses</td>
+      <td class="n neg">&minus;$1,606.45</td></tr></tfoot>
+  </table>
+  </div>
+</article>
+<article class="deal" id="co104">
+  <header class="dhead">
+    <div class="dtitle">
+      <h3>Teri Jones / 29805 E Mountain View Ave</h3>
+      <p class="meta">Northern Utah &middot; closed 17 Feb 2026 &middot; paid in the 27 Feb 2026 run</p>
+    </div>
+    <span class="tag">Value changed</span>
+  </header>
+  <p class="lede">The contract value moved after this deal was paid on. Only the difference is paid or recovered; the run that has already gone out keeps its figures.</p>
+  <div class="strip">
+    <div><span class="k">Paid on</span><b class="n">$23,579</b></div>
+    <div><span class="k">Contract value now</span><b class="n">$18,790</b></div>
+    <div><span class="k">Change</span><b class="n neg">&minus;$4,790</b></div>
+    <div><span class="k">Lands in</span><b class="n small">18 Sep 2026 run</b></div>
+  </div>
+  <div class="scroll">
+  <table>
+    <thead><tr><th>What it changes</th><th>Who</th><th class="n">Amount</th></tr></thead>
+    <tbody><tr><td>Setter commission at 5%</td><td class="who">Nick Brown</td><td class="n neg">&minus;$239.48</td></tr><tr><td>Closer commission at 9%</td><td class="who">Darcey Barrus</td><td class="n neg">&minus;$431.06</td></tr><tr><td>Recruiting L1 on Darcey Barrus</td><td class="who">Tyler Mickelsen</td><td class="n neg">&minus;$35.92</td></tr><tr><td>Recruiting L1 on Nick Brown</td><td class="who">Carl Crosland</td><td class="n neg">&minus;$35.92</td></tr><tr><td>Recruiting L2 on Nick Brown</td><td class="who">Tyler Mickelsen</td><td class="n neg">&minus;$11.97</td></tr><tr><td>Override · Team Manager, Northern Utah</td><td class="who">Carl Crosland</td><td class="n neg">&minus;$191.58</td></tr><tr><td>Override · Director, Northern Utah</td><td class="who">JJ Gurney</td><td class="n neg">&minus;$191.58</td></tr></tbody>
+    <tfoot><tr>
+      <td colspan="2">Total effect &middot; &minus;$670.53 commission, &minus;$466.98 bonuses</td>
+      <td class="n neg">&minus;$1,137.51</td></tr></tfoot>
+  </table>
+  </div>
+</article>
+<article class="deal" id="co105">
+  <header class="dhead">
+    <div class="dtitle">
+      <h3>Troy Ferguson / 157 N 4080 E</h3>
+      <p class="meta">Southern Utah &middot; closed 20 Jun 2026 &middot; paid in the 3 Jul 2026 run</p>
+    </div>
+    <span class="tag">Value changed</span>
+  </header>
+  <p class="lede">The contract value moved after this deal was paid on. Only the difference is paid or recovered; the run that has already gone out keeps its figures.</p>
+  <div class="strip">
+    <div><span class="k">Paid on</span><b class="n">$12,696</b></div>
+    <div><span class="k">Contract value now</span><b class="n">$8,397</b></div>
+    <div><span class="k">Change</span><b class="n neg">&minus;$4,299</b></div>
+    <div><span class="k">Lands in</span><b class="n small">18 Sep 2026 run</b></div>
+  </div>
+  <div class="scroll">
+  <table>
+    <thead><tr><th>What it changes</th><th>Who</th><th class="n">Amount</th></tr></thead>
+    <tbody><tr><td>Setter commission at 5%</td><td class="who">Colter Busk</td><td class="n neg">&minus;$214.95</td></tr><tr><td>Closer commission at 9%</td><td class="who">Jordan Naylor</td><td class="n neg">&minus;$386.91</td></tr><tr><td>Recruiting L1 on Jordan Naylor</td><td class="who">JJ Gurney</td><td class="n neg">&minus;$32.24</td></tr><tr><td>Recruiting L2 on Jordan Naylor</td><td class="who">Brock Morrison</td><td class="n neg">&minus;$10.75</td></tr><tr><td>Recruiting L1 on Colter Busk</td><td class="who">JJ Gurney</td><td class="n neg">&minus;$32.24</td></tr><tr><td>Recruiting L2 on Colter Busk</td><td class="who">Brock Morrison</td><td class="n neg">&minus;$10.75</td></tr><tr><td>Override · Team Manager, Southern Utah</td><td class="who">Jordan Naylor</td><td class="n neg">&minus;$171.96</td></tr><tr><td>Override · Director, Southern Utah</td><td class="who">JJ Gurney</td><td class="n neg">&minus;$171.96</td></tr></tbody>
+    <tfoot><tr>
+      <td colspan="2">Total effect &middot; &minus;$601.86 commission, &minus;$429.90 bonuses</td>
+      <td class="n neg">&minus;$1,031.76</td></tr></tfoot>
+  </table>
+  </div>
+</article>
+<article class="deal" id="co106">
+  <header class="dhead">
+    <div class="dtitle">
+      <h3>Robyn &amp; Carlos Pedraza / 4932 N Mendelson Ave</h3>
+      <p class="meta">Southern Utah &middot; closed 10 Apr 2026 &middot; paid in the 24 Apr 2026 run</p>
+    </div>
+    <span class="tag">Value changed</span>
+  </header>
+  <p class="lede">The contract value moved after this deal was paid on. Only the difference is paid or recovered; the run that has already gone out keeps its figures.</p>
+  <div class="strip">
+    <div><span class="k">Paid on</span><b class="n">$29,509</b></div>
+    <div><span class="k">Contract value now</span><b class="n">$26,559</b></div>
+    <div><span class="k">Change</span><b class="n neg">&minus;$2,950</b></div>
+    <div><span class="k">Lands in</span><b class="n small">18 Sep 2026 run</b></div>
+  </div>
+  <div class="scroll">
+  <table>
+    <thead><tr><th>What it changes</th><th>Who</th><th class="n">Amount</th></tr></thead>
+    <tbody><tr><td>Setter commission at 5%</td><td class="who">Kimberly Simmerman</td><td class="n neg">&minus;$147.50</td></tr><tr><td>Closer commission at 9%</td><td class="who">Jordan Naylor</td><td class="n neg">&minus;$265.50</td></tr><tr><td>Recruiting L1 on Jordan Naylor</td><td class="who">JJ Gurney</td><td class="n neg">&minus;$22.12</td></tr><tr><td>Recruiting L2 on Jordan Naylor</td><td class="who">Brock Morrison</td><td class="n neg">&minus;$7.38</td></tr><tr><td>Recruiting L1 on Kimberly Simmerman</td><td class="who">JJ Gurney</td><td class="n neg">&minus;$22.12</td></tr><tr><td>Recruiting L2 on Kimberly Simmerman</td><td class="who">Brock Morrison</td><td class="n neg">&minus;$7.38</td></tr><tr><td>Override · Team Manager, Southern Utah</td><td class="who">Jordan Naylor</td><td class="n neg">&minus;$118.00</td></tr><tr><td>Override · Director, Southern Utah</td><td class="who">JJ Gurney</td><td class="n neg">&minus;$118.00</td></tr></tbody>
+    <tfoot><tr>
+      <td colspan="2">Total effect &middot; &minus;$413.00 commission, &minus;$295.00 bonuses</td>
+      <td class="n neg">&minus;$708.00</td></tr></tfoot>
+  </table>
+  </div>
+</article>
+<article class="deal" id="co107">
+  <header class="dhead">
+    <div class="dtitle">
+      <h3>Connie  Denler / 2 Starwood Dr</h3>
+      <p class="meta">Northern Utah &middot; closed 30 May 2026 &middot; paid in the 12 Jun 2026 run</p>
+    </div>
+    <span class="tag">Value changed</span>
+  </header>
+  <p class="lede">The contract value moved after this deal was paid on. Only the difference is paid or recovered; the run that has already gone out keeps its figures.</p>
+  <div class="strip">
+    <div><span class="k">Paid on</span><b class="n">$12,491</b></div>
+    <div><span class="k">Contract value now</span><b class="n">$10,298</b></div>
+    <div><span class="k">Change</span><b class="n neg">&minus;$2,193</b></div>
+    <div><span class="k">Lands in</span><b class="n small">18 Sep 2026 run</b></div>
+  </div>
+  <div class="scroll">
+  <table>
+    <thead><tr><th>What it changes</th><th>Who</th><th class="n">Amount</th></tr></thead>
+    <tbody><tr><td>Setter commission at 5%</td><td class="who">Tanner Crosland</td><td class="n neg">&minus;$109.65</td></tr><tr><td>Closer commission at 9%</td><td class="who">Carl Crosland</td><td class="n neg">&minus;$197.37</td></tr><tr><td>Recruiting L1 on Carl Crosland</td><td class="who">Tyler Mickelsen</td><td class="n neg">&minus;$16.45</td></tr><tr><td>Recruiting L1 on Tanner Crosland</td><td class="who">Carl Crosland</td><td class="n neg">&minus;$16.45</td></tr><tr><td>Recruiting L2 on Tanner Crosland</td><td class="who">Tyler Mickelsen</td><td class="n neg">&minus;$5.48</td></tr><tr><td>Override · Team Manager, Northern Utah</td><td class="who">Carl Crosland</td><td class="n neg">&minus;$87.72</td></tr><tr><td>Override · Director, Northern Utah</td><td class="who">JJ Gurney</td><td class="n neg">&minus;$87.72</td></tr></tbody>
+    <tfoot><tr>
+      <td colspan="2">Total effect &middot; &minus;$307.02 commission, &minus;$213.82 bonuses</td>
+      <td class="n neg">&minus;$520.84</td></tr></tfoot>
+  </table>
+  </div>
+</article>
+<article class="deal" id="co108">
+  <header class="dhead">
+    <div class="dtitle">
+      <h3>Suzy Shrader  / 626 E 65th  S</h3>
+      <p class="meta">Eastern Idaho &middot; closed 28 Mar 2026 &middot; paid in the 10 Apr 2026 run</p>
+    </div>
+    <span class="tag">Value changed</span>
+  </header>
+  <p class="lede">The contract value moved after this deal was paid on. Only the difference is paid or recovered; the run that has already gone out keeps its figures.</p>
+  <div class="strip">
+    <div><span class="k">Paid on</span><b class="n">$10,631</b></div>
+    <div><span class="k">Contract value now</span><b class="n">$8,745</b></div>
+    <div><span class="k">Change</span><b class="n neg">&minus;$1,886</b></div>
+    <div><span class="k">Lands in</span><b class="n small">18 Sep 2026 run</b></div>
+  </div>
+  <div class="scroll">
+  <table>
+    <thead><tr><th>What it changes</th><th>Who</th><th class="n">Amount</th></tr></thead>
+    <tbody><tr><td>Setter commission at 5%</td><td class="who">Kerrigan Simpson</td><td class="n neg">&minus;$94.30</td></tr><tr><td>Closer commission at 9%</td><td class="who">Kerrigan Simpson</td><td class="n neg">&minus;$169.74</td></tr><tr><td>Recruiting L1 on Kerrigan Simpson</td><td class="who">Mavryck Holmgren</td><td class="n neg">&minus;$28.29</td></tr><tr><td>Recruiting L2 on Kerrigan Simpson</td><td class="who">Brock Morrison</td><td class="n neg">&minus;$9.43</td></tr><tr><td>Recruiting 2% on Kerrigan Simpson</td><td class="who">Mavryck Holmgren</td><td class="n neg">&minus;$37.72</td></tr><tr><td>Override · Team Manager, Eastern Idaho</td><td class="who">JJ Gurney</td><td class="n neg">&minus;$75.44</td></tr><tr><td>Override · Director, Eastern Idaho</td><td class="who">JJ Gurney</td><td class="n neg">&minus;$75.44</td></tr></tbody>
+    <tfoot><tr>
+      <td colspan="2">Total effect &middot; &minus;$264.04 commission, &minus;$226.32 bonuses</td>
+      <td class="n neg">&minus;$490.36</td></tr></tfoot>
+  </table>
+  </div>
+</article>
+<article class="deal" id="co109">
+  <header class="dhead">
+    <div class="dtitle">
+      <h3>Michael Carlo / 113 N Sunnyside Dr</h3>
+      <p class="meta">Southern Utah &middot; closed 6 Jun 2026 &middot; paid in the 19 Jun 2026 run</p>
+    </div>
+    <span class="tag">Value changed</span>
+  </header>
+  <p class="lede">The contract value moved after this deal was paid on. Only the difference is paid or recovered; the run that has already gone out keeps its figures.</p>
+  <div class="strip">
+    <div><span class="k">Paid on</span><b class="n">$22,361</b></div>
+    <div><span class="k">Contract value now</span><b class="n">$20,619</b></div>
+    <div><span class="k">Change</span><b class="n neg">&minus;$1,742</b></div>
+    <div><span class="k">Lands in</span><b class="n small">18 Sep 2026 run</b></div>
+  </div>
+  <div class="scroll">
+  <table>
+    <thead><tr><th>What it changes</th><th>Who</th><th class="n">Amount</th></tr></thead>
+    <tbody><tr><td>Setter commission at 5%</td><td class="who">Kimberly Simmerman</td><td class="n neg">&minus;$87.10</td></tr><tr><td>Closer commission at 9%</td><td class="who">JJ Gurney</td><td class="n neg">&minus;$156.78</td></tr><tr><td>Recruiting L1 on JJ Gurney</td><td class="who">Brock Morrison</td><td class="n neg">&minus;$13.06</td></tr><tr><td>Recruiting L1 on Kimberly Simmerman</td><td class="who">JJ Gurney</td><td class="n neg">&minus;$13.06</td></tr><tr><td>Recruiting L2 on Kimberly Simmerman</td><td class="who">Brock Morrison</td><td class="n neg">&minus;$4.36</td></tr><tr><td>Override · Team Manager, Southern Utah</td><td class="who">Jordan Naylor</td><td class="n neg">&minus;$69.68</td></tr><tr><td>Override · Director, Southern Utah</td><td class="who">JJ Gurney</td><td class="n neg">&minus;$69.68</td></tr></tbody>
+    <tfoot><tr>
+      <td colspan="2">Total effect &middot; &minus;$243.88 commission, &minus;$169.85 bonuses</td>
+      <td class="n neg">&minus;$413.73</td></tr></tfoot>
+  </table>
+  </div>
+</article>
+<article class="deal" id="co110">
+  <header class="dhead">
+    <div class="dtitle">
+      <h3>DAVID &amp; KIERSTIN HOLLAND / 1025 Iona St</h3>
+      <p class="meta">Eastern Idaho &middot; closed 16 Jun 2026 &middot; paid in the 26 Jun 2026 run</p>
+    </div>
+    <span class="tag">Value changed</span>
+  </header>
+  <p class="lede">The contract value moved after this deal was paid on. Only the difference is paid or recovered; the run that has already gone out keeps its figures.</p>
+  <div class="strip">
+    <div><span class="k">Paid on</span><b class="n">$12,632</b></div>
+    <div><span class="k">Contract value now</span><b class="n">$10,921</b></div>
+    <div><span class="k">Change</span><b class="n neg">&minus;$1,711</b></div>
+    <div><span class="k">Lands in</span><b class="n small">18 Sep 2026 run</b></div>
+  </div>
+  <div class="scroll">
+  <table>
+    <thead><tr><th>What it changes</th><th>Who</th><th class="n">Amount</th></tr></thead>
+    <tbody><tr><td>Setter commission at 5%</td><td class="who">Brian Gwyn</td><td class="n neg">&minus;$85.55</td></tr><tr><td>Closer commission at 9%</td><td class="who">Brian Gwyn</td><td class="n neg">&minus;$153.99</td></tr><tr><td>Recruiting L1 on Brian Gwyn</td><td class="who">Tyler Mickelsen</td><td class="n neg">&minus;$25.66</td></tr><tr><td>Override · Team Manager, Eastern Idaho</td><td class="who">JJ Gurney</td><td class="n neg">&minus;$68.44</td></tr><tr><td>Override · Director, Eastern Idaho</td><td class="who">JJ Gurney</td><td class="n neg">&minus;$68.44</td></tr></tbody>
+    <tfoot><tr>
+      <td colspan="2">Total effect &middot; &minus;$239.54 commission, &minus;$162.54 bonuses</td>
+      <td class="n neg">&minus;$402.08</td></tr></tfoot>
+  </table>
+  </div>
+</article>
+<article class="deal" id="co111">
+  <header class="dhead">
+    <div class="dtitle">
+      <h3>Kevin Holt / 1132 Waterfall Vw</h3>
+      <p class="meta">Southern Utah &middot; closed 11 Feb 2026 &middot; paid in the 27 Feb 2026 run</p>
+    </div>
+    <span class="tag">Value changed</span>
+  </header>
+  <p class="lede">The contract value moved after this deal was paid on. Only the difference is paid or recovered; the run that has already gone out keeps its figures.</p>
+  <div class="strip">
+    <div><span class="k">Paid on</span><b class="n">$17,409</b></div>
+    <div><span class="k">Contract value now</span><b class="n">$16,409</b></div>
+    <div><span class="k">Change</span><b class="n neg">&minus;$1,000</b></div>
+    <div><span class="k">Lands in</span><b class="n small">18 Sep 2026 run</b></div>
+  </div>
+  <div class="scroll">
+  <table>
+    <thead><tr><th>What it changes</th><th>Who</th><th class="n">Amount</th></tr></thead>
+    <tbody><tr><td>Setter commission at 5%</td><td class="who">Ethan Saxton</td><td class="n neg">&minus;$50.00</td></tr><tr><td>Closer commission at 9%</td><td class="who">Nathan Lewis</td><td class="n neg">&minus;$90.00</td></tr><tr><td>Recruiting L1 on Nathan Lewis</td><td class="who">Tyler Mickelsen</td><td class="n neg">&minus;$7.50</td></tr><tr><td>Recruiting L1 on Ethan Saxton</td><td class="who">Nathan Lewis</td><td class="n neg">&minus;$7.50</td></tr><tr><td>Recruiting L2 on Ethan Saxton</td><td class="who">Tyler Mickelsen</td><td class="n neg">&minus;$2.50</td></tr><tr><td>Override · Team Manager, Southern Utah</td><td class="who">Jordan Naylor</td><td class="n neg">&minus;$40.00</td></tr><tr><td>Override · Director, Southern Utah</td><td class="who">JJ Gurney</td><td class="n neg">&minus;$40.00</td></tr></tbody>
+    <tfoot><tr>
+      <td colspan="2">Total effect &middot; &minus;$140.00 commission, &minus;$97.50 bonuses</td>
+      <td class="n neg">&minus;$237.50</td></tr></tfoot>
+  </table>
+  </div>
+</article>
+<article class="deal" id="co112">
+  <header class="dhead">
+    <div class="dtitle">
+      <h3>Michael Jeffries 2 / 968 N 200 E</h3>
+      <p class="meta">Northern Utah &middot; closed 9 May 2026 &middot; paid in the 22 May 2026 run</p>
+    </div>
+    <span class="tag">Value changed</span>
+  </header>
+  <p class="lede">The contract value moved after this deal was paid on. Only the difference is paid or recovered; the run that has already gone out keeps its figures.</p>
+  <div class="strip">
+    <div><span class="k">Paid on</span><b class="n">$4,455</b></div>
+    <div><span class="k">Contract value now</span><b class="n">$3,728</b></div>
+    <div><span class="k">Change</span><b class="n neg">&minus;$728</b></div>
+    <div><span class="k">Lands in</span><b class="n small">18 Sep 2026 run</b></div>
+  </div>
+  <div class="scroll">
+  <table>
+    <thead><tr><th>What it changes</th><th>Who</th><th class="n">Amount</th></tr></thead>
+    <tbody><tr><td>Setter commission at 5%</td><td class="who">Eli Asay</td><td class="n neg">&minus;$36.38</td></tr><tr><td>Closer commission at 9%</td><td class="who">Dane Covington</td><td class="n neg">&minus;$65.47</td></tr><tr><td>Recruiting L1 on Dane Covington</td><td class="who">Carl Crosland</td><td class="n neg">&minus;$5.46</td></tr><tr><td>Recruiting L2 on Dane Covington</td><td class="who">Tyler Mickelsen</td><td class="n neg">&minus;$1.82</td></tr><tr><td>Recruiting L1 on Eli Asay</td><td class="who">Dane Covington</td><td class="n neg">&minus;$5.46</td></tr><tr><td>Recruiting L2 on Eli Asay</td><td class="who">Tyler Mickelsen</td><td class="n neg">&minus;$1.82</td></tr><tr><td>Override · Team Manager, Northern Utah</td><td class="who">Carl Crosland</td><td class="n neg">&minus;$29.10</td></tr><tr><td>Override · Director, Northern Utah</td><td class="who">JJ Gurney</td><td class="n neg">&minus;$29.10</td></tr></tbody>
+    <tfoot><tr>
+      <td colspan="2">Total effect &middot; &minus;$101.85 commission, &minus;$72.75 bonuses</td>
+      <td class="n neg">&minus;$174.60</td></tr></tfoot>
+  </table>
+  </div>
+</article>
+<article class="deal" id="co113">
+  <header class="dhead">
+    <div class="dtitle">
+      <h3>SHERRY MILLER / 1207 S 5th  W</h3>
+      <p class="meta">Eastern Idaho &middot; closed 7 Apr 2026 &middot; paid in the 17 Apr 2026 run</p>
+    </div>
+    <span class="tag">Value changed</span>
+  </header>
+  <p class="lede">The contract value moved after this deal was paid on. Only the difference is paid or recovered; the run that has already gone out keeps its figures.</p>
+  <div class="strip">
+    <div><span class="k">Paid on</span><b class="n">$7,852</b></div>
+    <div><span class="k">Contract value now</span><b class="n">$7,190</b></div>
+    <div><span class="k">Change</span><b class="n neg">&minus;$662</b></div>
+    <div><span class="k">Lands in</span><b class="n small">18 Sep 2026 run</b></div>
+  </div>
+  <div class="scroll">
+  <table>
+    <thead><tr><th>What it changes</th><th>Who</th><th class="n">Amount</th></tr></thead>
+    <tbody><tr><td>Setter commission at 1%</td><td class="who">Hunter Bowers</td><td class="n neg">&minus;$6.62</td></tr><tr><td>Closer commission at 9%</td><td class="who">Brian Gwyn</td><td class="n neg">&minus;$59.58</td></tr><tr><td>Recruiting L1 on Brian Gwyn</td><td class="who">Tyler Mickelsen</td><td class="n neg">&minus;$4.96</td></tr><tr><td>Recruiting L1 on Hunter Bowers</td><td class="who">Kerrigan Simpson</td><td class="n neg">&minus;$4.96</td></tr><tr><td>Recruiting L2 on Hunter Bowers</td><td class="who">Mavryck Holmgren</td><td class="n neg">&minus;$1.66</td></tr><tr><td>Override · Team Manager, Eastern Idaho</td><td class="who">JJ Gurney</td><td class="n neg">&minus;$26.48</td></tr><tr><td>Override · Director, Eastern Idaho</td><td class="who">JJ Gurney</td><td class="n neg">&minus;$26.48</td></tr></tbody>
+    <tfoot><tr>
+      <td colspan="2">Total effect &middot; &minus;$66.20 commission, &minus;$64.55 bonuses</td>
+      <td class="n neg">&minus;$130.75</td></tr></tfoot>
+  </table>
+  </div>
+</article>
+<article class="deal" id="co114">
+  <header class="dhead">
+    <div class="dtitle">
+      <h3>KeriAnn &amp; Tommy Gallo / 939 GOSHAWK XING</h3>
+      <p class="meta">Southern Utah &middot; closed 22 Jan 2026 &middot; paid in the 6 Feb 2026 run</p>
+    </div>
+    <span class="tag">Value changed</span>
+  </header>
+  <p class="lede">The contract value moved after this deal was paid on. Only the difference is paid or recovered; the run that has already gone out keeps its figures.</p>
+  <div class="strip">
+    <div><span class="k">Paid on</span><b class="n">$22,508</b></div>
+    <div><span class="k">Contract value now</span><b class="n">$22,000</b></div>
+    <div><span class="k">Change</span><b class="n neg">&minus;$508</b></div>
+    <div><span class="k">Lands in</span><b class="n small">18 Sep 2026 run</b></div>
+  </div>
+  <div class="scroll">
+  <table>
+    <thead><tr><th>What it changes</th><th>Who</th><th class="n">Amount</th></tr></thead>
+    <tbody><tr><td>Setter commission at 5%</td><td class="who">Diane Oswald</td><td class="n neg">&minus;$25.40</td></tr><tr><td>Closer commission at 9%</td><td class="who">Jordan Naylor</td><td class="n neg">&minus;$45.72</td></tr><tr><td>Recruiting L1 on Jordan Naylor</td><td class="who">JJ Gurney</td><td class="n neg">&minus;$3.81</td></tr><tr><td>Recruiting L2 on Jordan Naylor</td><td class="who">Brock Morrison</td><td class="n neg">&minus;$1.27</td></tr><tr><td>Recruiting L1 on Diane Oswald</td><td class="who">JJ Gurney</td><td class="n neg">&minus;$3.81</td></tr><tr><td>Recruiting L2 on Diane Oswald</td><td class="who">Brock Morrison</td><td class="n neg">&minus;$1.27</td></tr><tr><td>Override · Team Manager, Southern Utah</td><td class="who">Jordan Naylor</td><td class="n neg">&minus;$20.32</td></tr><tr><td>Override · Director, Southern Utah</td><td class="who">JJ Gurney</td><td class="n neg">&minus;$20.32</td></tr></tbody>
+    <tfoot><tr>
+      <td colspan="2">Total effect &middot; &minus;$71.12 commission, &minus;$50.80 bonuses</td>
+      <td class="n neg">&minus;$121.92</td></tr></tfoot>
+  </table>
+  </div>
+</article>
+<article class="deal" id="co115">
+  <header class="dhead">
+    <div class="dtitle">
+      <h3>Meghan Kidrick / 2805 Upper River Rd</h3>
+      <p class="meta">Eastern Idaho &middot; closed 23 Jul 2026 &middot; paid in the 7 Aug 2026 run</p>
+    </div>
+    <span class="tag">Value changed</span>
+  </header>
+  <p class="lede">The contract value moved after this deal was paid on. Only the difference is paid or recovered; the run that has already gone out keeps its figures.</p>
+  <div class="strip">
+    <div><span class="k">Paid on</span><b class="n">$23,788</b></div>
+    <div><span class="k">Contract value now</span><b class="n">$23,366</b></div>
+    <div><span class="k">Change</span><b class="n neg">&minus;$422</b></div>
+    <div><span class="k">Lands in</span><b class="n small">18 Sep 2026 run</b></div>
+  </div>
+  <div class="scroll">
+  <table>
+    <thead><tr><th>What it changes</th><th>Who</th><th class="n">Amount</th></tr></thead>
+    <tbody><tr><td>Setter commission at 5%</td><td class="who">Caleb Fransen</td><td class="n neg">&minus;$21.10</td></tr><tr><td>Closer commission at 9%</td><td class="who">Nick Brown</td><td class="n neg">&minus;$37.98</td></tr><tr><td>Recruiting L1 on Nick Brown</td><td class="who">Carl Crosland</td><td class="n neg">&minus;$3.17</td></tr><tr><td>Recruiting L2 on Nick Brown</td><td class="who">Tyler Mickelsen</td><td class="n neg">&minus;$1.05</td></tr><tr><td>Recruiting L1 on Caleb Fransen</td><td class="who">Alan Fransen</td><td class="n neg">&minus;$3.17</td></tr><tr><td>Recruiting L2 on Caleb Fransen</td><td class="who">Tyler Mickelsen</td><td class="n neg">&minus;$1.05</td></tr><tr><td>Override · Team Manager, Eastern Idaho</td><td class="who">JJ Gurney</td><td class="n neg">&minus;$16.88</td></tr><tr><td>Override · Director, Eastern Idaho</td><td class="who">JJ Gurney</td><td class="n neg">&minus;$16.88</td></tr></tbody>
+    <tfoot><tr>
+      <td colspan="2">Total effect &middot; &minus;$59.08 commission, &minus;$42.20 bonuses</td>
+      <td class="n neg">&minus;$101.28</td></tr></tfoot>
+  </table>
+  </div>
+</article>
+<article class="deal" id="co116">
+  <header class="dhead">
+    <div class="dtitle">
+      <h3>JOHN GRAHAM / 270 Mountain Shadows Dr</h3>
+      <p class="meta">Southern Utah &middot; closed 20 Mar 2026 &middot; paid in the 3 Apr 2026 run</p>
+    </div>
+    <span class="tag">Value changed</span>
+  </header>
+  <p class="lede">The contract value moved after this deal was paid on. Only the difference is paid or recovered; the run that has already gone out keeps its figures.</p>
+  <div class="strip">
+    <div><span class="k">Paid on</span><b class="n">$10,839</b></div>
+    <div><span class="k">Contract value now</span><b class="n">$10,539</b></div>
+    <div><span class="k">Change</span><b class="n neg">&minus;$300</b></div>
+    <div><span class="k">Lands in</span><b class="n small">18 Sep 2026 run</b></div>
+  </div>
+  <div class="scroll">
+  <table>
+    <thead><tr><th>What it changes</th><th>Who</th><th class="n">Amount</th></tr></thead>
+    <tbody><tr><td>Setter commission at 5%</td><td class="who">Camille Gerritsen</td><td class="n neg">&minus;$15.00</td></tr><tr><td>Closer commission at 9%</td><td class="who">Nathan Lewis</td><td class="n neg">&minus;$27.00</td></tr><tr><td>Recruiting L1 on Nathan Lewis</td><td class="who">Tyler Mickelsen</td><td class="n neg">&minus;$2.25</td></tr><tr><td>Recruiting L1 on Camille Gerritsen</td><td class="who">Ethan Saxton</td><td class="n neg">&minus;$2.25</td></tr><tr><td>Recruiting L2 on Camille Gerritsen</td><td class="who">Nathan Lewis</td><td class="n neg">&minus;$0.75</td></tr><tr><td>Override · Team Manager, Southern Utah</td><td class="who">Jordan Naylor</td><td class="n neg">&minus;$12.00</td></tr><tr><td>Override · Director, Southern Utah</td><td class="who">JJ Gurney</td><td class="n neg">&minus;$12.00</td></tr></tbody>
+    <tfoot><tr>
+      <td colspan="2">Total effect &middot; &minus;$42.00 commission, &minus;$29.25 bonuses</td>
+      <td class="n neg">&minus;$71.25</td></tr></tfoot>
+  </table>
+  </div>
+</article>
+<article class="deal" id="co117">
+  <header class="dhead">
+    <div class="dtitle">
+      <h3>Brent Baumgartner / 293 S 400  E</h3>
+      <p class="meta">Southern Utah &middot; closed 27 Feb 2026 &middot; paid in the 13 Mar 2026 run</p>
+    </div>
+    <span class="tag">Value changed</span>
+  </header>
+  <p class="lede">The contract value moved after this deal was paid on. Only the difference is paid or recovered; the run that has already gone out keeps its figures.</p>
+  <div class="strip">
+    <div><span class="k">Paid on</span><b class="n">$13,184</b></div>
+    <div><span class="k">Contract value now</span><b class="n">$12,934</b></div>
+    <div><span class="k">Change</span><b class="n neg">&minus;$250</b></div>
+    <div><span class="k">Lands in</span><b class="n small">18 Sep 2026 run</b></div>
+  </div>
+  <div class="scroll">
+  <table>
+    <thead><tr><th>What it changes</th><th>Who</th><th class="n">Amount</th></tr></thead>
+    <tbody><tr><td>Setter commission at 5%</td><td class="who">Kimberly Simmerman</td><td class="n neg">&minus;$12.50</td></tr><tr><td>Closer commission at 9%</td><td class="who">Nathan Lewis</td><td class="n neg">&minus;$22.50</td></tr><tr><td>Recruiting L1 on Nathan Lewis</td><td class="who">Tyler Mickelsen</td><td class="n neg">&minus;$1.88</td></tr><tr><td>Recruiting L1 on Kimberly Simmerman</td><td class="who">JJ Gurney</td><td class="n neg">&minus;$1.88</td></tr><tr><td>Recruiting L2 on Kimberly Simmerman</td><td class="who">Brock Morrison</td><td class="n neg">&minus;$0.62</td></tr><tr><td>Override · Team Manager, Southern Utah</td><td class="who">Jordan Naylor</td><td class="n neg">&minus;$10.00</td></tr><tr><td>Override · Director, Southern Utah</td><td class="who">JJ Gurney</td><td class="n neg">&minus;$10.00</td></tr></tbody>
+    <tfoot><tr>
+      <td colspan="2">Total effect &middot; &minus;$35.00 commission, &minus;$24.38 bonuses</td>
+      <td class="n neg">&minus;$59.38</td></tr></tfoot>
+  </table>
+  </div>
+</article>
+<article class="deal" id="co118">
+  <header class="dhead">
+    <div class="dtitle">
+      <h3>JESUS GARCIA / 2688 S 46th Dr</h3>
+      <p class="meta">Southern Utah &middot; closed 27 May 2026 &middot; paid in the 12 Jun 2026 run</p>
+    </div>
+    <span class="tag">Value changed</span>
+  </header>
+  <p class="lede">The contract value moved after this deal was paid on. Only the difference is paid or recovered; the run that has already gone out keeps its figures.</p>
+  <div class="strip">
+    <div><span class="k">Paid on</span><b class="n">$37,283</b></div>
+    <div><span class="k">Contract value now</span><b class="n">$37,050</b></div>
+    <div><span class="k">Change</span><b class="n neg">&minus;$233</b></div>
+    <div><span class="k">Lands in</span><b class="n small">18 Sep 2026 run</b></div>
+  </div>
+  <div class="scroll">
+  <table>
+    <thead><tr><th>What it changes</th><th>Who</th><th class="n">Amount</th></tr></thead>
+    <tbody><tr><td>Setter commission at 5%</td><td class="who">Camille Gerritsen</td><td class="n neg">&minus;$11.65</td></tr><tr><td>Closer commission at 9%</td><td class="who">Nathan Lewis</td><td class="n neg">&minus;$20.97</td></tr><tr><td>Recruiting L1 on Nathan Lewis</td><td class="who">Tyler Mickelsen</td><td class="n neg">&minus;$1.75</td></tr><tr><td>Recruiting L1 on Camille Gerritsen</td><td class="who">Ethan Saxton</td><td class="n neg">&minus;$1.75</td></tr><tr><td>Recruiting L2 on Camille Gerritsen</td><td class="who">Nathan Lewis</td><td class="n neg">&minus;$0.58</td></tr><tr><td>Override · Team Manager, Southern Utah</td><td class="who">Jordan Naylor</td><td class="n neg">&minus;$9.32</td></tr><tr><td>Override · Director, Southern Utah</td><td class="who">JJ Gurney</td><td class="n neg">&minus;$9.32</td></tr></tbody>
+    <tfoot><tr>
+      <td colspan="2">Total effect &middot; &minus;$32.62 commission, &minus;$22.72 bonuses</td>
+      <td class="n neg">&minus;$55.34</td></tr></tfoot>
+  </table>
+  </div>
+</article>
+<article class="deal" id="co119">
+  <header class="dhead">
+    <div class="dtitle">
+      <h3>Paul Armstrong / 3515 W Mountain Dr</h3>
+      <p class="meta">Northern Utah &middot; closed 16 Mar 2026 &middot; paid in the 27 Mar 2026 run</p>
+    </div>
+    <span class="tag">Value changed</span>
+  </header>
+  <p class="lede">The contract value moved after this deal was paid on. Only the difference is paid or recovered; the run that has already gone out keeps its figures.</p>
+  <div class="strip">
+    <div><span class="k">Paid on</span><b class="n">$10,814</b></div>
+    <div><span class="k">Contract value now</span><b class="n">$10,614</b></div>
+    <div><span class="k">Change</span><b class="n neg">&minus;$200</b></div>
+    <div><span class="k">Lands in</span><b class="n small">18 Sep 2026 run</b></div>
+  </div>
+  <div class="scroll">
+  <table>
+    <thead><tr><th>What it changes</th><th>Who</th><th class="n">Amount</th></tr></thead>
+    <tbody><tr><td>Setter commission at 5%</td><td class="who">Ryan King</td><td class="n neg">&minus;$10.00</td></tr><tr><td>Closer commission at 9%</td><td class="who">Nathan Lewis</td><td class="n neg">&minus;$18.00</td></tr><tr><td>Recruiting L1 on Nathan Lewis</td><td class="who">Tyler Mickelsen</td><td class="n neg">&minus;$1.50</td></tr><tr><td>Recruiting L1 on Ryan King</td><td class="who">Ethan Saxton</td><td class="n neg">&minus;$1.50</td></tr><tr><td>Recruiting L2 on Ryan King</td><td class="who">Nathan Lewis</td><td class="n neg">&minus;$0.50</td></tr><tr><td>Override · Team Manager, Northern Utah</td><td class="who">Carl Crosland</td><td class="n neg">&minus;$8.00</td></tr><tr><td>Override · Director, Northern Utah</td><td class="who">JJ Gurney</td><td class="n neg">&minus;$8.00</td></tr></tbody>
+    <tfoot><tr>
+      <td colspan="2">Total effect &middot; &minus;$28.00 commission, &minus;$19.50 bonuses</td>
+      <td class="n neg">&minus;$47.50</td></tr></tfoot>
+  </table>
+  </div>
+</article>
+<article class="deal" id="co120">
+  <header class="dhead">
+    <div class="dtitle">
+      <h3>Christopher &amp; Kimberly  Hook / 1330 Field Dr</h3>
+      <p class="meta">Eastern Idaho &middot; closed 12 May 2026 &middot; paid in the 22 May 2026 run</p>
+    </div>
+    <span class="tag">Value changed</span>
+  </header>
+  <p class="lede">The contract value moved after this deal was paid on. Only the difference is paid or recovered; the run that has already gone out keeps its figures.</p>
+  <div class="strip">
+    <div><span class="k">Paid on</span><b class="n">$5,670</b></div>
+    <div><span class="k">Contract value now</span><b class="n">$5,470</b></div>
+    <div><span class="k">Change</span><b class="n neg">&minus;$200</b></div>
+    <div><span class="k">Lands in</span><b class="n small">18 Sep 2026 run</b></div>
+  </div>
+  <div class="scroll">
+  <table>
+    <thead><tr><th>What it changes</th><th>Who</th><th class="n">Amount</th></tr></thead>
+    <tbody><tr><td>Setter commission at 5%</td><td class="who">Brian Gwyn</td><td class="n neg">&minus;$10.00</td></tr><tr><td>Closer commission at 9%</td><td class="who">Brian Gwyn</td><td class="n neg">&minus;$18.00</td></tr><tr><td>Recruiting L1 on Brian Gwyn</td><td class="who">Tyler Mickelsen</td><td class="n neg">&minus;$3.00</td></tr><tr><td>Override · Team Manager, Eastern Idaho</td><td class="who">JJ Gurney</td><td class="n neg">&minus;$8.00</td></tr><tr><td>Override · Director, Eastern Idaho</td><td class="who">JJ Gurney</td><td class="n neg">&minus;$8.00</td></tr></tbody>
+    <tfoot><tr>
+      <td colspan="2">Total effect &middot; &minus;$28.00 commission, &minus;$19.00 bonuses</td>
+      <td class="n neg">&minus;$47.00</td></tr></tfoot>
+  </table>
+  </div>
+</article>
+<article class="deal" id="co121">
+  <header class="dhead">
+    <div class="dtitle">
+      <h3>Megan Holterback / 2204 Beech Dr</h3>
+      <p class="meta">Southern Utah &middot; closed 16 Jul 2026 &middot; paid in the 31 Jul 2026 run</p>
+    </div>
+    <span class="tag">Value changed</span>
+  </header>
+  <p class="lede">The contract value moved after this deal was paid on. Only the difference is paid or recovered; the run that has already gone out keeps its figures.</p>
+  <div class="strip">
+    <div><span class="k">Paid on</span><b class="n">$16,717</b></div>
+    <div><span class="k">Contract value now</span><b class="n">$16,569</b></div>
+    <div><span class="k">Change</span><b class="n neg">&minus;$148</b></div>
+    <div><span class="k">Lands in</span><b class="n small">18 Sep 2026 run</b></div>
+  </div>
+  <div class="scroll">
+  <table>
+    <thead><tr><th>What it changes</th><th>Who</th><th class="n">Amount</th></tr></thead>
+    <tbody><tr><td>Setter commission at 5%</td><td class="who">Colter Busk</td><td class="n neg">&minus;$7.40</td></tr><tr><td>Closer commission at 9%</td><td class="who">JJ Gurney</td><td class="n neg">&minus;$13.32</td></tr><tr><td>Recruiting L1 on JJ Gurney</td><td class="who">Brock Morrison</td><td class="n neg">&minus;$1.11</td></tr><tr><td>Recruiting L1 on Colter Busk</td><td class="who">JJ Gurney</td><td class="n neg">&minus;$1.11</td></tr><tr><td>Recruiting L2 on Colter Busk</td><td class="who">Brock Morrison</td><td class="n neg">&minus;$0.37</td></tr><tr><td>Override · Team Manager, Southern Utah</td><td class="who">Jordan Naylor</td><td class="n neg">&minus;$5.92</td></tr><tr><td>Override · Director, Southern Utah</td><td class="who">JJ Gurney</td><td class="n neg">&minus;$5.92</td></tr></tbody>
+    <tfoot><tr>
+      <td colspan="2">Total effect &middot; &minus;$20.72 commission, &minus;$14.43 bonuses</td>
+      <td class="n neg">&minus;$35.15</td></tr></tfoot>
+  </table>
+  </div>
+</article>
+<article class="deal" id="co122">
+  <header class="dhead">
+    <div class="dtitle">
+      <h3>AURELIO RODRIGUEZ / 1099 E 500  S</h3>
+      <p class="meta">Northern Utah &middot; closed 15 May 2026 &middot; paid in the 29 May 2026 run</p>
+    </div>
+    <span class="tag">Value changed</span>
+  </header>
+  <p class="lede">The contract value moved after this deal was paid on. Only the difference is paid or recovered; the run that has already gone out keeps its figures.</p>
+  <div class="strip">
+    <div><span class="k">Paid on</span><b class="n">$20,692</b></div>
+    <div><span class="k">Contract value now</span><b class="n">$20,707</b></div>
+    <div><span class="k">Change</span><b class="n pos">$15</b></div>
+    <div><span class="k">Lands in</span><b class="n small">18 Sep 2026 run</b></div>
+  </div>
+  <div class="scroll">
+  <table>
+    <thead><tr><th>What it changes</th><th>Who</th><th class="n">Amount</th></tr></thead>
+    <tbody><tr><td>Setter commission at 5%</td><td class="who">Adrian Xanthos</td><td class="n pos">$0.75</td></tr><tr><td>Closer commission at 9%</td><td class="who">Pablo Munguia</td><td class="n pos">$1.35</td></tr><tr><td>Recruiting L1 on Pablo Munguia</td><td class="who">Carl Crosland</td><td class="n pos">$0.11</td></tr><tr><td>Recruiting L2 on Pablo Munguia</td><td class="who">Tyler Mickelsen</td><td class="n pos">$0.04</td></tr><tr><td>Recruiting L1 on Adrian Xanthos</td><td class="who">Terry Xanthos</td><td class="n pos">$0.11</td></tr><tr><td>Recruiting L2 on Adrian Xanthos</td><td class="who">Dane Covington</td><td class="n pos">$0.04</td></tr><tr><td>Override · Team Manager, Northern Utah</td><td class="who">Carl Crosland</td><td class="n pos">$0.60</td></tr><tr><td>Override · Director, Northern Utah</td><td class="who">JJ Gurney</td><td class="n pos">$0.60</td></tr></tbody>
+    <tfoot><tr>
+      <td colspan="2">Total effect &middot; $2.10 commission, $1.50 bonuses</td>
+      <td class="n pos">$3.60</td></tr></tfoot>
+  </table>
+  </div>
+</article>
+<article class="deal" id="co123">
+  <header class="dhead">
+    <div class="dtitle">
+      <h3>SHARVA PFENNIGS / 3304 12th St NE</h3>
+      <p class="meta">Southern Utah &middot; closed 23 Jul 2026 &middot; paid in the 7 Aug 2026 run</p>
+    </div>
+    <span class="tag">Value changed</span>
+  </header>
+  <p class="lede">The contract value moved after this deal was paid on. Only the difference is paid or recovered; the run that has already gone out keeps its figures.</p>
+  <div class="strip">
+    <div><span class="k">Paid on</span><b class="n">$13,573</b></div>
+    <div><span class="k">Contract value now</span><b class="n">$13,746</b></div>
+    <div><span class="k">Change</span><b class="n pos">$173</b></div>
+    <div><span class="k">Lands in</span><b class="n small">18 Sep 2026 run</b></div>
+  </div>
+  <div class="scroll">
+  <table>
+    <thead><tr><th>What it changes</th><th>Who</th><th class="n">Amount</th></tr></thead>
+    <tbody><tr><td>Setter commission at 5%</td><td class="who">Diane Oswald</td><td class="n pos">$8.65</td></tr><tr><td>Closer commission at 9%</td><td class="who">Brian Gwyn</td><td class="n pos">$15.57</td></tr><tr><td>Recruiting L1 on Brian Gwyn</td><td class="who">Tyler Mickelsen</td><td class="n pos">$1.30</td></tr><tr><td>Recruiting L1 on Diane Oswald</td><td class="who">JJ Gurney</td><td class="n pos">$1.30</td></tr><tr><td>Recruiting L2 on Diane Oswald</td><td class="who">Brock Morrison</td><td class="n pos">$0.43</td></tr><tr><td>Override · Team Manager, Southern Utah</td><td class="who">Jordan Naylor</td><td class="n pos">$6.92</td></tr><tr><td>Override · Director, Southern Utah</td><td class="who">JJ Gurney</td><td class="n pos">$6.92</td></tr></tbody>
+    <tfoot><tr>
+      <td colspan="2">Total effect &middot; $24.22 commission, $16.87 bonuses</td>
+      <td class="n pos">$41.09</td></tr></tfoot>
+  </table>
+  </div>
+</article>
+<article class="deal" id="co124">
+  <header class="dhead">
+    <div class="dtitle">
+      <h3>Jenn Reese / 438 E Greystone Dr</h3>
+      <p class="meta">Northern Utah &middot; closed 24 Mar 2026 &middot; paid in the 3 Apr 2026 run</p>
+    </div>
+    <span class="tag">Value changed</span>
+  </header>
+  <p class="lede">The contract value moved after this deal was paid on. Only the difference is paid or recovered; the run that has already gone out keeps its figures.</p>
+  <div class="strip">
+    <div><span class="k">Paid on</span><b class="n">$1,539</b></div>
+    <div><span class="k">Contract value now</span><b class="n">$1,737</b></div>
+    <div><span class="k">Change</span><b class="n pos">$198</b></div>
+    <div><span class="k">Lands in</span><b class="n small">18 Sep 2026 run</b></div>
+  </div>
+  <div class="scroll">
+  <table>
+    <thead><tr><th>What it changes</th><th>Who</th><th class="n">Amount</th></tr></thead>
+    <tbody><tr><td>Setter commission at 5%</td><td class="who">Vivid Windows</td><td class="n pos">$9.90</td></tr><tr><td>Closer commission at 9%</td><td class="who">Carl Crosland</td><td class="n pos">$17.82</td></tr><tr><td>Recruiting L1 on Carl Crosland</td><td class="who">Tyler Mickelsen</td><td class="n pos">$1.48</td></tr><tr><td>Override · Team Manager, Northern Utah</td><td class="who">Carl Crosland</td><td class="n pos">$7.92</td></tr><tr><td>Override · Director, Northern Utah</td><td class="who">JJ Gurney</td><td class="n pos">$7.92</td></tr></tbody>
+    <tfoot><tr>
+      <td colspan="2">Total effect &middot; $27.72 commission, $17.32 bonuses</td>
+      <td class="n pos">$45.05</td></tr></tfoot>
+  </table>
+  </div>
+</article>
+<article class="deal" id="co125">
+  <header class="dhead">
+    <div class="dtitle">
+      <h3>MARK &amp; JEAN FELIO / 11755 E 28th Pl</h3>
+      <p class="meta">Southern Utah &middot; closed 28 May 2026 &middot; paid in the 12 Jun 2026 run</p>
+    </div>
+    <span class="tag">Value changed</span>
+  </header>
+  <p class="lede">The contract value moved after this deal was paid on. Only the difference is paid or recovered; the run that has already gone out keeps its figures.</p>
+  <div class="strip">
+    <div><span class="k">Paid on</span><b class="n">$9,700</b></div>
+    <div><span class="k">Contract value now</span><b class="n">$10,264</b></div>
+    <div><span class="k">Change</span><b class="n pos">$564</b></div>
+    <div><span class="k">Lands in</span><b class="n small">18 Sep 2026 run</b></div>
+  </div>
+  <div class="scroll">
+  <table>
+    <thead><tr><th>What it changes</th><th>Who</th><th class="n">Amount</th></tr></thead>
+    <tbody><tr><td>Setter commission at 5%</td><td class="who">Diane Oswald</td><td class="n pos">$28.20</td></tr><tr><td>Closer commission at 9%</td><td class="who">Jordan Naylor</td><td class="n pos">$50.76</td></tr><tr><td>Recruiting L1 on Jordan Naylor</td><td class="who">JJ Gurney</td><td class="n pos">$4.23</td></tr><tr><td>Recruiting L2 on Jordan Naylor</td><td class="who">Brock Morrison</td><td class="n pos">$1.41</td></tr><tr><td>Recruiting L1 on Diane Oswald</td><td class="who">JJ Gurney</td><td class="n pos">$4.23</td></tr><tr><td>Recruiting L2 on Diane Oswald</td><td class="who">Brock Morrison</td><td class="n pos">$1.41</td></tr><tr><td>Override · Team Manager, Southern Utah</td><td class="who">Jordan Naylor</td><td class="n pos">$22.56</td></tr><tr><td>Override · Director, Southern Utah</td><td class="who">JJ Gurney</td><td class="n pos">$22.56</td></tr></tbody>
+    <tfoot><tr>
+      <td colspan="2">Total effect &middot; $78.96 commission, $56.40 bonuses</td>
+      <td class="n pos">$135.36</td></tr></tfoot>
+  </table>
+  </div>
+</article>
+<article class="deal" id="co126">
+  <header class="dhead">
+    <div class="dtitle">
+      <h3>Bill Thompson / 4870 N Skyline Dr</h3>
+      <p class="meta">Eastern Idaho &middot; closed 25 May 2026 &middot; paid in the 5 Jun 2026 run</p>
+    </div>
+    <span class="tag">Value changed</span>
+  </header>
+  <p class="lede">The contract value moved after this deal was paid on. Only the difference is paid or recovered; the run that has already gone out keeps its figures.</p>
+  <div class="strip">
+    <div><span class="k">Paid on</span><b class="n">$19,788</b></div>
+    <div><span class="k">Contract value now</span><b class="n">$20,788</b></div>
+    <div><span class="k">Change</span><b class="n pos">$1,000</b></div>
+    <div><span class="k">Lands in</span><b class="n small">18 Sep 2026 run</b></div>
+  </div>
+  <div class="scroll">
+  <table>
+    <thead><tr><th>What it changes</th><th>Who</th><th class="n">Amount</th></tr></thead>
+    <tbody><tr><td>Setter commission at 5%</td><td class="who">Kerrigan Simpson</td><td class="n pos">$50.00</td></tr><tr><td>Closer commission at 9%</td><td class="who">Kerrigan Simpson</td><td class="n pos">$90.00</td></tr><tr><td>Recruiting L1 on Kerrigan Simpson</td><td class="who">Mavryck Holmgren</td><td class="n pos">$15.00</td></tr><tr><td>Recruiting L2 on Kerrigan Simpson</td><td class="who">Brock Morrison</td><td class="n pos">$5.00</td></tr><tr><td>Recruiting 2% on Kerrigan Simpson</td><td class="who">Mavryck Holmgren</td><td class="n pos">$20.00</td></tr><tr><td>Override · Team Manager, Eastern Idaho</td><td class="who">JJ Gurney</td><td class="n pos">$40.00</td></tr><tr><td>Override · Director, Eastern Idaho</td><td class="who">JJ Gurney</td><td class="n pos">$40.00</td></tr></tbody>
+    <tfoot><tr>
+      <td colspan="2">Total effect &middot; $140.00 commission, $120.00 bonuses</td>
+      <td class="n pos">$260.00</td></tr></tfoot>
+  </table>
+  </div>
+</article>
+<article class="deal" id="co127">
+  <header class="dhead">
+    <div class="dtitle">
+      <h3>Acacia and Scott MacCallum / 3901 12TH ST NE</h3>
+      <p class="meta">Southern Utah &middot; closed 22 Jul 2026 &middot; paid in the 7 Aug 2026 run</p>
+    </div>
+    <span class="tag">Value changed</span>
+  </header>
+  <p class="lede">The contract value moved after this deal was paid on. Only the difference is paid or recovered; the run that has already gone out keeps its figures.</p>
+  <div class="strip">
+    <div><span class="k">Paid on</span><b class="n">$33,088</b></div>
+    <div><span class="k">Contract value now</span><b class="n">$34,708</b></div>
+    <div><span class="k">Change</span><b class="n pos">$1,620</b></div>
+    <div><span class="k">Lands in</span><b class="n small">18 Sep 2026 run</b></div>
+  </div>
+  <div class="scroll">
+  <table>
+    <thead><tr><th>What it changes</th><th>Who</th><th class="n">Amount</th></tr></thead>
+    <tbody><tr><td>Setter commission at 5%</td><td class="who">Diane Oswald</td><td class="n pos">$81.00</td></tr><tr><td>Closer commission at 9%</td><td class="who">JJ Gurney</td><td class="n pos">$145.80</td></tr><tr><td>Recruiting L1 on JJ Gurney</td><td class="who">Brock Morrison</td><td class="n pos">$12.15</td></tr><tr><td>Recruiting L1 on Diane Oswald</td><td class="who">JJ Gurney</td><td class="n pos">$12.15</td></tr><tr><td>Recruiting L2 on Diane Oswald</td><td class="who">Brock Morrison</td><td class="n pos">$4.05</td></tr><tr><td>Override · Team Manager, Southern Utah</td><td class="who">Jordan Naylor</td><td class="n pos">$64.80</td></tr><tr><td>Override · Director, Southern Utah</td><td class="who">JJ Gurney</td><td class="n pos">$64.80</td></tr></tbody>
+    <tfoot><tr>
+      <td colspan="2">Total effect &middot; $226.80 commission, $157.95 bonuses</td>
+      <td class="n pos">$384.75</td></tr></tfoot>
+  </table>
+  </div>
+</article>
+<article class="deal" id="co128">
+  <header class="dhead">
+    <div class="dtitle">
+      <h3>Cheryl Dickerson / 536 Forest Circle Dr</h3>
+      <p class="meta">Eastern Idaho &middot; closed 3 Aug 2026 &middot; paid in the 14 Aug 2026 run</p>
+    </div>
+    <span class="tag">Value changed</span>
+  </header>
+  <p class="lede">The contract value moved after this deal was paid on. Only the difference is paid or recovered; the run that has already gone out keeps its figures.</p>
+  <div class="strip">
+    <div><span class="k">Paid on</span><b class="n">$31,772</b></div>
+    <div><span class="k">Contract value now</span><b class="n">$33,379</b></div>
+    <div><span class="k">Change</span><b class="n pos">$1,607</b></div>
+    <div><span class="k">Lands in</span><b class="n small">18 Sep 2026 run</b></div>
+  </div>
+  <div class="scroll">
+  <table>
+    <thead><tr><th>What it changes</th><th>Who</th><th class="n">Amount</th></tr></thead>
+    <tbody><tr><td>Setter commission at 5%</td><td class="who">Nick Brown</td><td class="n pos">$80.35</td></tr><tr><td>Closer commission at 9%</td><td class="who">Nick Brown</td><td class="n pos">$144.63</td></tr><tr><td>Recruiting L1 on Nick Brown</td><td class="who">Carl Crosland</td><td class="n pos">$24.11</td></tr><tr><td>Recruiting L2 on Nick Brown</td><td class="who">Tyler Mickelsen</td><td class="n pos">$8.04</td></tr><tr><td>Override · Team Manager, Eastern Idaho</td><td class="who">JJ Gurney</td><td class="n pos">$64.28</td></tr><tr><td>Override · Director, Eastern Idaho</td><td class="who">JJ Gurney</td><td class="n pos">$64.28</td></tr></tbody>
+    <tfoot><tr>
+      <td colspan="2">Total effect &middot; $224.98 commission, $160.70 bonuses</td>
+      <td class="n pos">$385.68</td></tr></tfoot>
+  </table>
+  </div>
+</article>
+<article class="deal" id="co129">
+  <header class="dhead">
+    <div class="dtitle">
+      <h3>Olivia Iturrio / 350 Via Spoleto</h3>
+      <p class="meta">Northern Utah &middot; closed 26 Jun 2026 &middot; paid in the 10 Jul 2026 run</p>
+    </div>
+    <span class="tag">Value changed</span>
+  </header>
+  <p class="lede">The contract value moved after this deal was paid on. Only the difference is paid or recovered; the run that has already gone out keeps its figures.</p>
+  <div class="strip">
+    <div><span class="k">Paid on</span><b class="n">$23,755</b></div>
+    <div><span class="k">Contract value now</span><b class="n">$25,455</b></div>
+    <div><span class="k">Change</span><b class="n pos">$1,700</b></div>
+    <div><span class="k">Lands in</span><b class="n small">18 Sep 2026 run</b></div>
+  </div>
+  <div class="scroll">
+  <table>
+    <thead><tr><th>What it changes</th><th>Who</th><th class="n">Amount</th></tr></thead>
+    <tbody><tr><td>Setter commission at 5%</td><td class="who">Caleb Fransen</td><td class="n pos">$85.00</td></tr><tr><td>Closer commission at 9%</td><td class="who">Todd Hess</td><td class="n pos">$153.00</td></tr><tr><td>Recruiting L1 on Todd Hess</td><td class="who">Carl Crosland</td><td class="n pos">$12.75</td></tr><tr><td>Recruiting L2 on Todd Hess</td><td class="who">Tyler Mickelsen</td><td class="n pos">$4.25</td></tr><tr><td>Recruiting L1 on Caleb Fransen</td><td class="who">Alan Fransen</td><td class="n pos">$12.75</td></tr><tr><td>Recruiting L2 on Caleb Fransen</td><td class="who">Tyler Mickelsen</td><td class="n pos">$4.25</td></tr><tr><td>Override · Team Manager, Northern Utah</td><td class="who">Carl Crosland</td><td class="n pos">$68.00</td></tr><tr><td>Override · Director, Northern Utah</td><td class="who">JJ Gurney</td><td class="n pos">$68.00</td></tr></tbody>
+    <tfoot><tr>
+      <td colspan="2">Total effect &middot; $238.00 commission, $170.00 bonuses</td>
+      <td class="n pos">$408.00</td></tr></tfoot>
+  </table>
+  </div>
+</article>
+<article class="deal" id="co130">
+  <header class="dhead">
+    <div class="dtitle">
+      <h3>Cindy McCarthy / 110 Larkspur Ln</h3>
+      <p class="meta">Eastern Idaho &middot; closed 9 Jul 2026 &middot; paid in the 24 Jul 2026 run</p>
+    </div>
+    <span class="tag">Value changed</span>
+  </header>
+  <p class="lede">The contract value moved after this deal was paid on. Only the difference is paid or recovered; the run that has already gone out keeps its figures.</p>
+  <div class="strip">
+    <div><span class="k">Paid on</span><b class="n">$17,140</b></div>
+    <div><span class="k">Contract value now</span><b class="n">$19,122</b></div>
+    <div><span class="k">Change</span><b class="n pos">$1,982</b></div>
+    <div><span class="k">Lands in</span><b class="n small">18 Sep 2026 run</b></div>
+  </div>
+  <div class="scroll">
+  <table>
+    <thead><tr><th>What it changes</th><th>Who</th><th class="n">Amount</th></tr></thead>
+    <tbody><tr><td>Setter commission at 5%</td><td class="who">Caleb Fransen</td><td class="n pos">$99.10</td></tr><tr><td>Closer commission at 9%</td><td class="who">Dane Covington</td><td class="n pos">$178.38</td></tr><tr><td>Recruiting L1 on Dane Covington</td><td class="who">Carl Crosland</td><td class="n pos">$14.87</td></tr><tr><td>Recruiting L2 on Dane Covington</td><td class="who">Tyler Mickelsen</td><td class="n pos">$4.96</td></tr><tr><td>Recruiting L1 on Caleb Fransen</td><td class="who">Alan Fransen</td><td class="n pos">$14.87</td></tr><tr><td>Recruiting L2 on Caleb Fransen</td><td class="who">Tyler Mickelsen</td><td class="n pos">$4.96</td></tr><tr><td>Override · Team Manager, Eastern Idaho</td><td class="who">JJ Gurney</td><td class="n pos">$79.28</td></tr><tr><td>Override · Director, Eastern Idaho</td><td class="who">JJ Gurney</td><td class="n pos">$79.28</td></tr></tbody>
+    <tfoot><tr>
+      <td colspan="2">Total effect &middot; $277.48 commission, $198.20 bonuses</td>
+      <td class="n pos">$475.68</td></tr></tfoot>
+  </table>
+  </div>
+</article>
+<article class="deal" id="co131">
+  <header class="dhead">
+    <div class="dtitle">
+      <h3>Dwight Romriell / 13840 N Moonglow Ln</h3>
+      <p class="meta">Eastern Idaho &middot; closed 7 Apr 2026 &middot; paid in the 17 Apr 2026 run</p>
+    </div>
+    <span class="tag">Value changed</span>
+  </header>
+  <p class="lede">The contract value moved after this deal was paid on. Only the difference is paid or recovered; the run that has already gone out keeps its figures.</p>
+  <div class="strip">
+    <div><span class="k">Paid on</span><b class="n">$8,733</b></div>
+    <div><span class="k">Contract value now</span><b class="n">$13,659</b></div>
+    <div><span class="k">Change</span><b class="n pos">$4,926</b></div>
+    <div><span class="k">Lands in</span><b class="n small">18 Sep 2026 run</b></div>
+  </div>
+  <div class="scroll">
+  <table>
+    <thead><tr><th>What it changes</th><th>Who</th><th class="n">Amount</th></tr></thead>
+    <tbody><tr><td>Setter commission at 5%</td><td class="who">Kerrigan Simpson</td><td class="n pos">$246.30</td></tr><tr><td>Closer commission at 9%</td><td class="who">Kerrigan Simpson</td><td class="n pos">$443.34</td></tr><tr><td>Recruiting L1 on Kerrigan Simpson</td><td class="who">Mavryck Holmgren</td><td class="n pos">$73.89</td></tr><tr><td>Recruiting L2 on Kerrigan Simpson</td><td class="who">Brock Morrison</td><td class="n pos">$24.63</td></tr><tr><td>Recruiting 2% on Kerrigan Simpson</td><td class="who">Mavryck Holmgren</td><td class="n pos">$98.52</td></tr><tr><td>Override · Team Manager, Eastern Idaho</td><td class="who">JJ Gurney</td><td class="n pos">$197.04</td></tr><tr><td>Override · Director, Eastern Idaho</td><td class="who">JJ Gurney</td><td class="n pos">$197.04</td></tr></tbody>
+    <tfoot><tr>
+      <td colspan="2">Total effect &middot; $689.64 commission, $591.12 bonuses</td>
+      <td class="n pos">$1,280.76</td></tr></tfoot>
+  </table>
+  </div>
+</article>
+<article class="deal" id="co132">
+  <header class="dhead">
+    <div class="dtitle">
+      <h3>Lili Stokes / 24 Bear Cir</h3>
+      <p class="meta">Northern Utah &middot; closed 20 Mar 2026 &middot; paid in the 3 Apr 2026 run</p>
+    </div>
+    <span class="tag">Value changed</span>
+  </header>
+  <p class="lede">The contract value moved after this deal was paid on. Only the difference is paid or recovered; the run that has already gone out keeps its figures.</p>
+  <div class="strip">
+    <div><span class="k">Paid on</span><b class="n">$24,277</b></div>
+    <div><span class="k">Contract value now</span><b class="n">$31,587</b></div>
+    <div><span class="k">Change</span><b class="n pos">$7,310</b></div>
+    <div><span class="k">Lands in</span><b class="n small">18 Sep 2026 run</b></div>
+  </div>
+  <div class="scroll">
+  <table>
+    <thead><tr><th>What it changes</th><th>Who</th><th class="n">Amount</th></tr></thead>
+    <tbody><tr><td>Setter commission at 5%</td><td class="who">Dane Covington</td><td class="n pos">$365.50</td></tr><tr><td>Closer commission at 9%</td><td class="who">Dane Covington</td><td class="n pos">$657.90</td></tr><tr><td>Recruiting L1 on Dane Covington</td><td class="who">Carl Crosland</td><td class="n pos">$109.65</td></tr><tr><td>Recruiting L2 on Dane Covington</td><td class="who">Tyler Mickelsen</td><td class="n pos">$36.55</td></tr><tr><td>Override · Team Manager, Northern Utah</td><td class="who">Carl Crosland</td><td class="n pos">$292.40</td></tr><tr><td>Override · Director, Northern Utah</td><td class="who">JJ Gurney</td><td class="n pos">$292.40</td></tr></tbody>
+    <tfoot><tr>
+      <td colspan="2">Total effect &middot; $1,023.40 commission, $731.00 bonuses</td>
+      <td class="n pos">$1,754.40</td></tr></tfoot>
+  </table>
+  </div>
+</article>
+<article class="deal" id="co133">
+  <header class="dhead">
+    <div class="dtitle">
+      <h3>Donald &amp; Karen Brandon / 1960 N Serenity Dr</h3>
+      <p class="meta">Southern Utah &middot; closed 4 Jun 2026 &middot; paid in the 19 Jun 2026 run</p>
+    </div>
+    <span class="tag">Value changed</span>
+  </header>
+  <p class="lede">The contract value moved after this deal was paid on. Only the difference is paid or recovered; the run that has already gone out keeps its figures.</p>
+  <div class="strip">
+    <div><span class="k">Paid on</span><b class="n">$16,870</b></div>
+    <div><span class="k">Contract value now</span><b class="n">$27,600</b></div>
+    <div><span class="k">Change</span><b class="n pos">$10,730</b></div>
+    <div><span class="k">Lands in</span><b class="n small">18 Sep 2026 run</b></div>
+  </div>
+  <div class="scroll">
+  <table>
+    <thead><tr><th>What it changes</th><th>Who</th><th class="n">Amount</th></tr></thead>
+    <tbody><tr><td>Setter commission at 5%</td><td class="who">Diane Oswald</td><td class="n pos">$536.50</td></tr><tr><td>Closer commission at 9%</td><td class="who">JJ Gurney</td><td class="n pos">$965.70</td></tr><tr><td>Recruiting L1 on JJ Gurney</td><td class="who">Brock Morrison</td><td class="n pos">$80.47</td></tr><tr><td>Recruiting L1 on Diane Oswald</td><td class="who">JJ Gurney</td><td class="n pos">$80.47</td></tr><tr><td>Recruiting L2 on Diane Oswald</td><td class="who">Brock Morrison</td><td class="n pos">$26.82</td></tr><tr><td>Override · Team Manager, Southern Utah</td><td class="who">Jordan Naylor</td><td class="n pos">$429.20</td></tr><tr><td>Override · Director, Southern Utah</td><td class="who">JJ Gurney</td><td class="n pos">$429.20</td></tr></tbody>
+    <tfoot><tr>
+      <td colspan="2">Total effect &middot; $1,502.20 commission, $1,046.17 bonuses</td>
+      <td class="n pos">$2,548.38</td></tr></tfoot>
+  </table>
+  </div>
+</article></div>
+</section>
+
+<section class="people">
+  <h2>Who it lands on</h2>
+  <p class="sub">The same money, totalled per person. A negative figure is recovered from them in the
+  18 Sep 2026 run; a positive one is paid to them.</p>
+  <div class="scroll"><table>
+    <thead><tr><th>Person</th><th class="n">Net effect</th></tr></thead>
+    <tbody><tr><td>Jordan Naylor</td><td class="n neg">&minus;$6,844.91</td></tr><tr><td>JJ Gurney</td><td class="n neg">&minus;$3,874.19</td></tr><tr><td>Brian Gwyn</td><td class="n neg">&minus;$3,028.09</td></tr><tr><td>Kimberly Simmerman</td><td class="n neg">&minus;$1,493.10</td></tr><tr><td>Brian Gwyn Jr</td><td class="n neg">&minus;$1,393.10</td></tr><tr><td>Nathan Lewis</td><td class="n neg">&minus;$820.80</td></tr><tr><td>Colter Busk</td><td class="n neg">&minus;$796.60</td></tr><tr><td>Brett Turley</td><td class="n neg">&minus;$484.85</td></tr><tr><td>Darcey Barrus</td><td class="n neg">&minus;$431.06</td></tr><tr><td>Tyler Mickelsen</td><td class="n neg">&minus;$390.11</td></tr><tr><td>Jaron Hartshorn</td><td class="n neg">&minus;$327.45</td></tr><tr><td>Carl Crosland</td><td class="n neg">&minus;$288.50</td></tr><tr><td>Brock Morrison</td><td class="n neg">&minus;$150.91</td></tr><tr><td>Ethan Saxton</td><td class="n neg">&minus;$128.22</td></tr><tr><td>Tanner Crosland</td><td class="n neg">&minus;$109.65</td></tr><tr><td>Nick Brown</td><td class="n neg">&minus;$52.48</td></tr><tr><td>Adrian Xanthos</td><td class="n neg">&minus;$48.37</td></tr><tr><td>Mavryck Holmgren</td><td class="n neg">&minus;$40.35</td></tr><tr><td>Eli Asay</td><td class="n neg">&minus;$36.38</td></tr><tr><td>Kerrigan Simpson</td><td class="n neg">&minus;$28.78</td></tr><tr><td>Camille Gerritsen</td><td class="n neg">&minus;$26.65</td></tr><tr><td>Terry Xanthos</td><td class="n neg">&minus;$16.26</td></tr><tr><td>Ryan King</td><td class="n neg">&minus;$10.00</td></tr><tr><td>Hunter Bowers</td><td class="n neg">&minus;$6.62</td></tr><tr><td>Pablo Munguia</td><td class="n pos">$1.35</td></tr><tr><td>Vivid Windows</td><td class="n pos">$9.90</td></tr><tr><td>Alan Fransen</td><td class="n pos">$24.45</td></tr><tr><td>Todd Hess</td><td class="n pos">$153.00</td></tr><tr><td>Caleb Fransen</td><td class="n pos">$163.00</td></tr><tr><td>Diane Oswald</td><td class="n pos">$290.75</td></tr><tr><td>Dane Covington</td><td class="n pos">$1,130.89</td></tr></tbody>
+    <tfoot><tr><td>31 people</td><td class="n neg">&minus;$19,054.09</td></tr></tfoot>
+  </table></div>
+</section>
+
+<p class="foot">
+  Generated 16 September 2026 from the commission ledger, with cancellation status read live from Odoo.<br>
+  Rates applied are those in force on each deal&rsquo;s closing date &middot; closer 9%, setter 5%, hourly setter 1%, override 4%.<br>
+  Figures match the dashboard deal by deal. Nothing in this report has been applied.
+</p>
+
+</div>
