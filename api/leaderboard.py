@@ -137,40 +137,99 @@ def _kpi_by_name(start_ms: int, end_ms: int) -> dict:
     return out
 
 
+def _fetch_activity(start_ms: int, end_ms: int) -> list:
+    """Activity records between start and end, newest first.
+
+    The Terros activity list ignores both the date filter and `offset`: every
+    page is the newest 1000 records unless the previous page's `sortTimestamp`
+    is sent back as the cursor. So this walks the cursor from the newest
+    record until a page is entirely older than `start_ms`, and keeps only the
+    records inside the range. Transition records are dropped (they shadow
+    every real action)."""
+    wf_id = terros.get_workflow()["workflowId"]
+    out, cursor = [], None
+    for page in range(400):                    # 400 pages ≈ 400k records; a month is ~30k
+        body = {"workflowId": wf_id, "limit": 1000}
+        if cursor:
+            body["sortTimestamp"] = cursor
+        resp = terros._post("/activity/list", body)
+        if resp.get("type") == "error":
+            raise RuntimeError(resp.get("message") or "activity/list error")
+        acts = resp.get("actions") or []
+        if not acts:
+            break
+        stamps = [a.get("timestamp") or 0 for a in acts]
+        for a in acts:
+            ts = a.get("timestamp") or 0
+            aid = a.get("actionId") or ""
+            if start_ms <= ts <= end_ms and aid and not aid.startswith("A.Transition"):
+                out.append(a)
+        if max(stamps) < start_ms:
+            break
+        nxt = resp.get("sortTimestamp")
+        if not nxt or nxt == cursor or len(acts) < 1000:
+            break
+        cursor = nxt
+    return out
+
+
+_day_cache: dict = {}            # "YYYY-MM-DD" -> {normName: {"name", "first", "last", "actions"}} for finished days
+
+
+def _day_list(start_ms: int, end_ms: int) -> list:
+    days, d = [], datetime.fromtimestamp(start_ms / 1000, tz=TERROS_TZ).replace(hour=0, minute=0, second=0, microsecond=0)
+    end = datetime.fromtimestamp(end_ms / 1000, tz=TERROS_TZ)
+    while d <= end:
+        days.append(d.strftime("%Y-%m-%d"))
+        d += timedelta(days=1)
+    return days
+
+
 def _activity_spans(start_ms: int, end_ms: int) -> dict:
-    """{normName: {name, hours, firstKnockMs, perDay}} from the activity list.
+    """{normName: {name, hours, firstKnockMs, daysActive, perDay}} from the activity list.
 
     For every rep and every day, the first action is the first knock and the
     span from first to last action is the hours worked (a single action on a
     day counts as a quarter hour, so a rep who knocked once is not shown as
-    zero hours)."""
-    acts = terros.get_activities(start_ms, end_ms)
-    per = {}
-    for a in acts:
-        ts = a.get("timestamp") or 0
-        if not ts:
-            continue
-        u = a.get("user") or {}
-        name = ((u.get("preferredName") or u.get("firstName") or "") + " " + (u.get("lastName") or "")).strip()
-        if not name:
-            name = a.get("userId") or ""
-        day = datetime.fromtimestamp(ts / 1000, tz=TERROS_TZ).strftime("%Y-%m-%d")
-        rec = per.setdefault(norm(name), {"name": name, "days": {}})
-        d = rec["days"].setdefault(day, [ts, ts, 0])
-        d[0] = min(d[0], ts)
-        d[1] = max(d[1], ts)
-        d[2] += 1
+    zero hours). Finished days are cached for the life of the process, so
+    after the first read only today (and any day not seen yet) is fetched."""
+    today = _s(_today_cdt())
+    days = _day_list(start_ms, end_ms)
+    missing = [d for d in days if d >= today or d not in _day_cache]
+    if missing:
+        ms_lo, _ = _cdt_bounds(min(missing))
+        _, ms_hi = _cdt_bounds(max(missing))
+        fresh = {d: {} for d in missing}
+        for a in _fetch_activity(ms_lo, ms_hi):
+            ts = a.get("timestamp") or 0
+            u = a.get("user") or {}
+            name = ((u.get("preferredName") or u.get("firstName") or "") + " " + (u.get("lastName") or "")).strip()
+            if not name:
+                name = a.get("userId") or ""
+            day = datetime.fromtimestamp(ts / 1000, tz=TERROS_TZ).strftime("%Y-%m-%d")
+            if day not in fresh:
+                continue
+            rec = fresh[day].setdefault(norm(name), {"name": name, "first": ts, "last": ts, "actions": 0})
+            rec["first"] = min(rec["first"], ts)
+            rec["last"] = max(rec["last"], ts)
+            rec["actions"] += 1
+        for d, v in fresh.items():
+            if d < today:
+                _day_cache[d] = v
+            else:
+                _day_cache["~" + d] = v            # today's reading, replaced on the next fetch
     out = {}
-    for k, rec in per.items():
-        hours = 0.0
-        first_ms = None
-        for day, (lo, hi, n) in rec["days"].items():
-            span = (hi - lo) / 3600000.0
-            hours += max(span, 0.25)
-            first_ms = lo if first_ms is None else min(first_ms, lo)
-        out[k] = {"name": rec["name"], "hours": round(hours, 1),
-                  "firstKnockMs": first_ms, "daysActive": len(rec["days"]),
-                  "perDay": {day: {"first": v[0], "last": v[1], "actions": v[2]} for day, v in rec["days"].items()}}
+    for d in days:
+        per = _day_cache.get(d) if d < today else _day_cache.get("~" + d)
+        for k, rec in (per or {}).items():
+            o = out.setdefault(k, {"name": rec["name"], "hours": 0.0, "firstKnockMs": None, "daysActive": 0, "perDay": {}})
+            span = (rec["last"] - rec["first"]) / 3600000.0
+            o["hours"] += max(span, 0.25)
+            o["daysActive"] += 1
+            o["firstKnockMs"] = rec["first"] if o["firstKnockMs"] is None else min(o["firstKnockMs"], rec["first"])
+            o["perDay"][d] = {"first": rec["first"], "last": rec["last"], "actions": rec["actions"]}
+    for o in out.values():
+        o["hours"] = round(o["hours"], 1)
     return out
 
 

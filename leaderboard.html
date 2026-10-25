@@ -180,8 +180,7 @@
       <button class="on" data-view="overview" onclick="setView('overview')">Overview</button>
       <button data-view="teams" onclick="setView('teams')">Teams</button>
       <button data-view="reps" onclick="setView('reps')">Reps</button>
-      <a href="/crm#tahiti">Tahiti</a>
-      <a href="/crm">Dashboard</a>
+      <a href="/tahiti">Tahiti</a>
     </nav>
     <div class="topright">
       <button class="iconbtn" id="themeBtn" aria-label="Switch to dark mode" onclick="toggleTheme()">
@@ -240,7 +239,7 @@
    2 sets +2%, 3 or more +4% of the contract value set that week.
    ────────────────────────────────────────────────────────────── */
 var API = '';                       // same origin
-var S = { view: 'overview', period: 'this', start: '', end: '', team: '', roster: 'everyone', data: null, repSort: 'rev', repRole: 'all', repTeam: '', repStanding: '', repQ: '' };
+var S = { view: 'overview', period: 'this', start: '', end: '', team: '', roster: 'everyone', showInactive: false, data: null, repSort: 'rev', repRole: 'all', repTeam: '', repStanding: '', repQ: '' };
 var TEAM_ORDER = ['Northern Utah', 'Eastern Idaho', 'Southern Utah', 'Northern California'];
 
 /* ---------- theme ---------- */
@@ -555,8 +554,12 @@ function renderTeam() {
   // roster
   var mode = S.roster;
   var list = reps.filter(function (r) { return mode === 'everyone' ? true : mode === 'directors' ? r.role === 'Market Director' || r.closed.length : (r.role === 'Market Coordinator' || r.set.length); });
+  // reps with no sale in 30 days and no field activity stay off the roster unless asked for
+  var hidden = list.filter(function (r) { return r.standing === 'Inactive'; }).length;
+  if (!S.showInactive) list = list.filter(function (r) { return r.standing !== 'Inactive'; });
   list.sort(function (a, b) { return (mode === 'coordinators' ? b.revSet - a.revSet : mode === 'directors' ? b.revClosed - a.revClosed : b.rev - a.rev) || a.name.localeCompare(b.name); });
-  var toggle = '<div class="seg soft"><button class="' + (mode === 'everyone' ? 'on' : '') + '" onclick="S.roster=\'everyone\';render()">Everyone</button><button class="' + (mode === 'directors' ? 'on' : '') + '" onclick="S.roster=\'directors\';render()">Market Directors</button><button class="' + (mode === 'coordinators' ? 'on' : '') + '" onclick="S.roster=\'coordinators\';render()">Market Coordinators</button></div>';
+  var toggle = '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><div class="seg soft"><button class="' + (mode === 'everyone' ? 'on' : '') + '" onclick="S.roster=\'everyone\';render()">Everyone</button><button class="' + (mode === 'directors' ? 'on' : '') + '" onclick="S.roster=\'directors\';render()">Market Directors</button><button class="' + (mode === 'coordinators' ? 'on' : '') + '" onclick="S.roster=\'coordinators\';render()">Market Coordinators</button></div>' +
+    (hidden ? '<button class="btn" style="margin-left:8px" onclick="S.showInactive=!S.showInactive;render()">' + (S.showInactive ? 'Hide ' : 'Show ') + hidden + ' inactive</button>' : '') + '</div>';
   var thead, rows, tot;
   if (mode === 'coordinators') {
     thead = '<tr><th class="l">Rep</th><th>Sets</th><th>Revenue set</th>' + D.weeks.map(function (w) { return '<th class="c' + (w.n === 1 ? ' sep' : '') + '"' + (w.current ? ' style="color:var(--accent)"' : '') + '>W' + w.n + (w.current ? ' now' : '') + '</th>'; }).join('') + '<th>Bonus</th><th>Standing</th><th>Last sale</th>' + TER_HEAD + '</tr>';

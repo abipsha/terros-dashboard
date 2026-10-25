@@ -49,6 +49,7 @@ HTML_FILE        = os.path.join(ROOT_DIR, "index.html")
 CRM_HTML_FILE    = os.path.join(ROOT_DIR, "vivid-crm-dashboard.html")
 TERROS_HTML_FILE = os.path.join(ROOT_DIR, "vivid-terros-dashboard.html")
 LEADERBOARD_HTML_FILE = os.path.join(ROOT_DIR, "leaderboard.html")
+TAHITI_HTML_FILE = os.path.join(ROOT_DIR, "tahiti.html")
 LOGIN_FILE       = os.path.join(ROOT_DIR, "login.html")
 PLAYBOOK_FILE    = os.path.join(ROOT_DIR, "playbook.json")
 
@@ -499,6 +500,16 @@ class Handler(http.server.BaseHTTPRequestHandler):
                     else:
                         self._json({"error": "leaderboard.html not found"}, status=404)
 
+                elif path == "/tahiti":
+                    if os.path.exists(TAHITI_HTML_FILE):
+                        with open(TAHITI_HTML_FILE, "rb") as f: content = f.read()
+                        self.send_response(200)
+                        self.send_header("Content-Type", "text/html; charset=utf-8")
+                        self.send_header("Content-Length", str(len(content)))
+                        self.end_headers(); self.wfile.write(content)
+                    else:
+                        self._json({"error": "tahiti.html not found"}, status=404)
+
                 elif path == "/terros":
                     if os.path.exists(TERROS_HTML_FILE):
                         with open(TERROS_HTML_FILE, "rb") as f: content = f.read()
@@ -688,6 +699,7 @@ if __name__ == "__main__":
     print(f"  Terros Dashboard  →  http://localhost:{PORT}/")
     print(f"  CRM Dashboard     →  http://localhost:{PORT}/crm")
     print(f"  Leader Board      →  http://localhost:{PORT}/leaderboard")
+    print(f"  Tahiti tracker    →  http://localhost:{PORT}/tahiti")
     print()
     print("  API Endpoints:")
     print(f"    GET  http://localhost:{PORT}/api/weekly?start=2026-06-09&end=2026-06-15")

@@ -8,6 +8,7 @@
 - `vivid-terros-dashboard.html` — Terros leaderboard; fetches from `http://localhost:8000/api/weekly`
 - `vivid-crm-dashboard.html`    — Odoo CRM revenue dashboard; fetches from `http://localhost:8000/api/odoo/report`
 - `leaderboard.html` — Leader Board (Drip squad-tracker style, light/dark); served at `/leaderboard`, fetches `/api/leaderboard`
+- `tahiti.html` — Tahiti Trip Tracker in the same style; served at `/tahiti`, fetches `/api/odoo/deals?start=2026-04-17&end=2026-12-31`. Its stylesheet is a copy of leaderboard.html's — change the CSS there and re-copy (or edit both).
 - `api/leaderboard.py` — assembles the Leader Board payload: Odoo Won deals (widened to whole Sun–Sat weeks), the Sales roster (via `commissions.employees_now`), Terros period KPIs + yesterday
 - Launch: double-click `api/Start API Server.bat`
 
@@ -64,8 +65,8 @@ This breaks all JS silently — the page loads but makes zero API calls.
 ### API date filtering is unreliable
 The Terros `activity/list` endpoint ignores `filter:{startDate,endDate}`. We apply a **client-side timestamp filter** in `get_activities()` as a hard guarantee. Do not remove this.
 
-### Pagination uses offset, not cursor
-The API's `id`/`actionId` field on activity records is the **action type ID** (e.g. "Not Home"), not a unique record ID. Cursor-based pagination with it loops forever. Always use `offset: page * PAGE_SIZE`.
+### `activity/list` pagination: send back `sortTimestamp` (checked Oct 25, 2026)
+The endpoint now **ignores `offset`** — every page is the newest 1000 records — and every response carries `sortTimestamp: [ms, recordId]` for its last record. Send that array back as `sortTimestamp` in the next request body to get the next (older) page. Records are newest-first, so stop when a whole page is older than the start you want. `api/leaderboard.py::_fetch_activity` does this; the old `terros.get_activities()` (offset paging) is left as-is for the legacy board but returns the same 1000 records on every page. Do not paginate on `actionId` — it is the action *type* (e.g. "Not Home").
 
 ### Report cache is 5 minutes
 `build_weekly_report()` caches results for 300s. Pass `?force=1` to bust it (e.g. `GET /api/weekly?start=...&end=...&force=1`).
@@ -129,14 +130,18 @@ The dashboard now uses `POST /report/kpi` with `version: 2` — the same call th
 - Weekly bonus runs **Sunday–Saturday**: 1 set no bonus, 2 sets +2%, 3+ sets +4% of the contract value set that week, paid to the setter. Self-gen counts as a set. The deals feed is widened to whole weeks (`weeksStart`/`weeksEnd`) so partial weeks at the edges of the range are scored on their full week.
 - Standing: Productive = sale in the current week; Active = sale within 30 days of the period end or any Terros activity in the period; otherwise Inactive.
 - Inside Sales is not a team tab (`TEAMS` in `api/leaderboard.py`); its reps and deals still appear on rep rows and in company totals.
-- Tahiti tracker is NOT on this page — the "Tahiti" link goes to `/crm#tahiti` (the CRM page reads the hash on load).
+- Tahiti tracker is NOT on this page — the "Tahiti" link goes to `/tahiti`. The Leader Board replaces the CRM revenue tracker as the main page; `/crm` stays as it was.
 
 ### Terros fields on the board
 - Knocks, pitches, days worked: KPI v2 as on the Terros board.
 - **Sits** = KPI v2 column 5 (`sras`). Switch `SITS_FROM = "acs"` in `api/leaderboard.py` if the office means set appointments instead.
-- **Hours worked** and **first knock** are not in KPI v2. They come from `activity/list`: per rep per day, first action = first knock, first→last action span = hours (minimum 0.25 h for a one-action day). Period hours are cached 1 hour (`_hours_cache`) because the activity list is slow. "First knock" on the board is always **yesterday's** (last full CDT day).
+- **Hours worked** and **first knock** are not in KPI v2. They come from `activity/list` (cursor paging, see above): per rep per day, first action = first knock, first→last action span = hours (minimum 0.25 h for a one-action day). Finished days are cached for the life of the process (`_day_cache`), so only today is re-read; a month's first read is ~30 pages (~40 s). "First knock" on the board is always **yesterday's** (last full CDT day).
+- The roster hides reps with standing Inactive (no sale in 30 days, no Terros activity) behind a "Show N inactive" button, because the Odoo roster carries ~200 names.
 - Terros names are joined to Odoo names by `norm()` (lowercase letters only); a rep whose Terros name differs from the Odoo roster name gets no Terros readings — fix the name in Terros or Odoo rather than in code.
 
 ### Nav
 `vivid-crm-dashboard.html` links to `/leaderboard` from the sidebar, main tabs and mobile bar. The old **Terros Board** tab is hidden (`style="display:none"`), not removed.
+
+### Tahiti Trip Tracker (`/tahiti`)
+Same rules as the Incentives tab on `/crm`: Apr 17 – Dec 31, 2026; Market Directors = contract value on Won accounts closed, self-gen counted twice, targets $1.6M / $1.8M; Market Coordinators = contract value on accounts set, counted once, targets $640K / $800K (`TARGETS` in `tahiti.html`). Pace projects the current daily rate to Dec 31: Ahead reaches Target 2, On pace reaches Target 1, else Behind.
 

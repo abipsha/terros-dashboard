@@ -1,0 +1,469 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Vivid Windows - Tahiti Trip Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto+Condensed:wght@700;800&display=swap" rel="stylesheet">
+<!-- The stylesheet below is copied from leaderboard.html by build_tahiti.py so the two pages match. Edit it there. -->
+<style>
+  :root {
+    --ground: #F3F1EC; --card: #FFFFFF; --ink: #1B1B1B; --muted: #6F6E6A; --line: #ECEAE4; --line2: #F0EEE8;
+    --tot: #FBFAF8; --gray: #EFEDE8; --gray2: #C9C7C1; --gray3: #9B9A95; --accent: #E4571F; --pale: #F8CDB9;
+    --act-bg: #FBE7E0; --act-fg: #B4421A; --g2-bg: #D7F0EA; --g2-fg: #0F5F57; --green: #0F766E;
+    --shadow: 0 1px 2px rgba(0,0,0,.04); --shadow2: 0 1px 2px rgba(0,0,0,.08);
+    --field-bg: #FFFFFF;
+  }
+  html[data-theme="dark"] {
+    --ground: #161615; --card: #1F1F1E; --ink: #F3F1EC; --muted: #A3A29D; --line: #2E2E2C; --line2: #2A2A28;
+    --tot: #242423; --gray: #2C2C2A; --gray2: #4A4A47; --gray3: #8A8985; --accent: #E4571F; --pale: #5A2E1B;
+    --act-bg: #3A2418; --act-fg: #F2A784; --g2-bg: #163A34; --g2-fg: #8FD9C8; --green: #5FC9B5;
+    --shadow: 0 1px 2px rgba(0,0,0,.35); --shadow2: 0 1px 2px rgba(0,0,0,.4);
+    --field-bg: #1F1F1E;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body { background: var(--ground); color: var(--ink); font-family: Inter, system-ui, sans-serif; min-height: 100vh; -webkit-font-smoothing: antialiased; }
+  a { color: var(--ink); text-decoration: none; }
+  a:hover { color: var(--accent); }
+  button { font-family: inherit; }
+  .wrap { max-width: 1240px; margin: 0 auto; padding: 18px 20px 48px; display: flex; flex-direction: column; gap: 16px; }
+  .card { background: var(--card); border-radius: 14px; box-shadow: var(--shadow); min-width: 0; }
+  .pad { padding: 16px 18px; }
+  .cond { font-family: 'Roboto Condensed', sans-serif; font-weight: 800; line-height: 1; }
+  .muted { color: var(--muted); }
+  .tiny { font-size: 10px; }
+  .lbl { font-size: 10px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+  .pill { display: inline-block; font-size: 10px; font-weight: 600; padding: 3px 9px; border-radius: 999px; line-height: 1.3; white-space: nowrap; }
+  .pill.productive { background: var(--ink); color: var(--card); }
+  .pill.active { background: var(--act-bg); color: var(--act-fg); }
+  .pill.inactive { background: var(--gray); color: var(--muted); }
+  .pill.t4 { background: var(--accent); color: #FFFFFF; }
+  .pill.t2 { background: var(--g2-bg); color: var(--g2-fg); }
+  .pill.t1 { background: var(--gray); color: var(--muted); }
+  .pill.t0 { background: transparent; color: var(--gray2); }
+  .pill.role-d { background: var(--gray); color: var(--ink); }
+  .pill.role-c { background: var(--act-bg); color: var(--act-fg); }
+  .pill.role-s { background: var(--ink); color: var(--card); }
+  .seg { display: flex; flex-wrap: wrap; gap: 4px; background: var(--ground); border-radius: 999px; padding: 4px; }
+  .card .seg { background: var(--ground); }
+  .seg > button, .seg > a { font-size: 12px; font-weight: 500; padding: 6px 14px; border-radius: 999px; border: none; background: transparent; color: var(--ink); cursor: pointer; white-space: nowrap; min-height: 32px; }
+  .seg > .on { font-weight: 600; background: var(--ink); color: var(--card); }
+  .seg.orange > .on { background: var(--accent); color: #FFFFFF; }
+  .seg.white { background: var(--card); box-shadow: var(--shadow); }
+  .seg.white > .on { background: var(--ink); color: var(--card); }
+  .seg.soft > .on { background: var(--card); color: var(--ink); box-shadow: var(--shadow2); }
+  .iconbtn { width: 36px; height: 36px; border: none; background: transparent; border-radius: 999px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; color: var(--ink); }
+  .iconbtn:hover { background: var(--ground); }
+  input[type=date], input[type=search], select {
+    font-family: Inter, system-ui, sans-serif; font-size: 12px; border: 1px solid var(--line); border-radius: 8px; padding: 6px 9px;
+    background: var(--field-bg); color: var(--ink); min-height: 32px;
+  }
+  html[data-theme="dark"] input[type=date] { color-scheme: dark; }
+  .btn { font-size: 12px; font-weight: 600; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--card); color: var(--ink); cursor: pointer; min-height: 32px; }
+  .btn:hover { border-color: var(--accent); }
+
+  /* top bar */
+  .topbar { padding: 10px 18px; display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+  .brand { font-family: 'Roboto Condensed', sans-serif; font-weight: 800; font-size: 20px; letter-spacing: .02em; display: flex; align-items: center; gap: 8px; }
+  .brand span { font-family: Inter, sans-serif; font-weight: 500; font-size: 12px; color: var(--muted); letter-spacing: 0; }
+  .topnav { margin-left: auto; margin-right: auto; }
+  .topright { display: flex; align-items: center; gap: 8px; }
+
+  /* title + period */
+  .titlerow { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 18px; padding: 0 4px; }
+  .titlerow h1 { margin: 0; font-size: 24px; font-weight: 700; letter-spacing: -.01em; }
+  .titlerow h1 span { font-weight: 400; color: var(--muted); }
+  .period { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+  .custom { display: none; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .custom.show { display: flex; }
+
+  /* header block */
+  .teamhead { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px 24px; padding: 2px 6px 0; }
+  .teamhead .name { font-family: 'Roboto Condensed', sans-serif; font-weight: 800; font-size: 40px; line-height: 1; text-transform: uppercase; letter-spacing: -.01em; }
+  .stats { display: flex; gap: 24px; margin-left: auto; flex-wrap: wrap; }
+  .stat { text-align: right; }
+  .stat .v { font-family: 'Roboto Condensed', sans-serif; font-weight: 800; font-size: 28px; line-height: 1; }
+  .stat .l { font-size: 9px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-top: 4px; }
+
+  .grid4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+  .grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+  .grid5 { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px 14px; }
+  .grid6 { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 12px; }
+  .kpi { display: flex; flex-direction: column; gap: 8px; }
+  .kpi .v { font-family: 'Roboto Condensed', sans-serif; font-weight: 800; font-size: 32px; line-height: 1; }
+  .kpi .row { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 11px; color: var(--muted); }
+  .bignum { font-family: 'Roboto Condensed', sans-serif; font-weight: 800; font-size: 26px; line-height: 1; white-space: nowrap; }
+  .bigsub { font-size: 10px; color: var(--muted); margin-top: 4px; }
+  .mini { font-family: 'Roboto Condensed', sans-serif; font-weight: 700; font-size: 14px; }
+  .minil { font-size: 9px; letter-spacing: .06em; color: var(--muted); }
+  .cardhead { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 6px 12px; }
+  .cardhead .t { font-size: 13px; font-weight: 600; }
+  .cardhead .t span { font-weight: 400; color: var(--muted); }
+  .bars { display: flex; align-items: flex-end; gap: 8px; height: 64px; }
+  .bars > div { flex: 1; background: var(--line); border-radius: 4px 4px 0 0; min-height: 2px; }
+  .bars > div.cur { background: var(--accent); }
+  .barlbl { display: flex; justify-content: space-between; font-size: 10px; color: var(--muted); }
+  .barlbl span { flex: 1; text-align: center; }
+  .hr { border-top: 1px solid var(--line2); }
+
+  /* tables */
+  .tablebox { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; }
+  th { font-size: 11px; font-weight: 500; color: var(--muted); text-align: right; padding: 10px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  th.l, td.l { text-align: left; }
+  th.c, td.c { text-align: center; }
+  th.sep, td.sep { border-left: 1px solid var(--line); padding-left: 18px; }
+  td { font-size: 12.5px; padding: 10px 10px; border-bottom: 1px solid var(--line2); text-align: right; white-space: nowrap; }
+  tr.bold td { font-weight: 700; }
+  tr.total td { font-weight: 700; border-bottom: none; border-top: 2px solid var(--line); background: var(--tot); }
+  tr.click { cursor: pointer; }
+  tr.click:hover td { background: var(--ground); }
+  th.sort { cursor: pointer; }
+  th.sort:hover { color: var(--ink); }
+  .name a { font-weight: inherit; }
+  .num { font-variant-numeric: tabular-nums; }
+
+  /* team tabs */
+  .teamtabs { align-self: flex-start; }
+
+  /* legend strip */
+  .legend { display: flex; gap: 24px; flex-wrap: wrap; padding-top: 10px; align-items: flex-end; }
+  .legend .k { font-family: 'Roboto Condensed', sans-serif; font-weight: 700; font-size: 13px; }
+
+  /* drawer */
+  .drawer-bg { position: fixed; inset: 0; background: rgba(0,0,0,.35); display: none; z-index: 20; }
+  .drawer-bg.show { display: block; }
+  .drawer { position: fixed; top: 0; right: 0; bottom: 0; width: min(920px, 100%); background: var(--ground); z-index: 21; transform: translateX(100%); transition: transform .2s ease; overflow-y: auto; padding: 18px 20px 40px; display: flex; flex-direction: column; gap: 14px; }
+  .drawer.show { transform: translateX(0); }
+  .avatar { width: 52px; height: 52px; border-radius: 999px; background: var(--ink); color: var(--card); display: flex; align-items: center; justify-content: center; font-family: 'Roboto Condensed', sans-serif; font-weight: 800; font-size: 18px; flex-shrink: 0; }
+
+  .view { display: none; flex-direction: column; gap: 16px; }
+  .view.show { display: flex; }
+  .status { font-size: 11px; color: var(--muted); }
+  .status.err { color: var(--act-fg); }
+  .loading { text-align: center; padding: 60px 0; color: var(--muted); font-size: 13px; }
+  .empty { padding: 14px 0; color: var(--muted); font-size: 12px; }
+  .wk { display: flex; gap: 3px; }
+  .wk > span { flex: 1; height: 6px; border-radius: 3px; background: var(--line); }
+
+  @media (max-width: 1000px) {
+    .grid4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .grid5 .bignum { font-size: 22px; }
+    .grid6 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .grid5 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  }
+  @media (max-width: 700px) {
+    .wrap { padding: 12px 12px 36px; gap: 12px; }
+    .grid2 { grid-template-columns: minmax(0, 1fr); }
+    .grid4 { grid-template-columns: minmax(0, 1fr); }
+    .grid6 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .grid5 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .teamhead .name { font-size: 30px; }
+    .stats { margin-left: 0; gap: 16px; }
+    .stat .v { font-size: 22px; }
+    .titlerow h1 { font-size: 18px; }
+    .topnav { margin-left: 0; width: 100%; }
+    .topnav > button, .topnav > a { flex: 1; text-align: center; }
+    .teamtabs { align-self: stretch; overflow-x: auto; flex-wrap: nowrap; }
+    .kpi .v { font-size: 26px; }
+    th, td { padding: 9px 8px; }
+  }
+</style>
+<style>
+  /* Tahiti page */
+  .band { display: flex; flex-wrap: wrap; align-items: center; gap: 24px; padding: 16px 22px; }
+  .days { text-align: center; padding-right: 24px; border-right: 1px solid var(--line); }
+  .days .n { font-family: 'Roboto Condensed', sans-serif; font-weight: 800; font-size: 44px; line-height: 1; color: var(--accent); }
+  .prog { flex: 1 1 360px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+  .prow { display: flex; align-items: center; gap: 12px; }
+  .prow .pl { font-size: 9px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); width: 120px; flex-shrink: 0; }
+  .track { flex: 1; height: 5px; background: var(--line); border-radius: 3px; position: relative; overflow: hidden; }
+  .track > div { height: 5px; border-radius: 3px; }
+  .track .t1 { position: absolute; top: -3px; width: 2px; height: 11px; background: var(--muted); border-radius: 0; }
+  .prow .pv { font-family: 'Roboto Condensed', sans-serif; font-weight: 700; font-size: 12px; width: 40px; text-align: right; }
+  .targets { display: flex; flex-direction: column; gap: 6px; text-align: right; margin-left: auto; }
+  .podium { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+  .pod { display: flex; flex-direction: column; gap: 10px; border-top: 4px solid var(--ink); cursor: pointer; }
+  .pod:hover { box-shadow: var(--shadow2); }
+  .pod .who { font-family: 'Roboto Condensed', sans-serif; font-weight: 800; font-size: 18px; }
+  .pod .amt { font-family: 'Roboto Condensed', sans-serif; font-weight: 800; font-size: 30px; line-height: 1; }
+  .searchbox { display: flex; align-items: center; gap: 8px; padding: 8px 12px; }
+  .searchbox input { flex: 1; padding: 6px 0; font-family: inherit; font-size: 12px; border: none; background: transparent; color: var(--ink); outline: none; min-width: 0; }
+  .pill.ahead { background: var(--ink); color: var(--card); }
+  .pill.onpace { background: var(--act-bg); color: var(--act-fg); }
+  .pill.behind { background: var(--gray); color: var(--muted); }
+  .pill.hit { background: var(--g2-bg); color: var(--g2-fg); }
+  .bar { display: flex; align-items: center; justify-content: flex-end; gap: 8px; }
+  .bar .tr { width: 90px; height: 5px; background: var(--line); border-radius: 3px; position: relative; }
+  .bar .tr > i { display: block; height: 5px; border-radius: 3px; background: var(--accent); }
+  .bar .tr > b { position: absolute; top: -2px; width: 2px; height: 9px; background: var(--muted); }
+  .bar span { width: 36px; text-align: right; }
+  .goalrow { display: flex; align-items: center; gap: 12px; }
+  .goalrow .g { font-size: 11px; font-weight: 600; width: 130px; flex-shrink: 0; }
+  @media (max-width: 1000px) { .podium { grid-template-columns: repeat(3, minmax(0, 1fr)); } .pod .amt { font-size: 24px; } }
+  @media (max-width: 700px) {
+    .podium { grid-template-columns: minmax(0, 1fr); }
+    .days { padding-right: 0; border-right: none; }
+    .targets { margin-left: 0; text-align: left; }
+    .prow .pl { width: 90px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="card topbar">
+    <div class="brand">VIVID <span>Leader Board</span></div>
+    <nav class="seg topnav" aria-label="Sections">
+      <a href="/leaderboard#overview">Overview</a>
+      <a href="/leaderboard#teams">Teams</a>
+      <a href="/leaderboard#reps">Reps</a>
+      <a class="on" href="/tahiti">Tahiti</a>
+    </nav>
+    <div class="topright">
+      <button class="iconbtn" id="themeBtn" aria-label="Switch to dark mode" onclick="toggleTheme()">
+        <svg id="iconMoon" aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"></path></svg>
+        <svg id="iconSun" aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="display:none"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>
+      </button>
+      <button class="iconbtn" aria-label="Refresh" title="Refresh" onclick="load(true)">
+        <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-2.6-6.4"></path><path d="M21 3v6h-6"></path></svg>
+      </button>
+      <a href="/logout" style="font-size: 12px; font-weight: 500">Sign out</a>
+    </div>
+  </div>
+
+  <div class="titlerow">
+    <div style="flex: 1 1 320px; min-width: 0">
+      <h1>Tahiti Trip Tracker <span>Apr 17 – Dec 31, 2026</span></h1>
+      <div class="status" id="statusLine">Loading…</div>
+    </div>
+    <div class="period">
+      <div class="seg white" id="roleSeg">
+        <button class="on" data-r="directors" onclick="setRole('directors')">Market Directors</button>
+        <button data-r="coordinators" onclick="setRole('coordinators')">Market Coordinators</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="loading" class="loading">Loading the tracker…</div>
+  <div class="view" id="view"></div>
+
+</div>
+
+<div class="drawer-bg" id="drawerBg" onclick="closeRep()"></div>
+<div class="drawer" id="drawer" role="dialog" aria-label="Rep detail"></div>
+
+<script>
+/* ──────────────────────────────────────────────────────────────
+   Tahiti Trip Tracker — reads /api/odoo/deals for the competition
+   window and ranks reps against the trip targets.
+   Market Directors: contract value on Won accounts closed, self-gen
+   counted twice. Market Coordinators: contract value on accounts set,
+   counted once. Same rules as the Incentives tab on the CRM page.
+   ────────────────────────────────────────────────────────────── */
+var COMP_START = '2026-04-17', COMP_END = '2026-12-31';
+var TARGETS = { directors: [1600000, 1800000], coordinators: [640000, 800000] };
+var S = { role: 'directors', q: '', showAll: false, data: null, odooBase: 'https://myvivid.odoo.com/odoo/crm/' };
+
+/* ---------- theme (same as the Leader Board) ---------- */
+function applyTheme(t) {
+  document.documentElement.setAttribute('data-theme', t);
+  document.getElementById('iconMoon').style.display = t === 'dark' ? 'none' : '';
+  document.getElementById('iconSun').style.display = t === 'dark' ? '' : 'none';
+  document.getElementById('themeBtn').setAttribute('aria-label', t === 'dark' ? 'Switch to light mode' : 'Switch to dark mode');
+}
+function toggleTheme() { var t = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'; applyTheme(t); try { localStorage.setItem('lb-theme', t); } catch (e) {} }
+(function () { var t = 'light'; try { t = localStorage.getItem('lb-theme') || (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'); } catch (e) {} applyTheme(t); })();
+
+/* ---------- helpers ---------- */
+function pad(n) { return String(n).padStart(2, '0'); }
+function fmtD(d) { return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
+function parseD(s) { var p = s.split('-'); return new Date(+p[0], +p[1] - 1, +p[2]); }
+function addDays(s, n) { var d = parseD(s); d.setDate(d.getDate() + n); return fmtD(d); }
+var MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+function dshort(s) { if (!s) return ''; var d = parseD(s); return MON[d.getMonth()] + ' ' + d.getDate(); }
+function today() { return fmtD(new Date()); }
+function money(n) { n = Math.round(n || 0); return (n < 0 ? '-$' : '$') + Math.abs(n).toLocaleString('en-US'); }
+function moneyK(n) { n = n || 0; if (Math.abs(n) >= 1e6) return '$' + (n / 1e6).toFixed(2) + 'M'; if (Math.abs(n) >= 1e3) return '$' + Math.round(n / 1e3) + 'K'; return '$' + Math.round(n); }
+function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+function norm(s) { return String(s || '').toLowerCase().replace(/[^a-z]/g, ''); }
+function initials(n) { return n.split(/\s+/).filter(Boolean).slice(0, 2).map(function (x) { return x[0]; }).join('').toUpperCase(); }
+function pct(a, b) { return b ? a / b * 100 : 0; }
+
+/* ---------- load ---------- */
+function load(force) {
+  document.getElementById('loading').style.display = '';
+  var st = document.getElementById('statusLine'); st.className = 'status'; st.textContent = 'Loading the competition…';
+  fetch('/api/odoo/deals?start=' + COMP_START + '&end=' + COMP_END + (force ? '&force=1' : ''), { credentials: 'same-origin', headers: { Accept: 'application/json' } })
+    .then(function (r) {
+      if (r.status === 401 || r.status === 403 || (r.redirected && r.url.indexOf('/login') >= 0)) { location.href = '/login'; throw new Error('sign in'); }
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    })
+    .then(function (j) { S.data = j; derive(); render(); })
+    .catch(function (e) {
+      document.getElementById('loading').style.display = 'none';
+      st.className = 'status err'; st.textContent = 'Could not load the tracker: ' + e.message + '. Try Refresh; if it keeps happening, tell Abipsha.';
+    });
+}
+
+/* ---------- derive ---------- */
+var D = {};
+function derive() {
+  var deals = (S.data.deals || []).map(function (d) { return { id: d.id, name: d.name, closer: (d.closer || '').trim(), setter: (d.setter || '').trim(), rev: d.rev || 0, date: d.date_deadline || d.date_closed || '', team: d.office || '', stage: d.stage || '' }; });
+  var t = today();
+  var total = (parseD(COMP_END) - parseD(COMP_START)) / 86400000 + 1;
+  var elapsed = Math.min(total, Math.max(1, (parseD(t) - parseD(COMP_START)) / 86400000 + 1));
+  var left = Math.max(0, total - elapsed);
+  D.time = { total: total, elapsed: elapsed, left: left, pct: elapsed / total * 100 };
+  var d30 = addDays(t, -30);
+
+  function build(role) {
+    var reps = {};
+    deals.forEach(function (d) {
+      var isDir = role === 'directors';
+      var name = isDir ? d.closer : d.setter;
+      if (!name) return;
+      var self = d.closer && d.setter && norm(d.closer) === norm(d.setter);
+      var k = norm(name);
+      var r = reps[k] || (reps[k] = { key: k, name: name, teams: {}, accounts: [], rev: 0, selfRev: 0, selfN: 0, comp: 0, last30: 0, lastSale: '' });
+      r.accounts.push(d);
+      r.teams[d.team] = (r.teams[d.team] || 0) + 1;
+      r.rev += d.rev;
+      if (isDir && self) { r.selfRev += d.rev; r.selfN++; }
+      r.comp += isDir && self ? d.rev * 2 : d.rev;
+      if (d.date >= d30) r.last30 += isDir && self ? d.rev * 2 : d.rev;
+      if (d.date > r.lastSale) r.lastSale = d.date;
+    });
+    var T = TARGETS[role];
+    var list = Object.keys(reps).map(function (k) {
+      var r = reps[k];
+      var best = '', bn = 0; Object.keys(r.teams).forEach(function (x) { if (r.teams[x] > bn) { bn = r.teams[x]; best = x; } }); r.team = best;
+      r.accounts.sort(function (a, b) { return a.date < b.date ? 1 : a.date > b.date ? -1 : 0; });
+      r.perDay = r.comp / D.time.elapsed;
+      r.projected = r.perDay * D.time.total;
+      r.pct1 = pct(r.comp, T[0]); r.pct2 = pct(r.comp, T[1]);
+      r.need1 = D.time.left > 0 ? Math.max(0, T[0] - r.comp) / D.time.left : 0;
+      r.need2 = D.time.left > 0 ? Math.max(0, T[1] - r.comp) / D.time.left : 0;
+      r.pace = r.comp >= T[1] ? 'Target 2 hit' : r.comp >= T[0] ? 'Target 1 hit' : r.projected >= T[1] ? 'Ahead' : r.projected >= T[0] ? 'On pace' : 'Behind';
+      return r;
+    }).sort(function (a, b) { return b.comp - a.comp || a.name.localeCompare(b.name); });
+    list.forEach(function (r, i) { r.rank = i + 1; });
+    return list;
+  }
+  D.directors = build('directors');
+  D.coordinators = build('coordinators');
+}
+
+/* ---------- render ---------- */
+function setRole(r) { S.role = r; S.showAll = false; document.querySelectorAll('#roleSeg button').forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-r') === r); }); if (S.data) render(); }
+function paceClass(p) { return p === 'Ahead' ? 'ahead' : p === 'On pace' ? 'onpace' : p === 'Behind' ? 'behind' : 'hit'; }
+function pacePill(p) { return '<span class="pill ' + paceClass(p) + '">' + p + '</span>'; }
+function bar(r, T) {
+  var w = Math.min(100, pct(r.comp, T[1])); var mark = T[0] / T[1] * 100;
+  return '<div class="bar"><div class="tr"><i style="width:' + w.toFixed(1) + '%' + (r.comp >= T[0] ? ';background:var(--ink)' : '') + '"></i><b style="left:' + mark.toFixed(1) + '%" title="Target 1"></b></div><span>' + Math.round(r.pct1) + '%</span></div>';
+}
+function render() {
+  var j = S.data;
+  document.getElementById('loading').style.display = 'none';
+  var st = document.getElementById('statusLine');
+  var upd = j.generated_at ? new Date(j.generated_at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : '';
+  st.textContent = (j.total_deals || 0) + ' Won accounts in the competition · Updated ' + upd + (j.stale ? ' · Odoo did not answer; showing the last good read' : '');
+  st.className = 'status' + (j.stale ? ' err' : '');
+
+  var role = S.role, isDir = role === 'directors', list = D[role], T = TARGETS[role];
+  var roleName = isDir ? 'Market Directors' : 'Market Coordinators', one = isDir ? 'Market Director' : 'Market Coordinator';
+  var lead = list[0], leadD = D.directors[0], leadC = D.coordinators[0];
+  var tm = D.time;
+
+  function prow(label, p, color) { return '<div class="prow"><div class="pl">' + label + '</div><div class="track"><div style="width:' + Math.min(100, p).toFixed(1) + '%;background:' + color + '"></div></div><div class="pv">' + Math.round(p) + '%</div></div>'; }
+  var band = '<div class="card band">' +
+    '<div class="days"><div class="n">' + Math.ceil(tm.left) + '</div><div class="lbl" style="margin-top:4px">Days left</div></div>' +
+    '<div class="prog">' + prow('Days', tm.pct, 'var(--gray3)') +
+      prow('Market Directors', leadD ? leadD.pct1 : 0, 'var(--accent)') + prow('Market Coordinators', leadC ? leadC.pct1 : 0, 'var(--ink)') +
+      '<div class="tiny muted">Leader against Target 1. The Days bar shows how much of the competition has passed; a leader ahead of the Days bar is on pace.</div></div>' +
+    '<div class="targets">' +
+      '<div><div class="mini">' + moneyK(TARGETS.directors[0]) + ' · ' + moneyK(TARGETS.directors[1]) + '</div><div class="minil">MARKET DIRECTOR TARGETS 1 · 2</div></div>' +
+      '<div><div class="mini">' + moneyK(TARGETS.coordinators[0]) + ' · ' + moneyK(TARGETS.coordinators[1]) + '</div><div class="minil">MARKET COORDINATOR TARGETS 1 · 2</div></div>' +
+      (lead ? '<div><div class="mini">' + (lead.comp >= T[1] ? 'Target 2 reached' : lead.comp >= T[0] ? moneyK(lead.need2) + ' / day to Target 2' : moneyK(lead.need1) + ' / day to Target 1') + '</div><div class="minil">' + esc(one.toUpperCase()) + ' LEADER</div></div>' : '') +
+    '</div></div>';
+
+  var search = '<div class="card searchbox"><svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="color:var(--muted)"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>' +
+    '<label for="q" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Search rep</label><input id="q" type="search" placeholder="Search rep" value="' + esc(S.q) + '" oninput="S.q=this.value;renderTable()">' +
+    '<span class="tiny muted">' + D.directors.length + ' market directors · ' + D.coordinators.length + ' market coordinators</span></div>';
+
+  var over = list.filter(function (r) { return r.comp >= T[0]; }).length;
+  var head = '<div class="teamhead"><div style="flex:1 1 420px;min-width:0"><div class="name">' + roleName + '</div><div class="tiny muted" style="margin-top:8px">' +
+    (isDir ? 'Contract value on Won accounts the rep closed, Apr 17 to Dec 31. Self-generated accounts count twice. Cancelled jobs drop out the day they cancel.' : 'Contract value on Won accounts the rep set, Apr 17 to Dec 31. Counted once.') + '</div></div>' +
+    '<div class="stats"><div class="stat"><div class="v">' + (lead ? moneyK(lead.comp) : '—') + '</div><div class="l">Leader</div></div><div class="stat"><div class="v">' + over + '</div><div class="l">At Target 1</div></div><div class="stat"><div class="v">' + list.length + '</div><div class="l">In the running</div></div></div></div>';
+
+  var colors = ['var(--accent)', 'var(--ink)', 'var(--gray3)'];
+  var podium = '<div class="podium">' + list.slice(0, 3).map(function (r, i) {
+    var gap = i === 0 ? (list[1] ? 'leads by ' + moneyK(r.comp - list[1].comp) : 'leads') : moneyK(list[0].comp - r.comp) + ' behind #1';
+    return '<div class="card pad pod" style="border-top-color:' + colors[i] + '" onclick="openRep(\'' + r.key + '\')"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><div class="who">#' + r.rank + ' ' + esc(r.name) + '</div>' + pacePill(r.pace) + '</div>' +
+      '<div style="display:flex;align-items:baseline;gap:6px;flex-wrap:wrap"><span class="amt">' + moneyK(r.comp) + '</span><span class="tiny muted">' + esc(r.team) + '</span></div>' +
+      '<div class="track"><div style="width:' + Math.min(100, r.pct1).toFixed(1) + '%;background:' + colors[i] + '"></div></div>' +
+      '<div class="tiny muted" style="display:flex;justify-content:space-between"><span>' + Math.round(r.pct1) + '% of ' + moneyK(T[0]) + '</span><span>' + gap + '</span></div></div>';
+  }).join('') + '</div>';
+
+  document.getElementById('view').innerHTML = band + search + head + (list.length ? podium : '') + '<div class="card" style="padding:16px 18px 6px" id="tableCard"></div>';
+  document.getElementById('view').classList.add('show');
+  renderTable();
+}
+function renderTable() {
+  var role = S.role, isDir = role === 'directors', list = D[role], T = TARGETS[role];
+  var one = isDir ? 'Market Director' : 'Market Coordinator';
+  var q = norm(S.q);
+  var rows = q ? list.filter(function (r) { return norm(r.name).indexOf(q) >= 0 || norm(r.team).indexOf(q) >= 0; }) : list;
+  var LIMIT = 15, shown = (S.showAll || q) ? rows : rows.slice(0, LIMIT);
+  var th = '<tr><th>#</th><th class="l">' + one + '</th><th class="l">Team</th><th>Accounts</th><th>Revenue</th>' + (isDir ? '<th>Self-gen (×2)</th><th>Competition value</th>' : '') + '<th>To Target 1</th><th>Target 2</th><th>Pace</th><th>Last 30 days</th><th>Needs / day</th><th>Last sale</th></tr>';
+  var body = shown.map(function (r) {
+    return '<tr class="click' + (r.rank <= 3 ? ' bold' : '') + '" onclick="openRep(\'' + r.key + '\')"><td class="muted" style="width:24px">' + r.rank + '</td><td class="l">' + esc(r.name) + '</td><td class="l">' + esc(r.team) + '</td><td class="num">' + r.accounts.length + '</td><td class="num">' + money(r.rev) + '</td>' +
+      (isDir ? '<td class="num">' + (r.selfN ? money(r.selfRev) + ' → ' + money(r.selfRev * 2) : '—') + '</td><td class="num" style="font-weight:700">' + money(r.comp) + '</td>' : '') +
+      '<td>' + bar(r, T) + '</td><td class="num">' + Math.round(r.pct2) + '%</td><td>' + pacePill(r.pace) + '</td><td class="num">' + (r.last30 ? moneyK(r.last30) : '—') + '</td><td class="num">' + (r.comp >= T[1] ? '—' : moneyK(r.comp >= T[0] ? r.need2 : r.need1)) + '</td><td>' + esc(dshort(r.lastSale)) + '</td></tr>';
+  }).join('');
+  var foot = '<div class="tiny muted" style="padding:10px 0 8px;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap"><span>Showing ' + shown.length + ' of ' + rows.length + ' ' + one.toLowerCase() + 's' + (q ? ' matching "' + esc(S.q) + '"' : '') + '</span>' +
+    (!q && rows.length > LIMIT ? '<a href="#" onclick="S.showAll=!S.showAll;renderTable();return false" style="color:var(--accent)">' + (S.showAll ? 'Show top ' + LIMIT : 'Show all') + '</a>' : '') + '</div>';
+  document.getElementById('tableCard').innerHTML = '<div class="cardhead" style="padding-bottom:8px"><div class="t">' + one + ' standings</div><div class="tiny muted">Pace projects the current daily rate to Dec 31: Ahead reaches Target 2, On pace reaches Target 1. Needs / day is to the next target. Click a rep for the pathway and accounts.</div></div>' +
+    '<div class="tablebox"><table><thead>' + th + '</thead><tbody>' + (body || '<tr><td colspan="13" class="empty">No one matches.</td></tr>') + '</tbody></table></div>' + foot;
+}
+
+/* ---------- rep drawer ---------- */
+function openRep(key) {
+  var role = S.role, isDir = role === 'directors', T = TARGETS[role];
+  var r = D[role].filter(function (x) { return x.key === key; })[0]; if (!r) return;
+  var one = isDir ? 'Market Director' : 'Market Coordinator';
+  var tm = D.time, weeksIn = tm.elapsed / 7, weeksLeft = tm.left / 7;
+  var header = '<div style="display:flex;align-items:center;gap:12px"><button class="iconbtn" aria-label="Close" onclick="closeRep()"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"></path></svg></button><div class="tiny muted">Tahiti › ' + esc(one + 's') + '</div></div>' +
+    '<div class="teamhead"><div style="display:flex;align-items:center;gap:14px;flex:1 1 300px;min-width:0"><div class="avatar" aria-hidden="true">' + esc(initials(r.name)) + '</div><div style="min-width:0"><div class="name" style="font-size:32px">' + esc(r.name) + '</div><div class="tiny muted" style="margin-top:6px">' + esc(one + ' · ' + r.team) + '</div></div></div>' +
+    '<div class="stats"><div class="stat"><div class="v">#' + r.rank + '</div><div class="l">Rank</div></div><div class="stat"><div class="v">' + moneyK(r.comp) + '</div><div class="l">Competition value</div></div><div class="stat"><div style="margin-top:6px">' + pacePill(r.pace) + '</div><div class="l">Pace</div></div></div></div>';
+  var kp = '<div class="grid4">' +
+    '<div class="card pad kpi"><div class="lbl">Revenue</div><div class="v">' + money(r.rev) + '</div><div class="row"><span>' + r.accounts.length + ' accounts</span></div></div>' +
+    (isDir ? '<div class="card pad kpi"><div class="lbl">Self-gen, counted twice</div><div class="v">' + money(r.selfRev * 2) + '</div><div class="row"><span>' + r.selfN + ' accounts, ' + money(r.selfRev) + ' raw</span></div></div>' : '<div class="card pad kpi"><div class="lbl">Last 30 days</div><div class="v">' + money(r.last30) + '</div><div class="row"><span>set since ' + dshort(addDays(today(), -30)) + '</span></div></div>') +
+    '<div class="card pad kpi"><div class="lbl">Per week</div><div class="v">' + moneyK(r.perDay * 7) + '</div><div class="row"><span>' + Math.round(weeksIn) + ' weeks in · ' + Math.round(weeksLeft) + ' left</span></div></div>' +
+    '<div class="card pad kpi"><div class="lbl">Projected by Dec 31</div><div class="v">' + moneyK(r.projected) + '</div><div class="row"><span>at the current pace</span></div></div></div>';
+  function goal(label, amt) {
+    var hit = r.comp >= amt, need = Math.max(0, amt - r.comp), perWeek = weeksLeft > 0 ? need / weeksLeft : 0;
+    var hitDate = ''; if (!hit && r.perDay > 0) { var days = need / r.perDay; var d = new Date(); d.setDate(d.getDate() + Math.ceil(days)); hitDate = fmtD(d) <= COMP_END ? 'reaches it around ' + dshort(fmtD(d)) + ' at this pace' : 'not at this pace: needs ' + moneyK(perWeek - r.perDay * 7) + ' more a week'; }
+    return '<div class="goalrow"><div class="g">' + label + ' ' + moneyK(amt) + '</div><div class="track"><div style="width:' + Math.min(100, pct(r.comp, amt)).toFixed(1) + '%;background:' + (hit ? 'var(--green)' : 'var(--accent)') + '"></div></div><div class="pv" style="width:44px;text-align:right;font-family:\'Roboto Condensed\',sans-serif;font-weight:700;font-size:12px">' + Math.round(pct(r.comp, amt)) + '%</div></div>' +
+      '<div class="tiny muted" style="margin:-4px 0 6px 142px">' + (hit ? 'Reached.' : money(need) + ' to go · ' + moneyK(perWeek) + ' a week' + (hitDate ? ' · ' + hitDate : '')) + '</div>';
+  }
+  var path = '<div class="card pad" style="display:flex;flex-direction:column;gap:10px"><div class="cardhead"><div class="t">Pathway to the trip</div><div class="tiny muted">' + Math.ceil(tm.left) + ' days left</div></div>' + goal('Target 1', T[0]) + goal('Target 2', T[1]) + '</div>';
+  var acc = '<div class="card" style="padding:16px 18px 6px"><div class="cardhead" style="padding-bottom:8px"><div class="t">Accounts <span>' + (isDir ? 'closed' : 'set') + ', Apr 17 – Dec 31</span></div><div class="tiny muted">Contract value is what Odoo holds today.</div></div><div class="tablebox"><table><thead><tr><th class="l">Account</th><th class="l">Closed</th><th class="l">Team</th><th class="l">' + (isDir ? 'Set by' : 'Closed by') + '</th><th class="l">Stage</th><th>Contract value</th>' + (isDir ? '<th>Counts</th>' : '') + '<th></th></tr></thead><tbody>' +
+    r.accounts.map(function (d) {
+      var self = d.closer && d.setter && norm(d.closer) === norm(d.setter);
+      return '<tr><td class="l">' + esc(d.name) + '</td><td class="l">' + esc(dshort(d.date)) + '</td><td class="l">' + esc(d.team) + '</td><td class="l">' + (self ? '<span class="pill role-s">Self-gen</span>' : esc(isDir ? d.setter : d.closer)) + '</td><td class="l">' + esc(d.stage) + '</td><td class="num">' + money(d.rev) + '</td>' + (isDir ? '<td class="num">' + money(self ? d.rev * 2 : d.rev) + '</td>' : '') + '<td class="l"><a href="' + S.odooBase + d.id + '" target="_blank" rel="noopener" style="color:var(--accent)">open</a></td></tr>';
+    }).join('') + '<tr class="total"><td class="l">' + r.accounts.length + ' accounts</td><td></td><td></td><td></td><td></td><td class="num">' + money(r.rev) + '</td>' + (isDir ? '<td class="num">' + money(r.comp) + '</td>' : '') + '<td></td></tr></tbody></table></div></div>';
+  document.getElementById('drawer').innerHTML = header + kp + path + acc;
+  document.getElementById('drawer').classList.add('show'); document.getElementById('drawerBg').classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+function closeRep() { document.getElementById('drawer').classList.remove('show'); document.getElementById('drawerBg').classList.remove('show'); document.body.style.overflow = ''; }
+document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeRep(); });
+
+load(false);
+</script>
+</body>
+</html>
