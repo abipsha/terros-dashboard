@@ -181,6 +181,7 @@
       <button data-view="teams" onclick="setView('teams')">Teams</button>
       <button data-view="reps" onclick="setView('reps')">Reps</button>
       <a href="/tahiti">Tahiti</a>
+      <a href="/onboarding">Onboarding</a>
     </nav>
     <div class="topright">
       <button class="iconbtn" id="themeBtn" aria-label="Switch to dark mode" onclick="toggleTheme()">
@@ -239,7 +240,7 @@
    2 sets +2%, 3 or more +4% of the contract value set that week.
    ────────────────────────────────────────────────────────────── */
 var API = '';                       // same origin
-var S = { view: 'overview', period: 'this', start: '', end: '', team: '', roster: 'everyone', showInactive: false, data: null, repSort: 'rev', repRole: 'all', repTeam: '', repStanding: '', repQ: '' };
+var S = { view: 'overview', period: 'this', start: '', end: '', team: '', roster: 'everyone', showInactive: false, data: null, loadSeq: 0, terrosPending: false, repSort: 'rev', repRole: 'all', repTeam: '', repStanding: '', repQ: '' };
 var TEAM_ORDER = ['Northern Utah', 'Eastern Idaho', 'Southern Utah', 'Northern California'];
 
 /* ---------- theme ---------- */
@@ -320,16 +321,32 @@ function load(force) {
   document.getElementById('loading').style.display = '';
   document.getElementById('statusLine').textContent = 'Loading ' + periodLabel() + '…';
   document.getElementById('statusLine').className = 'status';
-  var url = API + '/api/leaderboard?start=' + S.start + '&end=' + S.end + (force ? '&force=1' : '');
-  fetch(url, { credentials: 'same-origin', headers: { Accept: 'application/json' } })
-    .then(function (r) {
+  var seq = ++S.loadSeq;
+  function get(part) {
+    var url = API + '/api/leaderboard?start=' + S.start + '&end=' + S.end + '&part=' + part + (force ? '&force=1' : '');
+    return fetch(url, { credentials: 'same-origin', headers: { Accept: 'application/json' } }).then(function (r) {
       // the server answers an expired session with a redirect to /login; follow it as a page, not as data
       if (r.status === 401 || r.status === 403 || (r.redirected && r.url.indexOf('/login') >= 0)) { location.href = '/login'; throw new Error('sign in'); }
       if (!r.ok) throw new Error('HTTP ' + r.status);
       return r.json();
+    });
+  }
+  // revenue first (Odoo, quick), then the field activity (Terros, slower) fills in
+  get('deals')
+    .then(function (j) {
+      if (seq !== S.loadSeq) return;
+      j.terros = null; S.data = j; S.terrosPending = true; derive(); render();
+      return get('terros').then(function (t) {
+        if (seq !== S.loadSeq) return;
+        S.data.terros = t.terros; S.terrosPending = false; derive(); render();
+      }).catch(function (e) {
+        if (seq !== S.loadSeq) return;
+        S.data.terros = { period: { ok: false, byName: {}, error: e.message }, yesterday: { ok: false, byName: {}, error: e.message } };
+        S.terrosPending = false; derive(); render();
+      });
     })
-    .then(function (j) { S.data = j; derive(); render(); })
     .catch(function (e) {
+      if (seq !== S.loadSeq) return;
       document.getElementById('loading').style.display = 'none';
       var st = document.getElementById('statusLine'); st.className = 'status err';
       st.textContent = 'Could not load the board: ' + e.message + '. Try Refresh; if it keeps happening, tell Abipsha.';
@@ -465,6 +482,7 @@ function render() {
   var st = document.getElementById('statusLine');
   var bits = [dlong(S.start) + ' – ' + dlong(S.end), 'Updated ' + new Date(j.generatedAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })];
   if (j.dealsStale) bits.push('Odoo did not answer; showing the last good read');
+  if (S.terrosPending) bits.push('Field activity loading…');
   if (j.terros && j.terros.period && !j.terros.period.ok) bits.push('Terros did not answer for the period');
   if (yd && !yd.ok) bits.push('Terros did not answer for yesterday');
   st.textContent = bits.join(' · ');
@@ -506,7 +524,8 @@ function terrosCard(o, title) {
   var top = yd && yd.ok
     ? '<div class="grid5">' + big(num(y.knocks), 'knocks') + big(num(y.pitches), 'pitches') + big(num(y.sits), 'sits') + big(y.hours.toFixed(0), 'hours worked') + big(y.first || '—', 'first knock, team') + '</div>' +
       '<div class="tiny muted">' + y.reps + ' reps logged activity yesterday. First knock is the earliest action anyone on the team logged.</div>'
-    : '<div class="empty">Terros did not answer for yesterday.</div>';
+    : '<div class="empty">' + (S.terrosPending ? 'Loading field activity…' : 'Terros did not answer for yesterday.') + '</div>';
+  if (S.terrosPending) return '<div class="card pad" style="display:flex;flex-direction:column;gap:12px"><div class="cardhead"><div class="t">' + (title || 'Field activity') + ' <span>Terros</span></div></div><div class="empty">Loading field activity from Terros… the revenue is ready; knocks, pitches, sits and hours will appear in a moment.</div></div>';
   return '<div class="card pad" style="display:flex;flex-direction:column;gap:12px"><div class="cardhead"><div class="t">' + (title || 'Field activity') + ' <span>Terros</span></div><div class="tiny muted">' + yLabel + '</div></div>' + top +
     '<div class="hr" style="padding-top:10px;display:flex;gap:18px;flex-wrap:wrap">' + mini(num(t.knocks), 'KNOCKS, ' + dshort(S.start).toUpperCase() + ' – ' + dshort(S.end).toUpperCase()) + mini(num(t.pitches), 'PITCHES') + mini(num(t.sits), 'SITS') + mini(t.hours.toFixed(0), 'HOURS') +
     mini(t.knocks ? (t.pitches / t.knocks * 100).toFixed(1) + '%' : '—', 'PITCH RATE') + mini(o.deals && t.knocks ? Math.round(t.knocks / o.deals) : '—', 'KNOCKS PER SALE') + mini(t.reps, 'REPS WITH READINGS') + '</div></div>';
@@ -602,7 +621,7 @@ function renderOverview() {
     var x = D.team[t];
     return '<a class="card pad" href="#" onclick="S.team=\'' + esc(t) + '\';setView(\'teams\');return false" style="display:flex;flex-direction:column;gap:10px"><div class="lbl">' + esc(t) + '</div><div class="bignum" style="font-size:28px">' + money(x.rev) + '</div>' +
       '<div style="display:flex;justify-content:space-between;gap:8px;font-size:11px" class="muted"><span>' + x.deals + ' deals · ' + x.selfN + ' self-gen</span><span class="tiny">Last month ' + moneyK(x.prevRev) + '</span></div>' +
-      '<div class="tiny muted hr" style="padding-top:8px;display:flex;justify-content:space-between;gap:6px"><span>' + num(x.ter.knocks) + ' knocks</span><span>' + num(x.ter.pitches) + ' pitches</span><span>' + num(x.ter.sits) + ' sits</span><span>' + x.ter.hours.toFixed(0) + ' h</span></div></a>';
+      '<div class="tiny muted hr" style="padding-top:8px;display:flex;justify-content:space-between;gap:6px">' + (S.terrosPending ? '<span>Field activity loading…</span>' : '<span>' + num(x.ter.knocks) + ' knocks</span><span>' + num(x.ter.pitches) + ' pitches</span><span>' + num(x.ter.sits) + ' sits</span><span>' + x.ter.hours.toFixed(0) + ' h</span>') + '</div></a>';
   }).join('') + '</div>';
   function board(title, sub, list, cols) {
     var max = list.length ? Math.max.apply(null, list.map(function (r) { return r.v; })) : 1;

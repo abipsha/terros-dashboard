@@ -1,0 +1,331 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Vivid Windows - Onboarding</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto+Condensed:wght@700;800&display=swap" rel="stylesheet">
+<!-- The stylesheet below is copied from leaderboard.html by build_onboarding.py so the pages match. Edit it there. -->
+<style>
+  :root {
+    --ground: #F3F1EC; --card: #FFFFFF; --ink: #1B1B1B; --muted: #6F6E6A; --line: #ECEAE4; --line2: #F0EEE8;
+    --tot: #FBFAF8; --gray: #EFEDE8; --gray2: #C9C7C1; --gray3: #9B9A95; --accent: #E4571F; --pale: #F8CDB9;
+    --act-bg: #FBE7E0; --act-fg: #B4421A; --g2-bg: #D7F0EA; --g2-fg: #0F5F57; --green: #0F766E;
+    --shadow: 0 1px 2px rgba(0,0,0,.04); --shadow2: 0 1px 2px rgba(0,0,0,.08);
+    --field-bg: #FFFFFF;
+  }
+  html[data-theme="dark"] {
+    --ground: #161615; --card: #1F1F1E; --ink: #F3F1EC; --muted: #A3A29D; --line: #2E2E2C; --line2: #2A2A28;
+    --tot: #242423; --gray: #2C2C2A; --gray2: #4A4A47; --gray3: #8A8985; --accent: #E4571F; --pale: #5A2E1B;
+    --act-bg: #3A2418; --act-fg: #F2A784; --g2-bg: #163A34; --g2-fg: #8FD9C8; --green: #5FC9B5;
+    --shadow: 0 1px 2px rgba(0,0,0,.35); --shadow2: 0 1px 2px rgba(0,0,0,.4);
+    --field-bg: #1F1F1E;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body { background: var(--ground); color: var(--ink); font-family: Inter, system-ui, sans-serif; min-height: 100vh; -webkit-font-smoothing: antialiased; }
+  a { color: var(--ink); text-decoration: none; }
+  a:hover { color: var(--accent); }
+  button { font-family: inherit; }
+  .wrap { max-width: 1240px; margin: 0 auto; padding: 18px 20px 48px; display: flex; flex-direction: column; gap: 16px; }
+  .card { background: var(--card); border-radius: 14px; box-shadow: var(--shadow); min-width: 0; }
+  .pad { padding: 16px 18px; }
+  .cond { font-family: 'Roboto Condensed', sans-serif; font-weight: 800; line-height: 1; }
+  .muted { color: var(--muted); }
+  .tiny { font-size: 10px; }
+  .lbl { font-size: 10px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+  .pill { display: inline-block; font-size: 10px; font-weight: 600; padding: 3px 9px; border-radius: 999px; line-height: 1.3; white-space: nowrap; }
+  .pill.productive { background: var(--ink); color: var(--card); }
+  .pill.active { background: var(--act-bg); color: var(--act-fg); }
+  .pill.inactive { background: var(--gray); color: var(--muted); }
+  .pill.t4 { background: var(--accent); color: #FFFFFF; }
+  .pill.t2 { background: var(--g2-bg); color: var(--g2-fg); }
+  .pill.t1 { background: var(--gray); color: var(--muted); }
+  .pill.t0 { background: transparent; color: var(--gray2); }
+  .pill.role-d { background: var(--gray); color: var(--ink); }
+  .pill.role-c { background: var(--act-bg); color: var(--act-fg); }
+  .pill.role-s { background: var(--ink); color: var(--card); }
+  .seg { display: flex; flex-wrap: wrap; gap: 4px; background: var(--ground); border-radius: 999px; padding: 4px; }
+  .card .seg { background: var(--ground); }
+  .seg > button, .seg > a { font-size: 12px; font-weight: 500; padding: 6px 14px; border-radius: 999px; border: none; background: transparent; color: var(--ink); cursor: pointer; white-space: nowrap; min-height: 32px; }
+  .seg > .on { font-weight: 600; background: var(--ink); color: var(--card); }
+  .seg.orange > .on { background: var(--accent); color: #FFFFFF; }
+  .seg.white { background: var(--card); box-shadow: var(--shadow); }
+  .seg.white > .on { background: var(--ink); color: var(--card); }
+  .seg.soft > .on { background: var(--card); color: var(--ink); box-shadow: var(--shadow2); }
+  .iconbtn { width: 36px; height: 36px; border: none; background: transparent; border-radius: 999px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; color: var(--ink); }
+  .iconbtn:hover { background: var(--ground); }
+  input[type=date], input[type=search], select {
+    font-family: Inter, system-ui, sans-serif; font-size: 12px; border: 1px solid var(--line); border-radius: 8px; padding: 6px 9px;
+    background: var(--field-bg); color: var(--ink); min-height: 32px;
+  }
+  html[data-theme="dark"] input[type=date] { color-scheme: dark; }
+  .btn { font-size: 12px; font-weight: 600; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--card); color: var(--ink); cursor: pointer; min-height: 32px; }
+  .btn:hover { border-color: var(--accent); }
+
+  /* top bar */
+  .topbar { padding: 10px 18px; display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+  .brand { font-family: 'Roboto Condensed', sans-serif; font-weight: 800; font-size: 20px; letter-spacing: .02em; display: flex; align-items: center; gap: 8px; }
+  .brand span { font-family: Inter, sans-serif; font-weight: 500; font-size: 12px; color: var(--muted); letter-spacing: 0; }
+  .topnav { margin-left: auto; margin-right: auto; }
+  .topright { display: flex; align-items: center; gap: 8px; }
+
+  /* title + period */
+  .titlerow { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 18px; padding: 0 4px; }
+  .titlerow h1 { margin: 0; font-size: 24px; font-weight: 700; letter-spacing: -.01em; }
+  .titlerow h1 span { font-weight: 400; color: var(--muted); }
+  .period { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+  .custom { display: none; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .custom.show { display: flex; }
+
+  /* header block */
+  .teamhead { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px 24px; padding: 2px 6px 0; }
+  .teamhead .name { font-family: 'Roboto Condensed', sans-serif; font-weight: 800; font-size: 40px; line-height: 1; text-transform: uppercase; letter-spacing: -.01em; }
+  .stats { display: flex; gap: 24px; margin-left: auto; flex-wrap: wrap; }
+  .stat { text-align: right; }
+  .stat .v { font-family: 'Roboto Condensed', sans-serif; font-weight: 800; font-size: 28px; line-height: 1; }
+  .stat .l { font-size: 9px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-top: 4px; }
+
+  .grid4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+  .grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+  .grid5 { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px 14px; }
+  .grid6 { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 12px; }
+  .kpi { display: flex; flex-direction: column; gap: 8px; }
+  .kpi .v { font-family: 'Roboto Condensed', sans-serif; font-weight: 800; font-size: 32px; line-height: 1; }
+  .kpi .row { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 11px; color: var(--muted); }
+  .bignum { font-family: 'Roboto Condensed', sans-serif; font-weight: 800; font-size: 26px; line-height: 1; white-space: nowrap; }
+  .bigsub { font-size: 10px; color: var(--muted); margin-top: 4px; }
+  .mini { font-family: 'Roboto Condensed', sans-serif; font-weight: 700; font-size: 14px; }
+  .minil { font-size: 9px; letter-spacing: .06em; color: var(--muted); }
+  .cardhead { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 6px 12px; }
+  .cardhead .t { font-size: 13px; font-weight: 600; }
+  .cardhead .t span { font-weight: 400; color: var(--muted); }
+  .bars { display: flex; align-items: flex-end; gap: 8px; height: 64px; }
+  .bars > div { flex: 1; background: var(--line); border-radius: 4px 4px 0 0; min-height: 2px; }
+  .bars > div.cur { background: var(--accent); }
+  .barlbl { display: flex; justify-content: space-between; font-size: 10px; color: var(--muted); }
+  .barlbl span { flex: 1; text-align: center; }
+  .hr { border-top: 1px solid var(--line2); }
+
+  /* tables */
+  .tablebox { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; }
+  th { font-size: 11px; font-weight: 500; color: var(--muted); text-align: right; padding: 10px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  th.l, td.l { text-align: left; }
+  th.c, td.c { text-align: center; }
+  th.sep, td.sep { border-left: 1px solid var(--line); padding-left: 18px; }
+  td { font-size: 12.5px; padding: 10px 10px; border-bottom: 1px solid var(--line2); text-align: right; white-space: nowrap; }
+  tr.bold td { font-weight: 700; }
+  tr.total td { font-weight: 700; border-bottom: none; border-top: 2px solid var(--line); background: var(--tot); }
+  tr.click { cursor: pointer; }
+  tr.click:hover td { background: var(--ground); }
+  th.sort { cursor: pointer; }
+  th.sort:hover { color: var(--ink); }
+  .name a { font-weight: inherit; }
+  .num { font-variant-numeric: tabular-nums; }
+
+  /* team tabs */
+  .teamtabs { align-self: flex-start; }
+
+  /* legend strip */
+  .legend { display: flex; gap: 24px; flex-wrap: wrap; padding-top: 10px; align-items: flex-end; }
+  .legend .k { font-family: 'Roboto Condensed', sans-serif; font-weight: 700; font-size: 13px; }
+
+  /* drawer */
+  .drawer-bg { position: fixed; inset: 0; background: rgba(0,0,0,.35); display: none; z-index: 20; }
+  .drawer-bg.show { display: block; }
+  .drawer { position: fixed; top: 0; right: 0; bottom: 0; width: min(920px, 100%); background: var(--ground); z-index: 21; transform: translateX(100%); transition: transform .2s ease; overflow-y: auto; padding: 18px 20px 40px; display: flex; flex-direction: column; gap: 14px; }
+  .drawer.show { transform: translateX(0); }
+  .avatar { width: 52px; height: 52px; border-radius: 999px; background: var(--ink); color: var(--card); display: flex; align-items: center; justify-content: center; font-family: 'Roboto Condensed', sans-serif; font-weight: 800; font-size: 18px; flex-shrink: 0; }
+
+  .view { display: none; flex-direction: column; gap: 16px; }
+  .view.show { display: flex; }
+  .status { font-size: 11px; color: var(--muted); }
+  .status.err { color: var(--act-fg); }
+  .loading { text-align: center; padding: 60px 0; color: var(--muted); font-size: 13px; }
+  .empty { padding: 14px 0; color: var(--muted); font-size: 12px; }
+  .wk { display: flex; gap: 3px; }
+  .wk > span { flex: 1; height: 6px; border-radius: 3px; background: var(--line); }
+
+  @media (max-width: 1000px) {
+    .grid4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .grid5 .bignum { font-size: 22px; }
+    .grid6 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .grid5 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  }
+  @media (max-width: 700px) {
+    .wrap { padding: 12px 12px 36px; gap: 12px; }
+    .grid2 { grid-template-columns: minmax(0, 1fr); }
+    .grid4 { grid-template-columns: minmax(0, 1fr); }
+    .grid6 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .grid5 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .teamhead .name { font-size: 30px; }
+    .stats { margin-left: 0; gap: 16px; }
+    .stat .v { font-size: 22px; }
+    .titlerow h1 { font-size: 18px; }
+    .topnav { margin-left: 0; width: 100%; }
+    .topnav > button, .topnav > a { flex: 1; text-align: center; }
+    .teamtabs { align-self: stretch; overflow-x: auto; flex-wrap: nowrap; }
+    .kpi .v { font-size: 26px; }
+    th, td { padding: 9px 8px; }
+  }
+</style>
+<style>
+  /* Onboarding page */
+  .pill.ok { background: var(--g2-bg); color: var(--g2-fg); }
+  .pill.warn { background: var(--act-bg); color: var(--act-fg); }
+  .pill.doc { background: var(--gray); color: var(--ink); font-weight: 500; white-space: normal; }
+  .searchbox { display: flex; align-items: center; gap: 8px; padding: 8px 12px; }
+  .searchbox input { flex: 1; padding: 6px 0; font-family: inherit; font-size: 12px; border: none; background: transparent; color: var(--ink); outline: none; min-width: 0; }
+  td.wrap { white-space: normal; max-width: 360px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="card topbar">
+    <div class="brand">VIVID <span>Leader Board</span></div>
+    <nav class="seg topnav" aria-label="Sections">
+      <a href="/leaderboard#overview">Overview</a>
+      <a href="/leaderboard#teams">Teams</a>
+      <a href="/leaderboard#reps">Reps</a>
+      <a href="/tahiti">Tahiti</a>
+      <a class="on" href="/onboarding">Onboarding</a>
+    </nav>
+    <div class="topright">
+      <button class="iconbtn" id="themeBtn" aria-label="Switch to dark mode" onclick="toggleTheme()">
+        <svg id="iconMoon" aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"></path></svg>
+        <svg id="iconSun" aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="display:none"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>
+      </button>
+      <button class="iconbtn" aria-label="Refresh" title="Refresh" onclick="load(true)">
+        <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-2.6-6.4"></path><path d="M21 3v6h-6"></path></svg>
+      </button>
+      <a href="/logout" style="font-size: 12px; font-weight: 500">Sign out</a>
+    </div>
+  </div>
+
+  <div class="titlerow">
+    <div style="flex: 1 1 320px; min-width: 0">
+      <h1>Onboarding <span>Pre-Boarding and Onboarding, from Odoo</span></h1>
+      <div class="status" id="statusLine">Loading…</div>
+    </div>
+    <div class="period">
+      <div class="seg white" id="stageSeg">
+        <button class="on" data-s="all" onclick="setStage('all')">Everyone</button>
+        <button data-s="status1" onclick="setStage('status1')">Pre-Boarding</button>
+        <button data-s="status2" onclick="setStage('status2')">Onboarding</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="loading" class="loading">Loading from Odoo…</div>
+  <div class="view" id="view"></div>
+
+</div>
+
+<script>
+/* ──────────────────────────────────────────────────────────────
+   Onboarding — reads /api/odoo/onboarding: everyone in Pre-Boarding
+   or Onboarding on the Odoo employee pipeline, with the W-9 activity
+   and any unsigned signature requests.
+   ────────────────────────────────────────────────────────────── */
+var S = { stage: 'all', q: '', data: null, odooEmp: 'https://myvivid.odoo.com/odoo/employees/' };
+
+/* ---------- theme (same as the Leader Board) ---------- */
+function applyTheme(t) {
+  document.documentElement.setAttribute('data-theme', t);
+  document.getElementById('iconMoon').style.display = t === 'dark' ? 'none' : '';
+  document.getElementById('iconSun').style.display = t === 'dark' ? '' : 'none';
+  document.getElementById('themeBtn').setAttribute('aria-label', t === 'dark' ? 'Switch to light mode' : 'Switch to dark mode');
+}
+function toggleTheme() { var t = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'; applyTheme(t); try { localStorage.setItem('lb-theme', t); } catch (e) {} }
+(function () { var t = 'light'; try { t = localStorage.getItem('lb-theme') || (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'); } catch (e) {} applyTheme(t); })();
+
+/* ---------- helpers ---------- */
+var MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+function parseD(s) { var p = s.split('-'); return new Date(+p[0], +p[1] - 1, +p[2]); }
+function dlong(s) { if (!s) return ''; var d = parseD(s.slice(0, 10)); return MON[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear(); }
+function daysFromNow(s) { if (!s) return null; var t = new Date(); t.setHours(0, 0, 0, 0); return Math.round((parseD(s.slice(0, 10)) - t) / 86400000); }
+function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+function norm(s) { return String(s || '').toLowerCase().replace(/[^a-z]/g, ''); }
+
+/* ---------- load ---------- */
+function load(force) {
+  document.getElementById('loading').style.display = '';
+  var st = document.getElementById('statusLine'); st.className = 'status'; st.textContent = 'Loading from Odoo…';
+  fetch('/api/odoo/onboarding' + (force ? '?force=1' : ''), { credentials: 'same-origin', headers: { Accept: 'application/json' } })
+    .then(function (r) {
+      if (r.status === 401 || r.status === 403 || (r.redirected && r.url.indexOf('/login') >= 0)) { location.href = '/login'; throw new Error('sign in'); }
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    })
+    .then(function (j) { S.data = j; render(); })
+    .catch(function (e) {
+      document.getElementById('loading').style.display = 'none';
+      st.className = 'status err'; st.textContent = 'Could not load onboarding: ' + e.message + '. Try Refresh; if it keeps happening, tell Abipsha.';
+    });
+}
+
+/* ---------- render ---------- */
+function setStage(s) { S.stage = s; document.querySelectorAll('#stageSeg button').forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-s') === s); }); if (S.data) render(); }
+function startCell(e) {
+  if (!e.start_date) return '<span class="muted">—</span>';
+  var n = daysFromNow(e.start_date);
+  var note = n === 0 ? 'today' : n > 0 ? 'in ' + n + ' day' + (n === 1 ? '' : 's') : Math.abs(n) + ' day' + (n === -1 ? '' : 's') + ' ago';
+  return esc(dlong(e.start_date)) + ' <span class="muted">· ' + note + '</span>';
+}
+function row(e) {
+  var docs = e.unsigned_docs || [];
+  return '<tr><td class="l" style="font-weight:600"><a href="' + S.odooEmp + e.id + '" target="_blank" rel="noopener">' + esc(e.name) + '</a></td>' +
+    '<td class="l">' + esc(e.stage) + '</td><td class="l">' + esc(e.region) + '</td><td class="l">' + startCell(e) + '</td>' +
+    '<td class="l">' + esc(e.manager) + '</td><td class="l">' + esc(e.referred_by) + '</td>' +
+    '<td class="l">' + (e.w9_done ? '<span class="pill ok">W-9 done</span>' : '<span class="pill warn">W-9 pending</span>') + '</td>' +
+    '<td class="l wrap"><div style="display:flex;flex-wrap:wrap;gap:4px">' + (docs.length ? docs.map(function (d) { return '<span class="pill doc">' + esc(d) + '</span>'; }).join('') : '<span class="pill ok">All signed</span>') + '</div></td></tr>';
+}
+function render() {
+  var j = S.data, emps = j.employees || [];
+  document.getElementById('loading').style.display = 'none';
+  var st = document.getElementById('statusLine');
+  var upd = j.generated_at ? new Date(j.generated_at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : '';
+  st.textContent = emps.length + ' in the pipeline · Odoo as of ' + upd + (j.stale ? ' · Odoo did not answer; showing the last good read' : '');
+  st.className = 'status' + (j.stale ? ' err' : '');
+
+  var pre = emps.filter(function (e) { return e.stage_key === 'status1'; }), on = emps.filter(function (e) { return e.stage_key === 'status2'; });
+  var w9Out = emps.filter(function (e) { return !e.w9_done; }).length, docsOut = emps.filter(function (e) { return (e.unsigned_docs || []).length; }).length;
+  var soon = emps.filter(function (e) { var n = daysFromNow(e.start_date); return n !== null && n >= 0 && n <= 7; }).length;
+  var teams = {}; emps.forEach(function (e) { var t = e.region || 'No team'; teams[t] = (teams[t] || 0) + 1; });
+  var kp = '<div class="grid5">' +
+    '<div class="card pad kpi"><div class="lbl">In the pipeline</div><div class="v">' + emps.length + '</div><div class="row"><span>' + Object.keys(teams).sort().map(function (t) { return teams[t] + ' ' + esc(t); }).join(' · ') + '</span></div></div>' +
+    '<div class="card pad kpi"><div class="lbl">Pre-Boarding</div><div class="v">' + pre.length + '</div><div class="row"><span>employee record made, not yet started</span></div></div>' +
+    '<div class="card pad kpi"><div class="lbl">Onboarding</div><div class="v">' + on.length + '</div><div class="row"><span>started, paperwork in progress</span></div></div>' +
+    '<div class="card pad kpi"><div class="lbl">W-9 outstanding</div><div class="v"' + (w9Out ? ' style="color:var(--accent)"' : '') + '>' + w9Out + '</div><div class="row"><span>open "W-9 Submission in Gusto" activity</span></div></div>' +
+    '<div class="card pad kpi"><div class="lbl">Docs unsigned</div><div class="v"' + (docsOut ? ' style="color:var(--accent)"' : '') + '>' + docsOut + '</div><div class="row"><span>' + (soon ? soon + (soon === 1 ? ' start' : ' starts') + ' within a week' : 'signature requests still open') + '</span></div></div></div>';
+
+  var search = '<div class="card searchbox"><svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="color:var(--muted)"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>' +
+    '<label for="q" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Search</label><input id="q" type="search" placeholder="Search name, team, manager" value="' + esc(S.q) + '" oninput="S.q=this.value;renderTables()"></div>';
+
+  document.getElementById('view').innerHTML = kp + search + '<div id="tables" style="display:flex;flex-direction:column;gap:16px"></div>';
+  document.getElementById('view').classList.add('show');
+  renderTables();
+}
+function renderTables() {
+  var emps = S.data.employees || [], q = norm(S.q);
+  if (q) emps = emps.filter(function (e) { return norm(e.name + e.region + e.manager + e.referred_by).indexOf(q) >= 0; });
+  var groups = [];
+  if (S.stage !== 'status2') groups.push({ title: 'Pre-Boarding', sub: 'Employee record made in Odoo; Gusto profile and paperwork under way', rows: emps.filter(function (e) { return e.stage_key === 'status1'; }) });
+  if (S.stage !== 'status1') groups.push({ title: 'Onboarding', sub: 'Started; W-9 and signatures to finish before the rep goes Active', rows: emps.filter(function (e) { return e.stage_key === 'status2'; }) });
+  var other = emps.filter(function (e) { return e.stage_key !== 'status1' && e.stage_key !== 'status2'; });
+  if (S.stage === 'all' && other.length) groups.push({ title: 'Other stages', sub: '', rows: other });
+  var th = '<tr><th class="l">Name</th><th class="l">Stage</th><th class="l">Team</th><th class="l">Start date</th><th class="l">Reports to</th><th class="l">Referred by</th><th class="l">W-9</th><th class="l">Signature requests</th></tr>';
+  document.getElementById('tables').innerHTML = groups.map(function (g) {
+    g.rows.sort(function (a, b) { return (a.start_date || '9999') < (b.start_date || '9999') ? -1 : 1; });
+    return '<div class="card" style="padding:16px 18px 6px"><div class="cardhead" style="padding-bottom:8px"><div class="t">' + esc(g.title) + ' <span>' + g.rows.length + ' ' + (g.rows.length === 1 ? 'person' : 'people') + '</span></div><div class="tiny muted">' + esc(g.sub) + '</div></div>' +
+      '<div class="tablebox"><table><thead>' + th + '</thead><tbody>' + (g.rows.length ? g.rows.map(row).join('') : '<tr><td colspan="8" class="empty">' + (q ? 'No one matches.' : 'Nobody at this stage.') + '</td></tr>') + '</tbody></table></div><div style="height:8px"></div></div>';
+  }).join('');
+}
+
+load(false);
+</script>
+</body>
+</html>

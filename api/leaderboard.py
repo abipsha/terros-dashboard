@@ -18,6 +18,7 @@ knock is the earliest action they logged that day, and hours worked is the
 span from first to last action, day by day.
 """
 import re
+import threading
 import time
 from datetime import datetime, timedelta, timezone
 
@@ -292,11 +293,18 @@ def terros_block(start: str, end: str, force: bool = False) -> dict:
 
 # ── the board ────────────────────────────────────────────────────
 
-def build(start: str, end: str, force: bool = False) -> dict:
-    key = f"{start}|{end}"
-    now = time.time()
-    if not force and key in _cache and now - _cache[key][0] < CACHE_TTL:
-        return _cache[key][1]
+_lock = threading.Lock()
+_refreshing: set = set()
+
+
+def _build_now(start: str, end: str, force: bool, part: str) -> dict:
+    """Assemble one part of the board: "deals" (Odoo + roster) or "terros"."""
+    if part == "terros":
+        return {
+            "generatedAt": datetime.now(tz=timezone.utc).isoformat().replace("+00:00", "Z"),
+            "period": {"start": start, "end": end},
+            "terros": terros_block(start, end, force=force),
+        }
 
     wk_start = sunday_on_or_before(start)
     wk_end = saturday_on_or_after(end)
@@ -341,7 +349,7 @@ def build(start: str, end: str, force: bool = False) -> dict:
         cur = (cur - timedelta(days=1)).replace(day=1)
     months.reverse()
 
-    out = {
+    return {
         "generatedAt": datetime.now(tz=timezone.utc).isoformat().replace("+00:00", "Z"),
         "period": {"start": start, "end": end, "weeksStart": wk_start, "weeksEnd": wk_end},
         "previous": {"start": _s(prev_start), "end": _s(prev_end), "deals": prev_deals},
@@ -350,8 +358,59 @@ def build(start: str, end: str, force: bool = False) -> dict:
         "deals": deals,
         "dealsStale": bool(deals_resp.get("stale")),
         "months": months,
-        "terros": terros_block(start, end, force=force),
         "odooBase": "https://myvivid.odoo.com/odoo/crm/",
     }
+
+
+def _refresh_in_background(start: str, end: str, part: str):
+    key = f"{part}|{start}|{end}"
+    with _lock:
+        if key in _refreshing:
+            return
+        _refreshing.add(key)
+
+    def _run():
+        try:
+            out = _build_now(start, end, False, part)
+            _cache[key] = (time.time(), out)
+        except Exception as e:
+            print(f"[leaderboard] background refresh failed for {key}: {e}")
+        finally:
+            with _lock:
+                _refreshing.discard(key)
+    threading.Thread(target=_run, daemon=True).start()
+
+
+def build(start: str, end: str, force: bool = False, part: str = "deals") -> dict:
+    """The board for a range. `part` is "deals" (Odoo revenue, roster, months)
+    or "terros" (field activity), so the page can show revenue first and fill
+    in Terros when it arrives.
+
+    Whatever is cached is returned at once, even past its TTL; a stale copy
+    triggers a refresh in the background so the next reader gets fresh data
+    without anyone waiting. Only a range nobody has asked for before is built
+    while the caller waits. `force` rebuilds in the foreground."""
+    key = f"{part}|{start}|{end}"
+    now = time.time()
+    hit = _cache.get(key)
+    if hit and not force:
+        if now - hit[0] >= CACHE_TTL:
+            _refresh_in_background(start, end, part)
+        return hit[1]
+    out = _build_now(start, end, force, part)
     _cache[key] = (now, out)
     return out
+
+
+def warm(start: str = "", end: str = ""):
+    """Build the month-to-date board (both parts) so the first visitor does not wait.
+    Called from the server's cache warmer on startup and every few minutes."""
+    today = _today_cdt()
+    start = start or today.strftime("%Y-%m-01")
+    end = end or _s(today)
+    for part in ("deals", "terros"):
+        key = f"{part}|{start}|{end}"
+        try:
+            _cache[key] = (time.time(), _build_now(start, end, False, part))
+        except Exception as e:
+            print(f"[leaderboard] warm failed for {key}: {e}")

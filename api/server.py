@@ -49,7 +49,9 @@ HTML_FILE        = os.path.join(ROOT_DIR, "index.html")
 CRM_HTML_FILE    = os.path.join(ROOT_DIR, "vivid-crm-dashboard.html")
 TERROS_HTML_FILE = os.path.join(ROOT_DIR, "vivid-terros-dashboard.html")
 LEADERBOARD_HTML_FILE = os.path.join(ROOT_DIR, "leaderboard.html")
+HOME = "/leaderboard"   # where a sign-in, "/", and "already signed in" land; /crm stays reachable by URL
 TAHITI_HTML_FILE = os.path.join(ROOT_DIR, "tahiti.html")
+ONBOARDING_HTML_FILE = os.path.join(ROOT_DIR, "onboarding.html")
 LOGIN_FILE       = os.path.join(ROOT_DIR, "login.html")
 PLAYBOOK_FILE    = os.path.join(ROOT_DIR, "playbook.json")
 
@@ -252,10 +254,10 @@ class Handler(http.server.BaseHTTPRequestHandler):
             # ── Auth routes (public) ──────────────────────────────
             if path == "/login":
                 if not AUTH_ENABLED:
-                    self._redirect("/crm"); return
+                    self._redirect(HOME); return
                 # Already logged in?
                 if _get_session(self.headers):
-                    self._redirect("/crm"); return
+                    self._redirect(HOME); return
                 # Serve the login page
                 if os.path.exists(LOGIN_FILE):
                     with open(LOGIN_FILE, "rb") as f:
@@ -338,14 +340,14 @@ class Handler(http.server.BaseHTTPRequestHandler):
                     "Set-Cookie",
                     f"vw_session={cookie}; Path=/; Max-Age={SESSION_HOURS * 3600}; HttpOnly; SameSite=Lax"
                 )
-                self.send_header("Location", "/crm")
+                self.send_header("Location", HOME)
                 self.end_headers()
                 return
 
             # ── Google auth initiation (redirect to Google) ───────
             if path == "/oauth/start":
                 if not AUTH_ENABLED:
-                    self._redirect("/crm"); return
+                    self._redirect(HOME); return
                 host  = self.headers.get("Host", "localhost:8000")
                 state = secrets.token_urlsafe(24)
                 _oauth_states[state] = time.time() + 600  # 10 min
@@ -451,7 +453,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
                     start_s = (qs.get("start") or [today.strftime("%Y-%m-01")])[0]
                     end_s   = (qs.get("end")   or [today.strftime("%Y-%m-%d")])[0]
                     force   = (qs.get("force")  or [None])[0] == "1"
-                    self._json(leaderboard.build(start_s, end_s, force=force))
+                    part    = (qs.get("part")   or ["deals"])[0]          # "deals" (fast) or "terros" (slow)
+                    self._json(leaderboard.build(start_s, end_s, force=force, part=part))
 
                 elif path == "/api/odoo/report":
                     today = datetime.now(tz=timezone.utc)
@@ -510,6 +513,16 @@ class Handler(http.server.BaseHTTPRequestHandler):
                     else:
                         self._json({"error": "tahiti.html not found"}, status=404)
 
+                elif path == "/onboarding":
+                    if os.path.exists(ONBOARDING_HTML_FILE):
+                        with open(ONBOARDING_HTML_FILE, "rb") as f: content = f.read()
+                        self.send_response(200)
+                        self.send_header("Content-Type", "text/html; charset=utf-8")
+                        self.send_header("Content-Length", str(len(content)))
+                        self.end_headers(); self.wfile.write(content)
+                    else:
+                        self._json({"error": "onboarding.html not found"}, status=404)
+
                 elif path == "/terros":
                     if os.path.exists(TERROS_HTML_FILE):
                         with open(TERROS_HTML_FILE, "rb") as f: content = f.read()
@@ -521,7 +534,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
                         self._json({"error": "Terros dashboard HTML not found"}, status=404)
 
                 elif path == "/" or path == "" or path == "/dashboard":
-                    self._redirect("/crm")
+                    self._redirect(HOME)
 
                 else:
                     self._json({"error": "Not found"}, status=404)
@@ -685,6 +698,9 @@ def _warm_cache():
                 print(f"  [cache] warming Odoo deals cache ({start} → {end})…")
                 odoo.get_deals_list(start, end, force=True)
                 print(f"  [cache] warm complete")
+                print(f"  [cache] warming the Leader Board…")
+                leaderboard.warm()
+                print(f"  [cache] Leader Board warm complete")
             except Exception as e:
                 print(f"  [cache] warm failed: {e}")
             import time
@@ -700,6 +716,7 @@ if __name__ == "__main__":
     print(f"  CRM Dashboard     →  http://localhost:{PORT}/crm")
     print(f"  Leader Board      →  http://localhost:{PORT}/leaderboard")
     print(f"  Tahiti tracker    →  http://localhost:{PORT}/tahiti")
+    print(f"  Onboarding        →  http://localhost:{PORT}/onboarding")
     print()
     print("  API Endpoints:")
     print(f"    GET  http://localhost:{PORT}/api/weekly?start=2026-06-09&end=2026-06-15")

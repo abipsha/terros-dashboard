@@ -9,6 +9,7 @@
 - `vivid-crm-dashboard.html`    — Odoo CRM revenue dashboard; fetches from `http://localhost:8000/api/odoo/report`
 - `leaderboard.html` — Leader Board (Drip squad-tracker style, light/dark); served at `/leaderboard`, fetches `/api/leaderboard`
 - `tahiti.html` — Tahiti Trip Tracker in the same style; served at `/tahiti`, fetches `/api/odoo/deals?start=2026-04-17&end=2026-12-31`. Its stylesheet is a copy of leaderboard.html's — change the CSS there and re-copy (or edit both).
+- `onboarding.html` — Onboarding in the same style; served at `/onboarding`, fetches `/api/odoo/onboarding`. Stylesheet copied from leaderboard.html too.
 - `api/leaderboard.py` — assembles the Leader Board payload: Odoo Won deals (widened to whole Sun–Sat weeks), the Sales roster (via `commissions.employees_now`), Terros period KPIs + yesterday
 - Launch: double-click `api/Start API Server.bat`
 
@@ -122,7 +123,9 @@ The dashboard now uses `POST /report/kpi` with `version: 2` — the same call th
 ## Leader Board (`/leaderboard`)
 
 ### Endpoint
-`GET /api/leaderboard?start=YYYY-MM-DD&end=YYYY-MM-DD[&force=1]` — defaults to MTD; cached 300s per range.
+`GET /api/leaderboard?start=YYYY-MM-DD&end=YYYY-MM-DD&part=deals|terros[&force=1]` — defaults to MTD. Two parts so the page can paint revenue (Odoo, fast) before field activity (Terros, slow): the page calls `part=deals` first, renders, then `part=terros` and re-renders.
+
+**Speed rules** (`api/leaderboard.py::build`): whatever is cached is returned at once, even past the 300 s TTL — a stale copy kicks off a refresh in a background thread, so nobody waits for a rebuild. Only a range never asked for before is built while the caller waits. `_warm_cache()` in `server.py` builds the MTD board (both parts) at startup and every 2 minutes, so the default view is always warm. What is left: Render's free plan puts the service to sleep after 15 idle minutes, and the first visitor after that pays ~1 minute for the wake-up plus a cold cache. A paid Render instance removes the sleep.
 
 ### Rules the page applies (all in `leaderboard.html`, `derive()`)
 - Revenue = `x_studio_contract_value` on Won accounts by closing date, same as the revenue tracker.
@@ -144,4 +147,10 @@ The dashboard now uses `POST /report/kpi` with `version: 2` — the same call th
 
 ### Tahiti Trip Tracker (`/tahiti`)
 Same rules as the Incentives tab on `/crm`: Apr 17 – Dec 31, 2026; Market Directors = contract value on Won accounts closed, self-gen counted twice, targets $1.6M / $1.8M; Market Coordinators = contract value on accounts set, counted once, targets $640K / $800K (`TARGETS` in `tahiti.html`). Pace projects the current daily rate to Dec 31: Ahead reaches Target 2, On pace reaches Target 1, else Behind.
+
+### Onboarding (`/onboarding`)
+Same data as the Onboarding tab on `/crm` (`odoo.get_onboarding`): employees in Pre-Boarding (`status1`) or Onboarding (`status2`), the open "W-9 Submission in Gusto" activity, unsigned signature requests. Names link to the Odoo employee record (`/odoo/employees/<id>`).
+
+### Top nav on the new pages
+Overview · Teams · Reps (the Leader Board, `#overview` etc.) · Tahiti (`/tahiti`) · Onboarding (`/onboarding`). No "Dashboard" link — the Leader Board is the main page now: signing in, `/`, `/dashboard` and an already-signed-in visit to `/login` all land on `/leaderboard` (`HOME` in `server.py`). `/crm` stays reachable by URL.
 
