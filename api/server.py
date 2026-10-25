@@ -31,6 +31,7 @@ from datetime import datetime, timezone, timedelta
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import terros
 import odoo
+import leaderboard
 
 # The commission ledger. Imported defensively: it runs in this same process, so
 # nothing in it is allowed to stop the CRM dashboard from starting.
@@ -47,6 +48,7 @@ ROOT_DIR      = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # t
 HTML_FILE        = os.path.join(ROOT_DIR, "index.html")
 CRM_HTML_FILE    = os.path.join(ROOT_DIR, "vivid-crm-dashboard.html")
 TERROS_HTML_FILE = os.path.join(ROOT_DIR, "vivid-terros-dashboard.html")
+LEADERBOARD_HTML_FILE = os.path.join(ROOT_DIR, "leaderboard.html")
 LOGIN_FILE       = os.path.join(ROOT_DIR, "login.html")
 PLAYBOOK_FILE    = os.path.join(ROOT_DIR, "playbook.json")
 
@@ -443,6 +445,13 @@ class Handler(http.server.BaseHTTPRequestHandler):
                     force = (qs.get("force") or [None])[0] == "1"
                     self._json(odoo.get_onboarding(force=force))
 
+                elif path == "/api/leaderboard":
+                    today = datetime.now(tz=timezone.utc)
+                    start_s = (qs.get("start") or [today.strftime("%Y-%m-01")])[0]
+                    end_s   = (qs.get("end")   or [today.strftime("%Y-%m-%d")])[0]
+                    force   = (qs.get("force")  or [None])[0] == "1"
+                    self._json(leaderboard.build(start_s, end_s, force=force))
+
                 elif path == "/api/odoo/report":
                     today = datetime.now(tz=timezone.utc)
                     start_s = (qs.get("start") or [today.strftime("%Y-%m-01")])[0]
@@ -479,6 +488,16 @@ class Handler(http.server.BaseHTTPRequestHandler):
                         self.end_headers(); self.wfile.write(content)
                     else:
                         self._json({"error": "CRM dashboard HTML not found"}, status=404)
+
+                elif path == "/leaderboard":
+                    if os.path.exists(LEADERBOARD_HTML_FILE):
+                        with open(LEADERBOARD_HTML_FILE, "rb") as f: content = f.read()
+                        self.send_response(200)
+                        self.send_header("Content-Type", "text/html; charset=utf-8")
+                        self.send_header("Content-Length", str(len(content)))
+                        self.end_headers(); self.wfile.write(content)
+                    else:
+                        self._json({"error": "leaderboard.html not found"}, status=404)
 
                 elif path == "/terros":
                     if os.path.exists(TERROS_HTML_FILE):
@@ -668,6 +687,7 @@ if __name__ == "__main__":
     print("  Vivid Dashboard Server")
     print(f"  Terros Dashboard  →  http://localhost:{PORT}/")
     print(f"  CRM Dashboard     →  http://localhost:{PORT}/crm")
+    print(f"  Leader Board      →  http://localhost:{PORT}/leaderboard")
     print()
     print("  API Endpoints:")
     print(f"    GET  http://localhost:{PORT}/api/weekly?start=2026-06-09&end=2026-06-15")

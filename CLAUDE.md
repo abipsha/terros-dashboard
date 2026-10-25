@@ -7,6 +7,8 @@
 - `api/server.py` — HTTP server on port 8000; serves HTML at `/` (Terros) and `/crm` (Odoo), JSON at `/api/*`
 - `vivid-terros-dashboard.html` — Terros leaderboard; fetches from `http://localhost:8000/api/weekly`
 - `vivid-crm-dashboard.html`    — Odoo CRM revenue dashboard; fetches from `http://localhost:8000/api/odoo/report`
+- `leaderboard.html` — Leader Board (Drip squad-tracker style, light/dark); served at `/leaderboard`, fetches `/api/leaderboard`
+- `api/leaderboard.py` — assembles the Leader Board payload: Odoo Won deals (widened to whole Sun–Sat weeks), the Sales roster (via `commissions.employees_now`), Terros period KPIs + yesterday
 - Launch: double-click `api/Start API Server.bat`
 
 ## Odoo CRM Dashboard
@@ -115,3 +117,26 @@ The dashboard now uses `POST /report/kpi` with `version: 2` — the same call th
 ## Known Issues
 - `activity/list` is no longer used for the main report (it was unreliable for date filtering and slow).
 - `firstPitch`/`lastPitch` per rep are not available from `report/kpi` v2 — they are set to `null`.
+
+## Leader Board (`/leaderboard`)
+
+### Endpoint
+`GET /api/leaderboard?start=YYYY-MM-DD&end=YYYY-MM-DD[&force=1]` — defaults to MTD; cached 300s per range.
+
+### Rules the page applies (all in `leaderboard.html`, `derive()`)
+- Revenue = `x_studio_contract_value` on Won accounts by closing date, same as the revenue tracker.
+- Roles are shown as **Market Director** (closer) and **Market Coordinator** (setter). Never "Closer"/"Setter"/"Captain"/"Manager" in the UI.
+- Weekly bonus runs **Sunday–Saturday**: 1 set no bonus, 2 sets +2%, 3+ sets +4% of the contract value set that week, paid to the setter. Self-gen counts as a set. The deals feed is widened to whole weeks (`weeksStart`/`weeksEnd`) so partial weeks at the edges of the range are scored on their full week.
+- Standing: Productive = sale in the current week; Active = sale within 30 days of the period end or any Terros activity in the period; otherwise Inactive.
+- Inside Sales is not a team tab (`TEAMS` in `api/leaderboard.py`); its reps and deals still appear on rep rows and in company totals.
+- Tahiti tracker is NOT on this page — the "Tahiti" link goes to `/crm#tahiti` (the CRM page reads the hash on load).
+
+### Terros fields on the board
+- Knocks, pitches, days worked: KPI v2 as on the Terros board.
+- **Sits** = KPI v2 column 5 (`sras`). Switch `SITS_FROM = "acs"` in `api/leaderboard.py` if the office means set appointments instead.
+- **Hours worked** and **first knock** are not in KPI v2. They come from `activity/list`: per rep per day, first action = first knock, first→last action span = hours (minimum 0.25 h for a one-action day). Period hours are cached 1 hour (`_hours_cache`) because the activity list is slow. "First knock" on the board is always **yesterday's** (last full CDT day).
+- Terros names are joined to Odoo names by `norm()` (lowercase letters only); a rep whose Terros name differs from the Odoo roster name gets no Terros readings — fix the name in Terros or Odoo rather than in code.
+
+### Nav
+`vivid-crm-dashboard.html` links to `/leaderboard` from the sidebar, main tabs and mobile bar. The old **Terros Board** tab is hidden (`style="display:none"`), not removed.
+

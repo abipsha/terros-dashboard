@@ -1258,7 +1258,11 @@
     <button class="sb-nav-item" data-tab="revenue" onclick="switchMainTab('revenue'); revGoHome();">
       <i class="ti ti-chart-bar"></i> Revenue Tracker
     </button>
-    <button class="sb-nav-item" data-tab="terros" onclick="switchMainTab('terros')">
+    <button class="sb-nav-item" onclick="location.href='/leaderboard'">
+      <i class="ti ti-crown"></i> Leader Board
+    </button>
+    <!-- Terros Board lives inside the Leader Board now; the tab stays here, hidden, in case it is wanted back -->
+    <button class="sb-nav-item" data-tab="terros" onclick="switchMainTab('terros')" style="display:none">
       <i class="ti ti-map-pin-2"></i> Terros Board
     </button>
     <button class="sb-nav-item" data-tab="incentives" onclick="switchMainTab('incentives')">
@@ -1270,9 +1274,6 @@
     <div class="sb-divider"></div>
     <button class="sb-nav-item sb-nav-disabled">
       <i class="ti ti-report-analytics"></i> Reports
-    </button>
-    <button class="sb-nav-item sb-nav-disabled">
-      <i class="ti ti-crown"></i> Leaders
     </button>
     <button class="sb-nav-item sb-nav-disabled">
       <i class="ti ti-settings"></i> Settings
@@ -1309,7 +1310,8 @@
 <!-- ── Main Navigation ── -->
 <div class="main-nav">
   <button class="main-tab active" data-tab="revenue" onclick="switchMainTab('revenue')">Revenue Tracker</button>
-  <button class="main-tab" data-tab="terros" onclick="switchMainTab('terros')">Terros Board</button>
+  <button class="main-tab" onclick="location.href='/leaderboard'">Leader Board</button>
+  <button class="main-tab" data-tab="terros" onclick="switchMainTab('terros')" style="display:none">Terros Board</button>
   <button class="main-tab" data-tab="incentives" onclick="switchMainTab('incentives')">Incentives Tracker</button>
   <button class="main-tab" data-tab="onboarding" onclick="switchMainTab('onboarding')">Onboarding</button>
   <button class="main-tab" data-tab="playbook" onclick="switchMainTab('playbook')" style="display:none">Playbook</button>
@@ -3189,6 +3191,10 @@ function closeCompDrilldown() {
 // ── Init ──────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', function() {
   setRange('mtd');
+  // Deep links from the Leader Board: /crm#tahiti opens the Tahiti tracker, /crm#incentives the bonus tab
+  var h = (location.hash || '').replace('#', '');
+  if (h === 'tahiti') { switchMainTab('incentives'); switchIncTab('tahiti'); }
+  else if (h === 'incentives' || h === 'onboarding') { switchMainTab(h); }
   // Auto-load incentives in background after page settles
   setTimeout(function() { loadIncentivesData(); }, 1500);
   setInterval(function() {
@@ -3836,7 +3842,11 @@ document.addEventListener('click', function(e) {
     <i class="ti ti-chart-bar"></i>
     <span>Revenue</span>
   </button>
-  <button class="mobile-tab" data-tab="terros" onclick="switchMainTab('terros')">
+  <button class="mobile-tab" onclick="location.href='/leaderboard'">
+    <i class="ti ti-crown"></i>
+    <span>Leader Board</span>
+  </button>
+  <button class="mobile-tab" data-tab="terros" onclick="switchMainTab('terros')" style="display:none">
     <i class="ti ti-map-pin-2"></i>
     <span>Terros</span>
   </button>

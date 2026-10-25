@@ -1,0 +1,709 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Vivid Windows - Leader Board</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto+Condensed:wght@700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ground: #F3F1EC; --card: #FFFFFF; --ink: #1B1B1B; --muted: #6F6E6A; --line: #ECEAE4; --line2: #F0EEE8;
+    --tot: #FBFAF8; --gray: #EFEDE8; --gray2: #C9C7C1; --gray3: #9B9A95; --accent: #E4571F; --pale: #F8CDB9;
+    --act-bg: #FBE7E0; --act-fg: #B4421A; --g2-bg: #D7F0EA; --g2-fg: #0F5F57; --green: #0F766E;
+    --shadow: 0 1px 2px rgba(0,0,0,.04); --shadow2: 0 1px 2px rgba(0,0,0,.08);
+    --field-bg: #FFFFFF;
+  }
+  html[data-theme="dark"] {
+    --ground: #161615; --card: #1F1F1E; --ink: #F3F1EC; --muted: #A3A29D; --line: #2E2E2C; --line2: #2A2A28;
+    --tot: #242423; --gray: #2C2C2A; --gray2: #4A4A47; --gray3: #8A8985; --accent: #E4571F; --pale: #5A2E1B;
+    --act-bg: #3A2418; --act-fg: #F2A784; --g2-bg: #163A34; --g2-fg: #8FD9C8; --green: #5FC9B5;
+    --shadow: 0 1px 2px rgba(0,0,0,.35); --shadow2: 0 1px 2px rgba(0,0,0,.4);
+    --field-bg: #1F1F1E;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body { background: var(--ground); color: var(--ink); font-family: Inter, system-ui, sans-serif; min-height: 100vh; -webkit-font-smoothing: antialiased; }
+  a { color: var(--ink); text-decoration: none; }
+  a:hover { color: var(--accent); }
+  button { font-family: inherit; }
+  .wrap { max-width: 1240px; margin: 0 auto; padding: 18px 20px 48px; display: flex; flex-direction: column; gap: 16px; }
+  .card { background: var(--card); border-radius: 14px; box-shadow: var(--shadow); min-width: 0; }
+  .pad { padding: 16px 18px; }
+  .cond { font-family: 'Roboto Condensed', sans-serif; font-weight: 800; line-height: 1; }
+  .muted { color: var(--muted); }
+  .tiny { font-size: 10px; }
+  .lbl { font-size: 10px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+  .pill { display: inline-block; font-size: 10px; font-weight: 600; padding: 3px 9px; border-radius: 999px; line-height: 1.3; white-space: nowrap; }
+  .pill.productive { background: var(--ink); color: var(--card); }
+  .pill.active { background: var(--act-bg); color: var(--act-fg); }
+  .pill.inactive { background: var(--gray); color: var(--muted); }
+  .pill.t4 { background: var(--accent); color: #FFFFFF; }
+  .pill.t2 { background: var(--g2-bg); color: var(--g2-fg); }
+  .pill.t1 { background: var(--gray); color: var(--muted); }
+  .pill.t0 { background: transparent; color: var(--gray2); }
+  .pill.role-d { background: var(--gray); color: var(--ink); }
+  .pill.role-c { background: var(--act-bg); color: var(--act-fg); }
+  .pill.role-s { background: var(--ink); color: var(--card); }
+  .seg { display: flex; flex-wrap: wrap; gap: 4px; background: var(--ground); border-radius: 999px; padding: 4px; }
+  .card .seg { background: var(--ground); }
+  .seg > button, .seg > a { font-size: 12px; font-weight: 500; padding: 6px 14px; border-radius: 999px; border: none; background: transparent; color: var(--ink); cursor: pointer; white-space: nowrap; min-height: 32px; }
+  .seg > .on { font-weight: 600; background: var(--ink); color: var(--card); }
+  .seg.orange > .on { background: var(--accent); color: #FFFFFF; }
+  .seg.white { background: var(--card); box-shadow: var(--shadow); }
+  .seg.white > .on { background: var(--ink); color: var(--card); }
+  .seg.soft > .on { background: var(--card); color: var(--ink); box-shadow: var(--shadow2); }
+  .iconbtn { width: 36px; height: 36px; border: none; background: transparent; border-radius: 999px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; color: var(--ink); }
+  .iconbtn:hover { background: var(--ground); }
+  input[type=date], input[type=search], select {
+    font-family: Inter, system-ui, sans-serif; font-size: 12px; border: 1px solid var(--line); border-radius: 8px; padding: 6px 9px;
+    background: var(--field-bg); color: var(--ink); min-height: 32px;
+  }
+  html[data-theme="dark"] input[type=date] { color-scheme: dark; }
+  .btn { font-size: 12px; font-weight: 600; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--card); color: var(--ink); cursor: pointer; min-height: 32px; }
+  .btn:hover { border-color: var(--accent); }
+
+  /* top bar */
+  .topbar { padding: 10px 18px; display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+  .brand { font-family: 'Roboto Condensed', sans-serif; font-weight: 800; font-size: 20px; letter-spacing: .02em; display: flex; align-items: center; gap: 8px; }
+  .brand span { font-family: Inter, sans-serif; font-weight: 500; font-size: 12px; color: var(--muted); letter-spacing: 0; }
+  .topnav { margin-left: auto; margin-right: auto; }
+  .topright { display: flex; align-items: center; gap: 8px; }
+
+  /* title + period */
+  .titlerow { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 18px; padding: 0 4px; }
+  .titlerow h1 { margin: 0; font-size: 24px; font-weight: 700; letter-spacing: -.01em; }
+  .titlerow h1 span { font-weight: 400; color: var(--muted); }
+  .period { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+  .custom { display: none; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .custom.show { display: flex; }
+
+  /* header block */
+  .teamhead { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px 24px; padding: 2px 6px 0; }
+  .teamhead .name { font-family: 'Roboto Condensed', sans-serif; font-weight: 800; font-size: 40px; line-height: 1; text-transform: uppercase; letter-spacing: -.01em; }
+  .stats { display: flex; gap: 24px; margin-left: auto; flex-wrap: wrap; }
+  .stat { text-align: right; }
+  .stat .v { font-family: 'Roboto Condensed', sans-serif; font-weight: 800; font-size: 28px; line-height: 1; }
+  .stat .l { font-size: 9px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-top: 4px; }
+
+  .grid4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+  .grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+  .grid5 { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px 14px; }
+  .grid6 { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 12px; }
+  .kpi { display: flex; flex-direction: column; gap: 8px; }
+  .kpi .v { font-family: 'Roboto Condensed', sans-serif; font-weight: 800; font-size: 32px; line-height: 1; }
+  .kpi .row { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 11px; color: var(--muted); }
+  .bignum { font-family: 'Roboto Condensed', sans-serif; font-weight: 800; font-size: 26px; line-height: 1; white-space: nowrap; }
+  .bigsub { font-size: 10px; color: var(--muted); margin-top: 4px; }
+  .mini { font-family: 'Roboto Condensed', sans-serif; font-weight: 700; font-size: 14px; }
+  .minil { font-size: 9px; letter-spacing: .06em; color: var(--muted); }
+  .cardhead { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 6px 12px; }
+  .cardhead .t { font-size: 13px; font-weight: 600; }
+  .cardhead .t span { font-weight: 400; color: var(--muted); }
+  .bars { display: flex; align-items: flex-end; gap: 8px; height: 64px; }
+  .bars > div { flex: 1; background: var(--line); border-radius: 4px 4px 0 0; min-height: 2px; }
+  .bars > div.cur { background: var(--accent); }
+  .barlbl { display: flex; justify-content: space-between; font-size: 10px; color: var(--muted); }
+  .barlbl span { flex: 1; text-align: center; }
+  .hr { border-top: 1px solid var(--line2); }
+
+  /* tables */
+  .tablebox { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; }
+  th { font-size: 11px; font-weight: 500; color: var(--muted); text-align: right; padding: 10px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  th.l, td.l { text-align: left; }
+  th.c, td.c { text-align: center; }
+  th.sep, td.sep { border-left: 1px solid var(--line); padding-left: 18px; }
+  td { font-size: 12.5px; padding: 10px 10px; border-bottom: 1px solid var(--line2); text-align: right; white-space: nowrap; }
+  tr.bold td { font-weight: 700; }
+  tr.total td { font-weight: 700; border-bottom: none; border-top: 2px solid var(--line); background: var(--tot); }
+  tr.click { cursor: pointer; }
+  tr.click:hover td { background: var(--ground); }
+  th.sort { cursor: pointer; }
+  th.sort:hover { color: var(--ink); }
+  .name a { font-weight: inherit; }
+  .num { font-variant-numeric: tabular-nums; }
+
+  /* team tabs */
+  .teamtabs { align-self: flex-start; }
+
+  /* legend strip */
+  .legend { display: flex; gap: 24px; flex-wrap: wrap; padding-top: 10px; align-items: flex-end; }
+  .legend .k { font-family: 'Roboto Condensed', sans-serif; font-weight: 700; font-size: 13px; }
+
+  /* drawer */
+  .drawer-bg { position: fixed; inset: 0; background: rgba(0,0,0,.35); display: none; z-index: 20; }
+  .drawer-bg.show { display: block; }
+  .drawer { position: fixed; top: 0; right: 0; bottom: 0; width: min(920px, 100%); background: var(--ground); z-index: 21; transform: translateX(100%); transition: transform .2s ease; overflow-y: auto; padding: 18px 20px 40px; display: flex; flex-direction: column; gap: 14px; }
+  .drawer.show { transform: translateX(0); }
+  .avatar { width: 52px; height: 52px; border-radius: 999px; background: var(--ink); color: var(--card); display: flex; align-items: center; justify-content: center; font-family: 'Roboto Condensed', sans-serif; font-weight: 800; font-size: 18px; flex-shrink: 0; }
+
+  .view { display: none; flex-direction: column; gap: 16px; }
+  .view.show { display: flex; }
+  .status { font-size: 11px; color: var(--muted); }
+  .status.err { color: var(--act-fg); }
+  .loading { text-align: center; padding: 60px 0; color: var(--muted); font-size: 13px; }
+  .empty { padding: 14px 0; color: var(--muted); font-size: 12px; }
+  .wk { display: flex; gap: 3px; }
+  .wk > span { flex: 1; height: 6px; border-radius: 3px; background: var(--line); }
+
+  @media (max-width: 1000px) {
+    .grid4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .grid5 .bignum { font-size: 22px; }
+    .grid6 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .grid5 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  }
+  @media (max-width: 700px) {
+    .wrap { padding: 12px 12px 36px; gap: 12px; }
+    .grid2 { grid-template-columns: minmax(0, 1fr); }
+    .grid4 { grid-template-columns: minmax(0, 1fr); }
+    .grid6 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .grid5 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .teamhead .name { font-size: 30px; }
+    .stats { margin-left: 0; gap: 16px; }
+    .stat .v { font-size: 22px; }
+    .titlerow h1 { font-size: 18px; }
+    .topnav { margin-left: 0; width: 100%; }
+    .topnav > button, .topnav > a { flex: 1; text-align: center; }
+    .teamtabs { align-self: stretch; overflow-x: auto; flex-wrap: nowrap; }
+    .kpi .v { font-size: 26px; }
+    th, td { padding: 9px 8px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="card topbar">
+    <div class="brand">VIVID <span>Leader Board</span></div>
+    <nav class="seg topnav" aria-label="Sections">
+      <button class="on" data-view="overview" onclick="setView('overview')">Overview</button>
+      <button data-view="teams" onclick="setView('teams')">Teams</button>
+      <button data-view="reps" onclick="setView('reps')">Reps</button>
+      <a href="/crm#tahiti">Tahiti</a>
+      <a href="/crm">Dashboard</a>
+    </nav>
+    <div class="topright">
+      <button class="iconbtn" id="themeBtn" aria-label="Switch to dark mode" onclick="toggleTheme()">
+        <svg id="iconMoon" aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"></path></svg>
+        <svg id="iconSun" aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="display:none"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>
+      </button>
+      <button class="iconbtn" aria-label="Refresh" title="Refresh" onclick="load(true)">
+        <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-2.6-6.4"></path><path d="M21 3v6h-6"></path></svg>
+      </button>
+      <a href="/logout" style="font-size: 12px; font-weight: 500">Sign out</a>
+    </div>
+  </div>
+
+  <div class="titlerow">
+    <div style="flex: 1 1 320px; min-width: 0">
+      <h1 id="pageTitle">Leader Board <span id="periodTitle"></span></h1>
+      <div class="status" id="statusLine">Loading…</div>
+    </div>
+    <div class="period">
+      <div class="seg white" id="periodSeg">
+        <button class="on" data-p="this" onclick="setPeriod('this')">This month</button>
+        <button data-p="last" onclick="setPeriod('last')">Last month</button>
+        <button data-p="custom" onclick="setPeriod('custom')">Custom</button>
+      </div>
+      <div class="custom" id="customBox">
+        <label for="fromDate" class="tiny muted">From</label>
+        <input id="fromDate" type="date">
+        <label for="toDate" class="tiny muted">to</label>
+        <input id="toDate" type="date">
+        <button class="btn" onclick="applyCustom()">Apply</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="loading" class="loading">Loading the board…</div>
+
+  <!-- ═══ OVERVIEW ═══ -->
+  <div class="view" id="view-overview"></div>
+
+  <!-- ═══ TEAMS ═══ -->
+  <div class="view" id="view-teams"></div>
+
+  <!-- ═══ REPS ═══ -->
+  <div class="view" id="view-reps"></div>
+
+</div>
+
+<div class="drawer-bg" id="drawerBg" onclick="closeRep()"></div>
+<div class="drawer" id="drawer" role="dialog" aria-label="Rep detail"></div>
+
+<script>
+/* ──────────────────────────────────────────────────────────────
+   Leader Board — reads /api/leaderboard and renders three views.
+   Revenue is contract value on Won accounts by closing date (Odoo).
+   Field activity is Terros. Weekly bonus runs Sunday–Saturday:
+   2 sets +2%, 3 or more +4% of the contract value set that week.
+   ────────────────────────────────────────────────────────────── */
+var API = '';                       // same origin
+var S = { view: 'overview', period: 'this', start: '', end: '', team: '', roster: 'everyone', data: null, repSort: 'rev', repRole: 'all', repTeam: '', repStanding: '', repQ: '' };
+var TEAM_ORDER = ['Northern Utah', 'Eastern Idaho', 'Southern Utah', 'Northern California'];
+
+/* ---------- theme ---------- */
+function applyTheme(t) {
+  document.documentElement.setAttribute('data-theme', t);
+  document.getElementById('iconMoon').style.display = t === 'dark' ? 'none' : '';
+  document.getElementById('iconSun').style.display = t === 'dark' ? '' : 'none';
+  document.getElementById('themeBtn').setAttribute('aria-label', t === 'dark' ? 'Switch to light mode' : 'Switch to dark mode');
+}
+function toggleTheme() {
+  var t = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  applyTheme(t);
+  try { localStorage.setItem('lb-theme', t); } catch (e) {}
+}
+(function () {
+  var t = 'light';
+  try { t = localStorage.getItem('lb-theme') || (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'); } catch (e) {}
+  applyTheme(t);
+})();
+
+/* ---------- dates ---------- */
+function pad(n) { return String(n).padStart(2, '0'); }
+function fmtD(d) { return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
+function parseD(s) { var p = s.split('-'); return new Date(+p[0], +p[1] - 1, +p[2]); }
+function addDays(s, n) { var d = parseD(s); d.setDate(d.getDate() + n); return fmtD(d); }
+var MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+var MONL = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+function dshort(s) { if (!s) return ''; var d = parseD(s); return MON[d.getMonth()] + ' ' + d.getDate(); }
+function dlong(s) { if (!s) return ''; var d = parseD(s); return MON[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear(); }
+function today() { return fmtD(new Date()); }
+function sunOnOrBefore(s) { var d = parseD(s); d.setDate(d.getDate() - d.getDay()); return fmtD(d); }
+function satOnOrAfter(s) { var d = parseD(s); d.setDate(d.getDate() + (6 - d.getDay())); return fmtD(d); }
+function weeksTouching(start, end) {
+  var out = [], cur = sunOnOrBefore(start), n = 1;
+  while (cur <= end) {
+    var e = addDays(cur, 6);
+    out.push({ n: n++, start: cur, end: e, key: cur, label: dshort(cur) + ' – ' + dshort(e), current: today() >= cur && today() <= e, future: cur > today() });
+    cur = addDays(cur, 7);
+  }
+  return out;
+}
+function monthRange(offset) {
+  var d = new Date(); d.setDate(1); d.setMonth(d.getMonth() + offset);
+  var s = fmtD(d); var e = new Date(d.getFullYear(), d.getMonth() + 1, 0);
+  var endS = fmtD(e); if (offset === 0 && endS > today()) endS = today();
+  return { start: s, end: endS, label: MONL[d.getMonth()] + ' ' + d.getFullYear() };
+}
+
+/* ---------- formatting ---------- */
+function money(n) { n = Math.round(n || 0); return (n < 0 ? '-$' : '$') + Math.abs(n).toLocaleString('en-US'); }
+function moneyK(n) { n = n || 0; if (Math.abs(n) >= 1e6) return '$' + (n / 1e6).toFixed(2) + 'M'; if (Math.abs(n) >= 1e3) return '$' + Math.round(n / 1e3) + 'K'; return '$' + Math.round(n); }
+function num(n) { return (n || 0).toLocaleString('en-US'); }
+function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+function norm(s) { return String(s || '').toLowerCase().replace(/[^a-z]/g, ''); }
+function initials(n) { return n.split(/\s+/).filter(Boolean).slice(0, 2).map(function (x) { return x[0]; }).join('').toUpperCase(); }
+function blank(v) { return v == null || v === '' || v === 0 ? '' : v; }
+
+/* ---------- data load ---------- */
+function setPeriod(p) {
+  S.period = p;
+  document.querySelectorAll('#periodSeg button').forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-p') === p); });
+  document.getElementById('customBox').classList.toggle('show', p === 'custom');
+  if (p === 'this' || p === 'last') { var r = monthRange(p === 'this' ? 0 : -1); S.start = r.start; S.end = r.end; load(false); }
+  else { document.getElementById('fromDate').value = S.start; document.getElementById('toDate').value = S.end; }
+}
+function applyCustom() {
+  var f = document.getElementById('fromDate').value, t = document.getElementById('toDate').value;
+  if (!f || !t || f > t) { alert('Pick a From date on or before the To date.'); return; }
+  S.start = f; S.end = t; load(false);
+}
+function periodLabel() {
+  var r0 = monthRange(0), r1 = monthRange(-1);
+  if (S.start === r0.start && S.end === r0.end) return r0.label + ', month to date';
+  if (S.start === r1.start && S.end === r1.end) return r1.label;
+  return dlong(S.start) + ' – ' + dlong(S.end);
+}
+function load(force) {
+  document.getElementById('loading').style.display = '';
+  document.getElementById('statusLine').textContent = 'Loading ' + periodLabel() + '…';
+  document.getElementById('statusLine').className = 'status';
+  var url = API + '/api/leaderboard?start=' + S.start + '&end=' + S.end + (force ? '&force=1' : '');
+  fetch(url, { credentials: 'same-origin', headers: { Accept: 'application/json' } })
+    .then(function (r) {
+      // the server answers an expired session with a redirect to /login; follow it as a page, not as data
+      if (r.status === 401 || r.status === 403 || (r.redirected && r.url.indexOf('/login') >= 0)) { location.href = '/login'; throw new Error('sign in'); }
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    })
+    .then(function (j) { S.data = j; derive(); render(); })
+    .catch(function (e) {
+      document.getElementById('loading').style.display = 'none';
+      var st = document.getElementById('statusLine'); st.className = 'status err';
+      st.textContent = 'Could not load the board: ' + e.message + '. Try Refresh; if it keeps happening, tell Abipsha.';
+    });
+}
+
+/* ---------- derive everything from the payload ---------- */
+var D = {};   // derived
+function derive() {
+  var j = S.data;
+  var start = j.period.start, end = j.period.end;
+  var deals = j.deals || [];
+  var inRange = deals.filter(function (d) { return d.date >= start && d.date <= end; });
+  var weeks = weeksTouching(start, end);
+  var terP = (j.terros && j.terros.period && j.terros.period.byName) || {};
+  var terY = (j.terros && j.terros.yesterday && j.terros.yesterday.byName) || {};
+  var roster = j.roster || [];
+  var teams = j.teams || TEAM_ORDER;
+
+  // reps: everyone on the roster plus anyone named on a deal in the window
+  var reps = {};
+  function rep(name) {
+    if (!name) return null;
+    var k = norm(name);
+    if (!reps[k]) reps[k] = { name: name, key: k, team: '', role: '', active: true, onRoster: false, closed: [], set: [], selfgen: [], lastSale: '', manager: '', start: '', odooId: null, dealTeams: {} };
+    return reps[k];
+  }
+  roster.forEach(function (e) { var r = rep(e.name); if (!r) return; r.onRoster = true; r.team = e.team || r.team; r.role = e.role || r.role; r.active = e.active !== false; r.manager = e.manager || ''; r.start = e.start || ''; r.odooId = e.odooId || null; });
+  deals.forEach(function (d) {
+    var c = rep(d.closer), s = rep(d.setter);
+    var self = c && s && c === s;
+    if (c) { c.dealTeams[d.team] = (c.dealTeams[d.team] || 0) + 1; }
+    if (s && s !== c) { s.dealTeams[d.team] = (s.dealTeams[d.team] || 0) + 1; }
+    if (d.date >= start && d.date <= end) {
+      if (c) { c.closed.push(d); if (!c.role) c.role = 'Market Director'; }
+      if (s && !self) { s.set.push(d); if (!s.role) s.role = 'Market Coordinator'; }
+      if (self) { c.set.push(d); c.selfgen.push(d); }
+    }
+    if (c && d.date > c.lastSale) c.lastSale = d.date;
+    if (s && d.date > s.lastSale) s.lastSale = d.date;
+  });
+  (j.previous && j.previous.deals || []).forEach(function (d) {
+    var c = rep(d.closer), s = rep(d.setter);
+    if (c && d.date > c.lastSale) c.lastSale = d.date;
+    if (s && d.date > s.lastSale) s.lastSale = d.date;
+  });
+  var wkNow = { s: sunOnOrBefore(today()), e: satOnOrAfter(today()) };
+  var cutoff30 = addDays(end, -30);
+  Object.keys(reps).forEach(function (k) {
+    var r = reps[k];
+    if (!r.team) { var best = '', bn = 0; Object.keys(r.dealTeams).forEach(function (t) { if (r.dealTeams[t] > bn) { bn = r.dealTeams[t]; best = t; } }); r.team = best; }
+    r.revClosed = r.closed.reduce(function (a, d) { return a + d.rev; }, 0);
+    r.revSet = r.set.reduce(function (a, d) { return a + d.rev; }, 0);
+    r.revSelf = r.selfgen.reduce(function (a, d) { return a + d.rev; }, 0);
+    var seen = {}; r.accounts = [];
+    r.closed.concat(r.set).forEach(function (d) { if (!seen[d.id]) { seen[d.id] = 1; r.accounts.push(d); } });
+    r.accounts.sort(function (a, b) { return a.date < b.date ? -1 : a.date > b.date ? 1 : 0; });
+    r.adders = r.accounts.reduce(function (a, d) { return a + (d.adders || 0); }, 0);
+    r.rev = r.revClosed + r.revSet - r.revSelf;      // revenue the rep touched, each account once
+    // weekly bonus, per Sunday–Saturday week
+    r.weeks = weeks.map(function (w) {
+      var ds = deals.filter(function (d) { return norm(d.setter) === k && d.date >= w.start && d.date <= w.end; });
+      var val = ds.reduce(function (a, d) { return a + d.rev; }, 0);
+      var n = ds.length, rate = n >= 3 ? .04 : n === 2 ? .02 : 0;
+      return { n: n, rate: rate, value: val, bonus: val * rate, deals: ds, week: w };
+    });
+    r.bonus = r.weeks.reduce(function (a, w) { return a + w.bonus; }, 0);
+    r.setsAll = r.weeks.reduce(function (a, w) { return a + w.n; }, 0);
+    var cw = r.weeks.filter(function (w) { return w.week.current; })[0];
+    r.curWeek = cw || null;
+    // Terros
+    r.ter = terP[k] || null;
+    r.yday = terY[k] || null;
+    // standing
+    var sale = r.lastSale;
+    r.standing = sale && sale >= wkNow.s ? 'Productive' : (sale && sale >= cutoff30) || (r.ter && (r.ter.knocks || r.ter.pitches)) ? 'Active' : 'Inactive';
+  });
+  D.reps = Object.keys(reps).map(function (k) { return reps[k]; });
+  D.weeks = weeks; D.inRange = inRange; D.teams = teams;
+  D.prevDeals = (j.previous && j.previous.deals) || [];
+  // team summaries
+  D.team = {};
+  teams.forEach(function (t) {
+    var tr = D.reps.filter(function (r) { return r.team === t && (r.active || r.accounts.length); });
+    var td = inRange.filter(function (d) { return d.team === t; });
+    var pd = D.prevDeals.filter(function (d) { return d.team === t; });
+    D.team[t] = summarize(tr, td, pd);
+    D.team[t].reps = tr;
+  });
+  D.company = summarize(D.reps.filter(function (r) { return r.active || r.accounts.length; }), inRange, D.prevDeals);
+  D.company.reps = D.reps;
+  if (!S.team || teams.indexOf(S.team) < 0) S.team = teams[0];
+}
+function summarize(reps, deals, prev) {
+  var o = {};
+  o.deals = deals.length; o.rev = deals.reduce(function (a, d) { return a + d.rev; }, 0);
+  var self = deals.filter(function (d) { return d.closer && d.setter && norm(d.closer) === norm(d.setter); });
+  o.selfN = self.length; o.selfRev = self.reduce(function (a, d) { return a + d.rev; }, 0);
+  o.adders = deals.reduce(function (a, d) { return a + (d.adders || 0); }, 0);
+  o.adderAccts = deals.filter(function (d) { return d.adders; }).length;
+  o.avg = o.deals ? o.rev / o.deals : 0;
+  o.prevRev = prev.reduce(function (a, d) { return a + d.rev; }, 0); o.prevDeals = prev.length;
+  o.prevSelf = prev.filter(function (d) { return d.closer && d.setter && norm(d.closer) === norm(d.setter); }).length;
+  o.prevAdders = prev.reduce(function (a, d) { return a + (d.adders || 0); }, 0);
+  o.withSale = reps.filter(function (r) { return r.accounts.length; }).length;
+  o.bonus = reps.reduce(function (a, r) { return a + r.bonus; }, 0);
+  o.bonusWeek = reps.reduce(function (a, r) { return a + (r.curWeek ? r.curWeek.bonus : 0); }, 0);
+  o.at4 = reps.filter(function (r) { return r.curWeek && r.curWeek.n >= 3; }).length;
+  o.at2 = reps.filter(function (r) { return r.curWeek && r.curWeek.n === 2; }).length;
+  o.oneAway = reps.filter(function (r) { return r.curWeek && (r.curWeek.n === 1 || r.curWeek.n === 2); }).length;
+  var t = { knocks: 0, pitches: 0, sits: 0, hours: 0, reps: 0 }, y = { knocks: 0, pitches: 0, sits: 0, hours: 0, reps: 0, first: null };
+  reps.forEach(function (r) {
+    if (r.ter) { t.knocks += r.ter.knocks || 0; t.pitches += r.ter.pitches || 0; t.sits += r.ter.sits || 0; t.hours += r.ter.hours || 0; if (r.ter.knocks || r.ter.pitches) t.reps++; }
+    if (r.yday) { y.knocks += r.yday.knocks || 0; y.pitches += r.yday.pitches || 0; y.sits += r.yday.sits || 0; y.hours += r.yday.hours || 0; if (r.yday.knocks || r.yday.pitches || r.yday.hours) y.reps++; if (r.yday.firstKnock && (!y.first || toMin(r.yday.firstKnock) < toMin(y.first))) y.first = r.yday.firstKnock; }
+  });
+  o.ter = t; o.yday = y;
+  return o;
+}
+function toMin(t) { var m = /(\d+):(\d+)\s*(AM|PM)/i.exec(t || ''); if (!m) return 9999; var h = +m[1] % 12 + (m[3].toUpperCase() === 'PM' ? 12 : 0); return h * 60 + +m[2]; }
+
+/* ---------- render ---------- */
+function setView(v) {
+  S.view = v;
+  document.querySelectorAll('.topnav [data-view]').forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-view') === v); });
+  ['overview', 'teams', 'reps'].forEach(function (k) { document.getElementById('view-' + k).classList.toggle('show', k === v); });
+  if (S.data) render();
+}
+function render() {
+  var j = S.data;
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('periodTitle').textContent = periodLabel();
+  var yd = j.terros && j.terros.yesterday;
+  var st = document.getElementById('statusLine');
+  var bits = [dlong(S.start) + ' – ' + dlong(S.end), 'Updated ' + new Date(j.generatedAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })];
+  if (j.dealsStale) bits.push('Odoo did not answer; showing the last good read');
+  if (j.terros && j.terros.period && !j.terros.period.ok) bits.push('Terros did not answer for the period');
+  if (yd && !yd.ok) bits.push('Terros did not answer for yesterday');
+  st.textContent = bits.join(' · ');
+  st.className = 'status' + ((j.dealsStale || (yd && !yd.ok)) ? ' err' : '');
+  ['overview', 'teams', 'reps'].forEach(function (k) { document.getElementById('view-' + k).classList.toggle('show', k === S.view); });
+  if (S.view === 'overview') renderOverview();
+  else if (S.view === 'teams') renderTeam();
+  else renderReps();
+}
+
+/* ----- shared pieces ----- */
+function kpiCards(o, labelRev) {
+  var cards = [
+    { l: labelRev || 'Revenue', v: money(o.rev), s: num(o.deals) + ' accounts, avg ' + money(o.avg), last: moneyK(o.prevRev) },
+    { l: 'Deals', v: num(o.deals), s: num(o.withSale) + ' reps with a sale', last: num(o.prevDeals) },
+    { l: 'Self-gen', v: num(o.selfN), s: money(o.selfRev) + (o.rev ? ', ' + Math.round(o.selfRev / o.rev * 100) + '% of revenue' : ''), last: num(o.prevSelf) },
+    { l: 'Vivid Adders', v: num(o.adders), s: 'on ' + num(o.adderAccts) + ' accounts', last: num(o.prevAdders) }
+  ];
+  return '<div class="grid4">' + cards.map(function (c) {
+    return '<div class="card pad kpi"><div class="lbl">' + c.l + '</div><div class="v">' + c.v + '</div><div class="row"><span>' + esc(c.s) + '</span><span class="tiny">Last month ' + c.last + '</span></div></div>';
+  }).join('') + '</div>';
+}
+function monthsCard(byTeam) {
+  var ms = (S.data.months || []).slice();
+  var vals = ms.map(function (m) { return byTeam ? (m.byTeam && m.byTeam[byTeam]) || 0 : (m.total || 0); });
+  var max = Math.max.apply(null, vals.concat([1]));
+  var cur = S.start.slice(0, 7);
+  var bars = ms.map(function (m, i) { return '<div class="' + (m.month === cur ? 'cur' : '') + '" style="height:' + Math.max(3, Math.round(vals[i] / max * 100)) + '%" title="' + esc(m.month + ' ' + money(vals[i])) + '"></div>'; }).join('');
+  var lbl = ms.map(function (m) { var p = m.month.split('-'); return '<span>' + MON[+p[1] - 1] + '<br>' + moneyK(vals[ms.indexOf(m)]) + '</span>'; }).join('');
+  return '<div class="card pad" style="display:flex;flex-direction:column;gap:12px"><div class="cardhead"><div class="t">Revenue by month</div><div class="tiny muted">Contract value on Won accounts, by closing date</div></div>' +
+    '<div class="bars">' + bars + '</div><div class="barlbl">' + lbl + '</div></div>';
+}
+function terrosCard(o, title) {
+  var yd = S.data.terros && S.data.terros.yesterday;
+  var y = o.yday, t = o.ter;
+  var yLabel = yd && yd.date ? 'Yesterday, ' + dshort(yd.date) : 'Yesterday';
+  function big(v, l) { return '<div><div class="bignum">' + v + '</div><div class="bigsub">' + l + '</div></div>'; }
+  function mini(v, l) { return '<div><div class="mini">' + v + '</div><div class="minil">' + l + '</div></div>'; }
+  var top = yd && yd.ok
+    ? '<div class="grid5">' + big(num(y.knocks), 'knocks') + big(num(y.pitches), 'pitches') + big(num(y.sits), 'sits') + big(y.hours.toFixed(0), 'hours worked') + big(y.first || '—', 'first knock, team') + '</div>' +
+      '<div class="tiny muted">' + y.reps + ' reps logged activity yesterday. First knock is the earliest action anyone on the team logged.</div>'
+    : '<div class="empty">Terros did not answer for yesterday.</div>';
+  return '<div class="card pad" style="display:flex;flex-direction:column;gap:12px"><div class="cardhead"><div class="t">' + (title || 'Field activity') + ' <span>Terros</span></div><div class="tiny muted">' + yLabel + '</div></div>' + top +
+    '<div class="hr" style="padding-top:10px;display:flex;gap:18px;flex-wrap:wrap">' + mini(num(t.knocks), 'KNOCKS, ' + dshort(S.start).toUpperCase() + ' – ' + dshort(S.end).toUpperCase()) + mini(num(t.pitches), 'PITCHES') + mini(num(t.sits), 'SITS') + mini(t.hours.toFixed(0), 'HOURS') +
+    mini(t.knocks ? (t.pitches / t.knocks * 100).toFixed(1) + '%' : '—', 'PITCH RATE') + mini(o.deals && t.knocks ? Math.round(t.knocks / o.deals) : '—', 'KNOCKS PER SALE') + mini(t.reps, 'REPS WITH READINGS') + '</div></div>';
+}
+function tierPill(n) { return '<span class="pill ' + (n >= 3 ? 't4' : n === 2 ? 't2' : n === 1 ? 't1' : 't0') + '">' + (n >= 3 ? n + ' sets, +4%' : n === 2 ? '2 sets, +2%' : n === 1 ? '1 set' : '0') + '</span>'; }
+function standingPill(s) { return '<span class="pill ' + s.toLowerCase() + '">' + s + '</span>'; }
+function rolePill(r, self) { return self ? '<span class="pill role-s">Self-gen</span>' : r === 'Market Director' ? '<span class="pill role-d">Market Director</span>' : r === 'Market Coordinator' ? '<span class="pill role-c">Market Coordinator</span>' : ''; }
+function bonusGrid(reps, scopeLabel) {
+  var weeks = D.weeks;
+  var coords = reps.filter(function (r) { return r.setsAll > 0; }).sort(function (a, b) { return b.bonus - a.bonus || b.setsAll - a.setsAll; });
+  var head = '<tr><th class="l">Market coordinator</th>' + weeks.map(function (w) { return '<th class="c"' + (w.current ? ' style="color:var(--accent)"' : '') + '>Week ' + w.n + (w.current ? ', now' : '') + '<br><span style="font-weight:400">' + esc(w.label) + '</span></th>'; }).join('') + '<th>Sets</th><th>Bonus</th></tr>';
+  var rows = coords.map(function (r) {
+    return '<tr class="click" onclick="openRep(\'' + r.key + '\')"><td class="l name">' + esc(r.name) + '</td>' + r.weeks.map(function (w) { return '<td class="c">' + (w.week.future ? '<span class="muted">–</span>' : tierPill(w.n)) + '</td>'; }).join('') +
+      '<td class="num">' + r.setsAll + '</td><td class="num" style="font-weight:700">' + (r.bonus ? money(r.bonus) : '—') + '</td></tr>';
+  }).join('');
+  var tot = '<tr class="total"><td class="l">' + esc(scopeLabel) + '</td>' + weeks.map(function (w, i) { var s = coords.reduce(function (a, r) { return a + r.weeks[i].bonus; }, 0); return '<td class="c"' + (w.current ? ' style="color:var(--accent)"' : '') + '>' + (w.week && w.week.future ? '–' : money(s)) + '</td>'; }).join('') +
+    '<td class="num">' + coords.reduce(function (a, r) { return a + r.setsAll; }, 0) + '</td><td class="num">' + money(coords.reduce(function (a, r) { return a + r.bonus; }, 0)) + '</td></tr>';
+  var o = summarize(reps, [], []);
+  var curW = weeks.filter(function (w) { return w.current; })[0];
+  return '<div class="card" style="padding:16px 18px 6px;display:flex;flex-direction:column;gap:12px">' +
+    '<div class="cardhead"><div class="t">Weekly bonus <span>' + esc(periodLabel().replace(', month to date', '')) + ', week by week · Sunday to Saturday</span></div><div class="tiny muted">Paid to the market coordinator on every deal set in a qualifying week, on top of commission, whatever the month\'s revenue.</div></div>' +
+    '<div style="display:flex;gap:28px;flex-wrap:wrap">' +
+      '<div><div class="bignum">' + money(o.bonus) + '</div><div class="bigsub">earned so far</div></div>' +
+      (curW ? '<div><div class="bignum">' + money(o.bonusWeek) + '</div><div class="bigsub">this week so far</div></div><div><div class="bignum">' + o.at4 + '</div><div class="bigsub">at +4% this week</div></div><div><div class="bignum">' + o.at2 + '</div><div class="bigsub">at +2% this week</div></div><div><div class="bignum">' + o.oneAway + '</div><div class="bigsub">one set from the next tier</div></div>' : '') +
+    '</div>' +
+    (coords.length ? '<div class="tablebox"><table><thead>' + head + '</thead><tbody>' + rows + tot + '</tbody></table></div>' : '<div class="empty">No accounts set in this period.</div>') +
+    '<div class="legend hr" style="padding-bottom:8px"><div><div class="k" style="color:var(--gray3)">1 SET / WK</div><div class="minil">NO BONUS</div></div><div><div class="k" style="color:var(--green)">2 SETS / WK</div><div class="minil">+2% OF CONTRACT VALUE</div></div><div><div class="k" style="color:var(--accent)">3+ SETS / WK</div><div class="minil">+4% OF CONTRACT VALUE</div></div>' +
+    '<div class="tiny muted" style="margin-left:auto">Each cell shows the sets that week and the tier they earned. Self-generated deals count as a set. A cancelled job drops out of its week.</div></div></div>';
+}
+function terrosCells(r) {
+  var t = r.ter || {}, y = r.yday || {};
+  return '<td class="sep num">' + blank(num(t.knocks)) + '</td><td class="num">' + blank(num(t.pitches)) + '</td><td class="num">' + blank(num(t.sits)) + '</td><td class="num">' + (t.hours ? t.hours.toFixed(0) : '') + '</td><td>' + esc(y.firstKnock || '') + '</td>';
+}
+var TER_HEAD = '<th class="sep">Knocks</th><th>Pitches</th><th>Sits</th><th>Hours</th><th>First knock, yday</th>';
+
+/* ----- Teams view ----- */
+function renderTeam() {
+  var t = S.team, o = D.team[t], reps = o.reps.slice();
+  var mgr = (S.data.roster || []).filter(function (e) { return e.team === t && e.name !== e.manager; }).map(function (e) { return e.manager; });
+  var mgrName = ''; var cnt = {}; mgr.forEach(function (m) { if (m) { cnt[m] = (cnt[m] || 0) + 1; if (!mgrName || cnt[m] > cnt[mgrName]) mgrName = m; } });
+  var tabs = '<div class="seg white orange teamtabs">' + D.teams.map(function (x) { return '<button class="' + (x === t ? 'on' : '') + '" onclick="S.team=\'' + esc(x) + '\';render()">' + esc(x) + '</button>'; }).join('') + '</div>';
+  var head = '<div class="teamhead"><div style="flex:1 1 380px;min-width:0"><div class="name">' + esc(t) + '</div><div class="tiny muted" style="margin-top:8px">' + (mgrName ? 'Regional manager ' + esc(mgrName) + '. ' : '') + reps.filter(function (r) { return r.active; }).length + ' reps, ' + o.withSale + ' with a sale in the period.</div></div>' +
+    '<div class="stats"><div class="stat"><div class="v">' + moneyK(o.rev) + '</div><div class="l">' + esc(S.period === 'this' ? 'MTD' : 'Revenue') + '</div></div><div class="stat"><div class="v">' + moneyK(o.prevRev) + '</div><div class="l">Last month</div></div><div class="stat"><div class="v">' + moneyK(o.avg) + '</div><div class="l">Avg contract</div></div></div></div>';
+  var second = '<div class="grid2">' + monthsCard(t) + terrosCard(o) + '</div>';
+  // roster
+  var mode = S.roster;
+  var list = reps.filter(function (r) { return mode === 'everyone' ? true : mode === 'directors' ? r.role === 'Market Director' || r.closed.length : (r.role === 'Market Coordinator' || r.set.length); });
+  list.sort(function (a, b) { return (mode === 'coordinators' ? b.revSet - a.revSet : mode === 'directors' ? b.revClosed - a.revClosed : b.rev - a.rev) || a.name.localeCompare(b.name); });
+  var toggle = '<div class="seg soft"><button class="' + (mode === 'everyone' ? 'on' : '') + '" onclick="S.roster=\'everyone\';render()">Everyone</button><button class="' + (mode === 'directors' ? 'on' : '') + '" onclick="S.roster=\'directors\';render()">Market Directors</button><button class="' + (mode === 'coordinators' ? 'on' : '') + '" onclick="S.roster=\'coordinators\';render()">Market Coordinators</button></div>';
+  var thead, rows, tot;
+  if (mode === 'coordinators') {
+    thead = '<tr><th class="l">Rep</th><th>Sets</th><th>Revenue set</th>' + D.weeks.map(function (w) { return '<th class="c' + (w.n === 1 ? ' sep' : '') + '"' + (w.current ? ' style="color:var(--accent)"' : '') + '>W' + w.n + (w.current ? ' now' : '') + '</th>'; }).join('') + '<th>Bonus</th><th>Standing</th><th>Last sale</th>' + TER_HEAD + '</tr>';
+    rows = list.map(function (r) {
+      return '<tr class="click" onclick="openRep(\'' + r.key + '\')"><td class="l name" style="font-weight:600">' + esc(r.name) + '</td><td class="num">' + blank(r.setsAll) + '</td><td class="num">' + blank(r.revSet ? money(r.revSet) : '') + '</td>' +
+        r.weeks.map(function (w, i) { return '<td class="c' + (i === 0 ? ' sep' : '') + '">' + (w.week.future ? '<span class="muted">–</span>' : '<span class="pill ' + (w.n >= 3 ? 't4' : w.n === 2 ? 't2' : w.n === 1 ? 't1' : 't0') + '">' + w.n + '</span>') + '</td>'; }).join('') +
+        '<td class="num" style="font-weight:700">' + (r.bonus ? money(r.bonus) : '') + '</td><td>' + standingPill(r.standing) + '</td><td>' + esc(dshort(r.lastSale)) + '</td>' + terrosCells(r) + '</tr>';
+    }).join('');
+    var ot = summarize(list, [], []);
+    tot = '<tr class="total"><td class="l">Team</td><td class="num">' + list.reduce(function (a, r) { return a + r.setsAll; }, 0) + '</td><td class="num">' + money(list.reduce(function (a, r) { return a + r.revSet; }, 0)) + '</td>' + D.weeks.map(function (w, i) { return '<td class="c' + (i === 0 ? ' sep' : '') + '">' + list.reduce(function (a, r) { return a + r.weeks[i].n; }, 0) + '</td>'; }).join('') + '<td class="num">' + money(ot.bonus) + '</td><td></td><td></td><td class="sep num">' + num(ot.ter.knocks) + '</td><td class="num">' + num(ot.ter.pitches) + '</td><td class="num">' + num(ot.ter.sits) + '</td><td class="num">' + ot.ter.hours.toFixed(0) + '</td><td>' + (ot.yday.first || '') + '</td></tr>';
+  } else if (mode === 'directors') {
+    thead = '<tr><th class="l">Rep</th><th>Closed</th><th>Revenue closed</th><th>Self-gen</th><th>Avg contract</th><th>Adders</th><th>Standing</th><th>Last sale</th>' + TER_HEAD + '</tr>';
+    rows = list.map(function (r) {
+      return '<tr class="click" onclick="openRep(\'' + r.key + '\')"><td class="l name" style="font-weight:600">' + esc(r.name) + '</td><td class="num">' + blank(r.closed.length) + '</td><td class="num">' + (r.revClosed ? money(r.revClosed) : '') + '</td><td class="num">' + blank(r.selfgen.length) + '</td><td class="num">' + (r.closed.length ? money(r.revClosed / r.closed.length) : '') + '</td><td class="num">' + blank(r.adders) + '</td><td>' + standingPill(r.standing) + '</td><td>' + esc(dshort(r.lastSale)) + '</td>' + terrosCells(r) + '</tr>';
+    }).join('');
+    var od = summarize(list, [], []);
+    tot = '<tr class="total"><td class="l">Team</td><td class="num">' + list.reduce(function (a, r) { return a + r.closed.length; }, 0) + '</td><td class="num">' + money(list.reduce(function (a, r) { return a + r.revClosed; }, 0)) + '</td><td class="num">' + list.reduce(function (a, r) { return a + r.selfgen.length; }, 0) + '</td><td></td><td class="num">' + list.reduce(function (a, r) { return a + r.adders; }, 0) + '</td><td></td><td></td><td class="sep num">' + num(od.ter.knocks) + '</td><td class="num">' + num(od.ter.pitches) + '</td><td class="num">' + num(od.ter.sits) + '</td><td class="num">' + od.ter.hours.toFixed(0) + '</td><td>' + (od.yday.first || '') + '</td></tr>';
+  } else {
+    thead = '<tr><th class="l">Rep</th><th class="l">Role</th><th>Closed</th><th>Revenue closed</th><th>Set</th><th>Revenue set</th><th>Self-gen</th><th>Adders</th><th>Standing</th><th>Last sale</th><th class="sep">Set wk</th><th>Bonus tier</th><th>Bonus</th>' + TER_HEAD + '</tr>';
+    rows = list.map(function (r) {
+      var cw = r.curWeek;
+      return '<tr class="click' + (r.standing === 'Productive' ? ' bold' : '') + '" onclick="openRep(\'' + r.key + '\')"><td class="l name">' + esc(r.name) + '</td><td class="l">' + rolePill(r.role) + '</td><td class="num">' + blank(r.closed.length) + '</td><td class="num">' + (r.revClosed ? money(r.revClosed) : '') + '</td><td class="num">' + blank(r.set.length) + '</td><td class="num">' + (r.revSet ? money(r.revSet) : '') + '</td><td class="num">' + blank(r.selfgen.length) + '</td><td class="num">' + blank(r.adders) + '</td><td>' + standingPill(r.standing) + '</td><td>' + esc(dshort(r.lastSale)) + '</td>' +
+        '<td class="sep num">' + (cw ? blank(cw.n) : '') + '</td><td>' + (cw && cw.n ? tierPill(cw.n) : '') + '</td><td class="num">' + (r.bonus ? money(r.bonus) : '') + '</td>' + terrosCells(r) + '</tr>';
+    }).join('');
+    var oe = summarize(list, [], []);
+    tot = '<tr class="total"><td class="l">Team</td><td></td><td class="num">' + list.reduce(function (a, r) { return a + r.closed.length; }, 0) + '</td><td class="num">' + money(list.reduce(function (a, r) { return a + r.revClosed; }, 0)) + '</td><td class="num">' + list.reduce(function (a, r) { return a + r.set.length; }, 0) + '</td><td class="num">' + money(list.reduce(function (a, r) { return a + r.revSet; }, 0)) + '</td><td class="num">' + list.reduce(function (a, r) { return a + r.selfgen.length; }, 0) + '</td><td class="num">' + list.reduce(function (a, r) { return a + r.adders; }, 0) + '</td><td></td><td></td><td class="sep num">' + list.reduce(function (a, r) { return a + (r.curWeek ? r.curWeek.n : 0); }, 0) + '</td><td></td><td class="num">' + money(oe.bonus) + '</td><td class="sep num">' + num(oe.ter.knocks) + '</td><td class="num">' + num(oe.ter.pitches) + '</td><td class="num">' + num(oe.ter.sits) + '</td><td class="num">' + oe.ter.hours.toFixed(0) + '</td><td>' + (oe.yday.first || '') + '</td></tr>';
+  }
+  var roster = '<div class="card" style="padding:16px 18px 6px"><div class="cardhead" style="padding-bottom:8px"><div class="t">Roster <span>' + esc(dshort(S.start) + ' – ' + dshort(S.end)) + '</span></div>' + toggle + '</div>' +
+    '<div class="tiny muted" style="padding-bottom:8px">Revenue is contract value on Won accounts in Odoo for the selected dates. Knocks, pitches, sits and hours come from Terros for the same dates; first knock is yesterday\'s. A blank means no reading. Click a rep for their accounts.</div>' +
+    (list.length ? '<div class="tablebox"><table><thead>' + thead + '</thead><tbody>' + rows + tot + '</tbody></table></div>' : '<div class="empty">Nobody on this team has a sale or a Terros reading in the period.</div>') + '</div>';
+  document.getElementById('view-teams').innerHTML = tabs + head + kpiCards(o, S.period === 'this' ? 'Revenue, MTD' : 'Revenue') + second + bonusGrid(reps, 'Team') + roster;
+}
+
+/* ----- Overview ----- */
+function renderOverview() {
+  var o = D.company;
+  var head = '<div class="teamhead"><div style="flex:1 1 380px;min-width:0"><div class="name">Company</div><div class="tiny muted" style="margin-top:8px">' + D.teams.length + ' teams, ' + D.reps.filter(function (r) { return r.active && r.onRoster; }).length + ' reps on the roster, ' + o.withSale + ' with a sale in the period.</div></div>' +
+    '<div class="stats"><div class="stat"><div class="v">' + moneyK(o.rev) + '</div><div class="l">' + (S.period === 'this' ? 'MTD' : 'Revenue') + '</div></div><div class="stat"><div class="v">' + num(o.deals) + '</div><div class="l">Deals</div></div><div class="stat"><div class="v">' + moneyK(o.prevRev) + '</div><div class="l">Last month</div></div><div class="stat"><div class="v">' + moneyK(o.avg) + '</div><div class="l">Avg contract</div></div></div></div>';
+  var cards = '<div class="grid4">' + D.teams.map(function (t) {
+    var x = D.team[t];
+    return '<a class="card pad" href="#" onclick="S.team=\'' + esc(t) + '\';setView(\'teams\');return false" style="display:flex;flex-direction:column;gap:10px"><div class="lbl">' + esc(t) + '</div><div class="bignum" style="font-size:28px">' + money(x.rev) + '</div>' +
+      '<div style="display:flex;justify-content:space-between;gap:8px;font-size:11px" class="muted"><span>' + x.deals + ' deals · ' + x.selfN + ' self-gen</span><span class="tiny">Last month ' + moneyK(x.prevRev) + '</span></div>' +
+      '<div class="tiny muted hr" style="padding-top:8px;display:flex;justify-content:space-between;gap:6px"><span>' + num(x.ter.knocks) + ' knocks</span><span>' + num(x.ter.pitches) + ' pitches</span><span>' + num(x.ter.sits) + ' sits</span><span>' + x.ter.hours.toFixed(0) + ' h</span></div></a>';
+  }).join('') + '</div>';
+  function board(title, sub, list, cols) {
+    var max = list.length ? Math.max.apply(null, list.map(function (r) { return r.v; })) : 1;
+    return '<div class="card" style="padding:16px 18px 6px"><div class="cardhead" style="padding-bottom:8px"><div class="t">' + title + ' <span>' + esc(dshort(S.start) + ' – ' + dshort(S.end)) + '</span></div><div class="tiny muted">' + sub + '</div></div><div class="tablebox"><table><thead><tr><th>#</th><th class="l">Rep</th><th class="l">Team</th>' + cols.map(function (c) { return '<th>' + c + '</th>'; }).join('') + '<th>Share</th></tr></thead><tbody>' +
+      list.map(function (r, i) { return '<tr class="click' + (i < 3 ? ' bold' : '') + '" onclick="openRep(\'' + r.r.key + '\')"><td class="muted" style="width:24px">' + (i + 1) + '</td><td class="l">' + esc(r.r.name) + '</td><td class="l">' + esc(r.r.team) + '</td>' + r.cells.map(function (c) { return '<td class="num">' + c + '</td>'; }).join('') + '<td><div style="display:flex;align-items:center;justify-content:flex-end;gap:8px"><div style="width:80px;height:5px;background:var(--line);border-radius:3px"><div style="width:' + Math.round(r.v / max * 100) + '%;height:5px;background:var(--accent);border-radius:3px"></div></div><span style="width:32px;text-align:right">' + Math.round(r.v / max * 100) + '%</span></div></td></tr>'; }).join('') +
+      (list.length ? '' : '<tr><td colspan="7" class="empty">No sales in the period.</td></tr>') + '</tbody></table></div></div>';
+  }
+  var dirs = D.reps.filter(function (r) { return r.closed.length; }).sort(function (a, b) { return b.revClosed - a.revClosed; }).slice(0, 8).map(function (r) { return { r: r, v: r.revClosed, cells: [r.closed.length, money(r.revClosed), r.selfgen.length ? money(r.revSelf) : '—'] }; });
+  var cos = D.reps.filter(function (r) { return r.set.length; }).sort(function (a, b) { return b.revSet - a.revSet; }).slice(0, 8).map(function (r) { return { r: r, v: r.revSet, cells: [r.set.length, money(r.revSet), r.bonus ? money(r.bonus) : '—'] }; });
+  var boards = '<div class="grid2">' + board('Market Directors', 'Contract value on accounts closed', dirs, ['Deals', 'Revenue', 'Self-gen']) + board('Market Coordinators', 'Contract value on accounts set', cos, ['Sets', 'Revenue', 'Bonus']) + '</div>';
+  var bonusTeams = '<div class="card pad" style="display:flex;flex-direction:column;gap:12px"><div class="cardhead"><div class="t">Weekly bonus <span>by team · Sunday to Saturday</span></div><div class="tiny muted">+2% at 2 sets, +4% at 3 or more, paid to the market coordinator with the month\'s bonuses.</div></div><div class="grid4">' +
+    D.teams.map(function (t) { var x = D.team[t]; return '<div style="border:1px solid var(--line);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:4px"><div class="lbl">' + esc(t) + '</div><div class="bignum" style="font-size:22px">' + money(x.bonus) + '</div><div class="tiny muted">' + (x.bonusWeek ? money(x.bonusWeek) + ' this week' : 'nothing yet this week') + '</div><div class="tiny muted">' + x.at4 + ' at +4% · ' + x.at2 + ' at +2% · ' + x.oneAway + ' one set away</div></div>'; }).join('') + '</div>' +
+    '<div class="hr" style="padding-top:10px;display:flex;gap:28px;flex-wrap:wrap"><div><div class="mini">' + money(o.bonus) + '</div><div class="minil">' + esc(periodLabel().toUpperCase()) + '</div></div><div><div class="mini">' + money(o.bonusWeek) + '</div><div class="minil">CURRENT WEEK SO FAR</div></div></div></div>';
+  document.getElementById('view-overview').innerHTML = head + kpiCards(o, S.period === 'this' ? 'Revenue, MTD' : 'Revenue') + cards + boards + bonusTeams + '<div class="grid2">' + monthsCard(null) + terrosCard(o, 'Field activity, company') + '</div>';
+}
+
+/* ----- Reps ----- */
+function renderReps() {
+  var all = D.reps.filter(function (r) { return r.active || r.accounts.length; });
+  var q = norm(S.repQ);
+  var list = all.filter(function (r) {
+    if (S.repRole === 'directors' && !(r.role === 'Market Director' || r.closed.length)) return false;
+    if (S.repRole === 'coordinators' && !(r.role === 'Market Coordinator' || r.set.length)) return false;
+    if (S.repTeam && r.team !== S.repTeam) return false;
+    if (S.repStanding && r.standing !== S.repStanding) return false;
+    if (q && norm(r.name).indexOf(q) < 0) return false;
+    return true;
+  });
+  var sorters = { rev: function (a, b) { return b.rev - a.rev; }, deals: function (a, b) { return b.accounts.length - a.accounts.length; }, self: function (a, b) { return b.selfgen.length - a.selfgen.length; }, bonus: function (a, b) { return b.bonus - a.bonus; }, knocks: function (a, b) { return ((b.ter || {}).knocks || 0) - ((a.ter || {}).knocks || 0); }, last: function (a, b) { return (b.lastSale || '').localeCompare(a.lastSale || ''); }, name: function (a, b) { return a.name.localeCompare(b.name); } };
+  list.sort(function (a, b) { return sorters[S.repSort](a, b) || a.name.localeCompare(b.name); });
+  var o = D.company, tO = o.ter;
+  var tiles = '<div class="grid6">' + [
+    ['Revenue', money(o.rev), num(o.deals) + ' accounts'], ['Reps with a sale', num(o.withSale), 'of ' + all.length + ' on the board'], ['Self-gen', num(o.selfN), money(o.selfRev) + (o.rev ? ', ' + Math.round(o.selfRev / o.rev * 100) + '%' : '')],
+    ['Avg per active rep', money(o.withSale ? o.rev / o.withSale : 0), 'last month ' + money(o.prevDeals ? o.prevRev / Math.max(1, D.reps.filter(function (r) { return r.lastSale >= S.data.previous.start && r.lastSale <= S.data.previous.end; }).length) : 0)],
+    ['Weekly bonus', money(o.bonus), D.reps.filter(function (r) { return r.bonus; }).length + ' coordinators earning'], ['Knocks', num(tO.knocks), num(tO.pitches) + ' pitches, ' + num(tO.sits) + ' sits, ' + tO.hours.toFixed(0) + ' h']
+  ].map(function (c) { return '<div class="card" style="padding:14px 16px"><div class="lbl">' + c[0] + '</div><div class="bignum" style="margin-top:6px">' + c[1] + '</div><div class="bigsub">' + esc(c[2]) + '</div></div>'; }).join('') + '</div>';
+  var filters = '<div class="card" style="padding:10px 14px;display:flex;flex-wrap:wrap;align-items:center;gap:10px">' +
+    '<input type="search" id="repQ" placeholder="Search rep" value="' + esc(S.repQ) + '" oninput="S.repQ=this.value;renderRepsTable()" style="flex:1 1 200px">' +
+    '<div class="seg soft"><button class="' + (S.repRole === 'all' ? 'on' : '') + '" onclick="S.repRole=\'all\';render()">All</button><button class="' + (S.repRole === 'directors' ? 'on' : '') + '" onclick="S.repRole=\'directors\';render()">Market Directors</button><button class="' + (S.repRole === 'coordinators' ? 'on' : '') + '" onclick="S.repRole=\'coordinators\';render()">Market Coordinators</button></div>' +
+    '<label class="tiny muted" for="repTeam">Team</label><select id="repTeam" onchange="S.repTeam=this.value;render()"><option value="">All teams</option>' + D.teams.map(function (t) { return '<option' + (S.repTeam === t ? ' selected' : '') + '>' + esc(t) + '</option>'; }).join('') + '</select>' +
+    '<label class="tiny muted" for="repStanding">Standing</label><select id="repStanding" onchange="S.repStanding=this.value;render()"><option value="">Any</option>' + ['Productive', 'Active', 'Inactive'].map(function (s) { return '<option' + (S.repStanding === s ? ' selected' : '') + '>' + s + '</option>'; }).join('') + '</select>' +
+    '<label class="tiny muted" for="repSort">Sort</label><select id="repSort" onchange="S.repSort=this.value;render()">' + [['rev', 'Revenue, high to low'], ['deals', 'Deals'], ['self', 'Self-gen'], ['bonus', 'Weekly bonus'], ['knocks', 'Knocks'], ['last', 'Last sale'], ['name', 'Name']].map(function (s) { return '<option value="' + s[0] + '"' + (S.repSort === s[0] ? ' selected' : '') + '>' + s[1] + '</option>'; }).join('') + '</select>' +
+    '<button class="btn" style="margin-left:auto" onclick="exportCsv()">Export CSV</button></div>';
+  document.getElementById('view-reps').innerHTML = tiles + filters + '<div class="card" style="padding:16px 18px 6px" id="repsTableCard"></div>';
+  D.repList = list;
+  renderRepsTable();
+}
+function renderRepsTable() {
+  var q = norm(S.repQ);
+  var list = D.repList.filter(function (r) { return !q || norm(r.name).indexOf(q) >= 0; });
+  var rows = list.map(function (r, i) {
+    var cw = r.curWeek;
+    return '<tr class="click' + (i < 3 && S.repSort === 'rev' ? ' bold' : '') + '" onclick="openRep(\'' + r.key + '\')"><td class="muted" style="width:24px">' + (i + 1) + '</td><td class="l name">' + esc(r.name) + '</td><td class="l">' + esc(r.team) + '</td><td class="l">' + rolePill(r.role) + '</td>' +
+      '<td class="num">' + blank(r.closed.length) + '</td><td class="num">' + (r.revClosed ? money(r.revClosed) : '') + '</td><td class="num">' + blank(r.set.length) + '</td><td class="num">' + (r.revSet ? money(r.revSet) : '') + '</td><td class="num">' + blank(r.selfgen.length) + '</td><td>' + standingPill(r.standing) + '</td><td class="num">' + blank(r.adders) + '</td><td>' + esc(dshort(r.lastSale)) + '</td>' +
+      '<td class="sep">' + (cw && cw.n ? tierPill(cw.n) : '') + '</td><td class="num">' + (r.bonus ? money(r.bonus) : '') + '</td>' + terrosCells(r) + '</tr>';
+  }).join('');
+  document.getElementById('repsTableCard').innerHTML = '<div class="cardhead" style="padding-bottom:8px"><div class="t">All reps <span>' + list.length + ' · ' + esc(dshort(S.start) + ' – ' + dshort(S.end)) + '</span></div><div class="tiny muted">Closed = accounts where the rep is the market director. Set = accounts where the rep is the market coordinator. Self-gen counts in both. Click a rep for their accounts.</div></div>' +
+    '<div class="tablebox"><table><thead><tr><th>#</th><th class="l">Rep</th><th class="l">Team</th><th class="l">Role</th><th>Closed</th><th>Revenue closed</th><th>Set</th><th>Revenue set</th><th>Self-gen</th><th>Standing</th><th>Adders</th><th>Last sale</th><th class="sep">Bonus wk</th><th>Bonus</th>' + TER_HEAD + '</tr></thead><tbody>' + (rows || '<tr><td colspan="19" class="empty">No reps match.</td></tr>') + '</tbody></table></div>';
+}
+function exportCsv() {
+  var head = ['Rep', 'Team', 'Role', 'Closed', 'Revenue closed', 'Set', 'Revenue set', 'Self-gen', 'Standing', 'Adders', 'Last sale', 'Bonus', 'Knocks', 'Pitches', 'Sits', 'Hours', 'First knock yday'];
+  var lines = [head.join(',')].concat((D.repList || []).map(function (r) { var t = r.ter || {}, y = r.yday || {}; return [r.name, r.team, r.role, r.closed.length, r.revClosed.toFixed(2), r.set.length, r.revSet.toFixed(2), r.selfgen.length, r.standing, r.adders, r.lastSale, r.bonus.toFixed(2), t.knocks || 0, t.pitches || 0, t.sits || 0, t.hours || 0, y.firstKnock || ''].map(function (v) { return '"' + String(v).replace(/"/g, '""') + '"'; }).join(','); }));
+  var blob = new Blob([lines.join('\n')], { type: 'text/csv' }); var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'leaderboard-' + S.start + '-' + S.end + '.csv'; document.body.appendChild(a); a.click(); setTimeout(function () { document.body.removeChild(a); URL.revokeObjectURL(a.href); }, 200);
+}
+
+/* ----- rep drawer ----- */
+function openRep(key) {
+  var r = D.reps.filter(function (x) { return x.key === key; })[0]; if (!r) return;
+  var base = S.data.odooBase || 'https://myvivid.odoo.com/odoo/crm/';
+  var rank = D.reps.filter(function (x) { return x.rev > 0; }).sort(function (a, b) { return b.rev - a.rev; }).map(function (x) { return x.key; }).indexOf(key) + 1;
+  var t = r.ter || {}, y = r.yday || {};
+  var header = '<div style="display:flex;align-items:center;gap:12px"><button class="iconbtn" aria-label="Close" onclick="closeRep()"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"></path></svg></button><div class="tiny muted">Reps › ' + esc(r.team || '—') + '</div></div>' +
+    '<div class="teamhead"><div style="display:flex;align-items:center;gap:14px;flex:1 1 300px;min-width:0"><div class="avatar" aria-hidden="true">' + esc(initials(r.name)) + '</div><div style="min-width:0"><div class="name" style="font-size:32px">' + esc(r.name) + '</div><div class="tiny muted" style="margin-top:6px">' + esc([r.role, r.team, r.manager ? 'reports to ' + r.manager : '', r.start ? 'started ' + dlong(r.start) : ''].filter(Boolean).join(' · ')) + '</div></div></div>' +
+    '<div class="stats">' + (rank ? '<div class="stat"><div class="v">#' + rank + '</div><div class="l">Company</div></div>' : '') + '<div class="stat"><div class="v">' + moneyK(r.rev) + '</div><div class="l">' + (S.period === 'this' ? 'MTD' : 'Revenue') + '</div></div><div class="stat"><div class="v">' + standingPill(r.standing) + '</div><div class="l">Standing</div></div></div></div>';
+  var kp = '<div class="grid4">' + [['Revenue closed', money(r.revClosed), r.closed.length + ' accounts'], ['Revenue set', money(r.revSet), r.set.length + ' accounts'], ['Self-gen', num(r.selfgen.length), money(r.revSelf)], ['Vivid Adders', num(r.adders), 'on ' + r.accounts.filter(function (d) { return d.adders; }).length + ' accounts']]
+    .map(function (c) { return '<div class="card pad kpi"><div class="lbl">' + c[0] + '</div><div class="v">' + c[1] + '</div><div class="row"><span>' + esc(c[2]) + '</span></div></div>'; }).join('') + '</div>';
+  var wk = '<div class="card pad" style="display:flex;flex-direction:column;gap:10px"><div class="cardhead"><div class="t">Weekly bonus <span>Sun – Sat</span></div><div class="tiny muted">' + (r.bonus ? money(r.bonus) + ' in the period' : 'nothing earned in the period') + '</div></div>' +
+    r.weeks.map(function (w) { return '<div style="display:flex;align-items:center;gap:10px"><div class="tiny muted" style="width:90px;flex-shrink:0">' + esc(w.week.label) + '</div><div class="wk" style="flex:1">' + [1, 2, 3].map(function (i) { return '<span style="background:' + (w.n >= i ? (w.n >= 3 ? 'var(--accent)' : w.n === 2 ? 'var(--green)' : 'var(--gray2)') : 'var(--line)') + '"></span>'; }).join('') + '</div>' + (w.week.future ? '<span class="muted tiny">upcoming</span>' : tierPill(w.n)) + '<div class="mini" style="width:60px;text-align:right">' + (w.bonus ? money(w.bonus) : '—') + '</div></div>'; }).join('') + '</div>';
+  var ter = '<div class="card pad" style="display:flex;flex-direction:column;gap:10px"><div class="cardhead"><div class="t">Field activity <span>Terros</span></div><div class="tiny muted">' + esc(dshort(S.start) + ' – ' + dshort(S.end)) + '</div></div>' +
+    '<div class="grid5">' + [[num(t.knocks || 0), 'knocks'], [num(t.pitches || 0), 'pitches'], [num(t.sits || 0), 'sits'], [(t.hours || 0).toFixed(0), 'hours'], [t.days || t.daysActive || 0, 'days worked']].map(function (c) { return '<div><div class="bignum" style="font-size:22px">' + c[0] + '</div><div class="bigsub">' + c[1] + '</div></div>'; }).join('') + '</div>' +
+    '<div class="tiny muted hr" style="padding-top:8px">Yesterday: ' + (r.yday ? num(y.knocks || 0) + ' knocks · ' + num(y.pitches || 0) + ' pitches · ' + num(y.sits || 0) + ' sits · ' + (y.hours || 0).toFixed(1) + ' h · first knock ' + (y.firstKnock || '—') : 'no activity logged') + '</div></div>';
+  var acc = '<div class="card" style="padding:16px 18px 6px"><div class="cardhead" style="padding-bottom:8px"><div class="t">Accounts <span>closed or set, ' + esc(dshort(S.start) + ' – ' + dshort(S.end)) + '</span></div><div class="tiny muted">Contract value is what Odoo holds today.</div></div><div class="tablebox"><table><thead><tr><th class="l">Account</th><th class="l">Closed</th><th class="l">Role</th><th class="l">With</th><th class="l">Stage</th><th>Contract value</th><th>Adders</th><th class="l">Bonus week</th><th class="l">Odoo</th></tr></thead><tbody>' +
+    (r.accounts.length ? r.accounts.map(function (d) {
+      var self = norm(d.closer) === norm(d.setter), isC = norm(d.closer) === r.key;
+      var w = r.weeks.filter(function (x) { return d.date >= x.week.start && d.date <= x.week.end; })[0];
+      var withWho = self ? '—' : isC ? 'set by ' + d.setter : 'closed by ' + d.closer;
+      var bw = (!isC || self) && w ? w.week.label + (w.n >= 3 ? ', +4%' : w.n === 2 ? ', +2%' : w.week.current ? ', pending' : ', no bonus') : '—';
+      return '<tr><td class="l">' + esc(d.name) + '</td><td class="l">' + esc(dshort(d.date)) + '</td><td class="l">' + rolePill(isC ? 'Market Director' : 'Market Coordinator', self) + '</td><td class="l">' + esc(withWho) + '</td><td class="l">' + esc(d.stage || '') + '</td><td class="num">' + money(d.rev) + '</td><td class="num">' + blank(d.adders) + '</td><td class="l">' + esc(bw) + '</td><td class="l"><a href="' + base + d.id + '" target="_blank" rel="noopener" style="color:var(--accent)">open</a></td></tr>';
+    }).join('') + '<tr class="total"><td class="l">' + r.accounts.length + ' accounts</td><td></td><td></td><td></td><td></td><td class="num">' + money(r.accounts.reduce(function (a, d) { return a + d.rev; }, 0)) + '</td><td class="num">' + r.adders + '</td><td></td><td></td></tr>' : '<tr><td colspan="9" class="empty">No accounts in the period.</td></tr>') + '</tbody></table></div></div>';
+  document.getElementById('drawer').innerHTML = header + kp + '<div class="grid2">' + wk + ter + '</div>' + acc;
+  document.getElementById('drawer').classList.add('show'); document.getElementById('drawerBg').classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+function closeRep() { document.getElementById('drawer').classList.remove('show'); document.getElementById('drawerBg').classList.remove('show'); document.body.style.overflow = ''; }
+document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeRep(); });
+
+/* ---------- boot ---------- */
+(function () {
+  var r = monthRange(0); S.start = r.start; S.end = r.end;
+  var h = (location.hash || '').replace('#', '');
+  if (['overview', 'teams', 'reps'].indexOf(h) >= 0) S.view = h;
+  document.querySelectorAll('.topnav [data-view]').forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-view') === S.view); });
+  load(false);
+})();
+</script>
+</body>
+</html>

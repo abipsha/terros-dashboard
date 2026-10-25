@@ -185,6 +185,8 @@ def get_deals_list(start_date: str, end_date: str, force: bool = False) -> dict:
             "x_studio_street",
             "x_studio_city",
             "x_studio_state",
+            "x_studio_vivid_adder",
+            "stage_id",
             "date_closed",
             "date_deadline",
             "team_id",
@@ -230,6 +232,8 @@ def get_deals_list(start_date: str, end_date: str, force: bool = False) -> dict:
                 "date_closed":  (r.get("date_closed") or "")[:10],
                 "date_deadline": (r.get("date_deadline") or "")[:10],
                 "office":       _office_name(r.get("team_id")),
+                "adders":       int(r.get("x_studio_vivid_adder") or 0),
+                "stage":        _office_name(r.get("stage_id")) if r.get("stage_id") else "",
                 "tags":         [tag_map.get(tid, str(tid)) for tid in (r.get("tag_ids") or [])],
             })
 
