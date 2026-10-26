@@ -47,7 +47,7 @@
   .pill.role-s { background: var(--ink); color: var(--card); }
   .seg { display: flex; flex-wrap: wrap; gap: 4px; background: var(--ground); border-radius: 999px; padding: 4px; }
   .card .seg { background: var(--ground); }
-  .seg > button, .seg > a { font-size: 12px; font-weight: 500; padding: 6px 14px; border-radius: 999px; border: none; background: transparent; color: var(--ink); cursor: pointer; white-space: nowrap; min-height: 32px; }
+  .seg > button, .seg > a { display: inline-flex; align-items: center; justify-content: center; line-height: 1; font-size: 12px; font-weight: 500; padding: 6px 14px; border-radius: 999px; border: none; background: transparent; color: var(--ink); cursor: pointer; white-space: nowrap; min-height: 32px; }
   .seg > .on { font-weight: 600; background: var(--ink); color: var(--card); }
   .seg.orange > .on { background: var(--accent); color: #FFFFFF; }
   .seg.white { background: var(--card); box-shadow: var(--shadow); }
@@ -69,6 +69,7 @@
   .brand span { font-family: Inter, sans-serif; font-weight: 500; font-size: 12px; color: var(--muted); letter-spacing: 0; }
   .topnav { margin-left: auto; margin-right: auto; }
   .topright { display: flex; align-items: center; gap: 8px; }
+  .signout svg { display: none; }
 
   /* title + period */
   .titlerow { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 18px; padding: 0 4px; }
@@ -153,21 +154,74 @@
     .grid6 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
     .grid5 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   }
+  /* bottom tab bar: phone only */
+  .tabbar { display: none; position: fixed; left: 0; right: 0; bottom: 0; z-index: 15; background: var(--card); border-top: 1px solid var(--line); padding: 0 6px env(safe-area-inset-bottom, 10px); }
+  .tabbar > a, .tabbar > button { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 8px 0 6px; font-size: 10px; font-weight: 500; color: var(--muted); min-height: 50px; background: none; border: none; font-family: inherit; cursor: pointer; }
+  .tabbar > .on { color: var(--ink); font-weight: 600; }
   @media (max-width: 700px) {
-    .wrap { padding: 12px 12px 36px; gap: 12px; }
+    /* ── phone layer: only this block changes the layout under 700px; iPad and desktop are untouched ── */
+    .wrap { padding: 10px 14px 96px; gap: 10px; }
     .grid2 { grid-template-columns: minmax(0, 1fr); }
-    .grid4 { grid-template-columns: minmax(0, 1fr); }
-    .grid6 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    .grid5 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    .teamhead .name { font-size: 30px; }
-    .stats { margin-left: 0; gap: 16px; }
+    .grid4 { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+    .grid6 { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+    .grid5 { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; }
+    .grid5 .bignum { font-size: 17px; }
+    .grid5 .bigsub { font-size: 9px; }
+    .card.pad { padding: 12px 14px; }
+    .kpi { gap: 4px; }
+    .kpi .v { font-size: 24px; }
+    .kpi .row { flex-direction: column; align-items: flex-start; gap: 2px; font-size: 10px; }
+    .teamhead { gap: 8px 12px; padding: 2px 2px 0; }
+    .teamhead .name { font-size: 28px; }
+    .stats { margin-left: auto; gap: 14px; }
     .stat .v { font-size: 22px; }
-    .titlerow h1 { font-size: 18px; }
-    .topnav { margin-left: 0; width: 100%; }
-    .topnav > button, .topnav > a { flex: 1; text-align: center; }
-    .teamtabs { align-self: stretch; overflow-x: auto; flex-wrap: nowrap; }
-    .kpi .v { font-size: 26px; }
+    .stat .l { font-size: 8px; }
+    .topbar { padding: 8px 4px; background: transparent; box-shadow: none; gap: 8px; }
+    .topbar .brand { font-size: 18px; }
+    .topnav { display: none; }
+    .topright .iconbtn { width: 40px; height: 40px; background: var(--card); box-shadow: var(--shadow); }
+    .topright > .signout { width: 40px; height: 40px; background: var(--card); border-radius: 999px; box-shadow: var(--shadow); display: inline-flex; align-items: center; justify-content: center; }
+    .signout svg { display: block; }
+    .signout span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+    .titlerow { gap: 8px; padding: 0 2px; }
+    .titlerow h1 { font-size: 17px; }
+    .titlerow h1 span { display: block; font-size: 11px; margin-top: 2px; }
+    .period, .period .seg { width: 100%; }
+    .period .seg > button { flex: 1; text-align: center; padding: 9px 0; }
+    .teamtabs { align-self: stretch; overflow-x: auto; flex-wrap: nowrap; margin: 0 -14px; padding: 4px 14px; width: auto; border-radius: 0; background: transparent; box-shadow: none; }
+    .teamtabs > button { background: var(--card); box-shadow: var(--shadow); }
+    .teamtabs > .on { background: var(--accent); color: #FFFFFF; }
     th, td { padding: 9px 8px; }
+    .bars { height: 56px; gap: 6px; }
+    .drawer { top: auto; left: 0; right: 0; bottom: 0; width: 100%; max-height: 92vh; border-radius: 22px 22px 0 0; transform: translateY(100%); padding: 10px 14px 32px; gap: 10px; box-shadow: 0 -4px 20px rgba(0,0,0,.18); }
+    .drawer { visibility: hidden; transition: transform .2s ease, visibility 0s linear .2s; }
+    .drawer.show { transform: translateY(0); visibility: visible; transition: transform .2s ease; }
+    .drawer::before { content: ''; display: block; width: 36px; height: 4px; border-radius: 2px; background: var(--gray2); margin: 0 auto 2px; }
+    .drawer .teamhead .name { font-size: 24px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .drawer .avatar { width: 44px; height: 44px; font-size: 15px; }
+    .tabbar { display: flex; }
+    /* list rows used by the phone renderers */
+    .prow { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-top: 1px solid var(--line2); min-height: 44px; color: inherit; width: 100%; text-align: left; background: none; border-left: none; border-right: none; border-bottom: none; font-family: inherit; cursor: pointer; }
+    .prow:first-of-type { border-top: none; }
+    .prow .rk { font-family: 'Roboto Condensed', sans-serif; font-weight: 800; font-size: 14px; width: 20px; flex-shrink: 0; color: var(--gray3); }
+    .prow .rk.top { color: var(--accent); }
+    .prow .body { flex: 1; min-width: 0; }
+    .prow .t { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 6px; }
+    .prow .s { font-size: 10px; color: var(--muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .prow .val { text-align: right; flex-shrink: 0; }
+    .prow .val .n { font-family: 'Roboto Condensed', sans-serif; font-weight: 700; font-size: 14px; }
+    .prow .val .pill { margin-top: 4px; }
+    .ptrack { height: 4px; background: var(--line); border-radius: 2px; overflow: hidden; margin-top: 5px; }
+    .ptrack > div { height: 4px; border-radius: 2px; background: var(--accent); }
+    .wdot { width: 22px; height: 22px; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; }
+    .wdot.t4 { background: var(--accent); color: #FFFFFF; }
+    .wdot.t2 { background: var(--green); color: #FFFFFF; }
+    .wdot.t1 { background: var(--gray); color: var(--muted); }
+    .wdot.t0 { background: transparent; color: var(--gray2); border: 1px solid var(--line); }
+    .wdot.tf { background: transparent; color: var(--gray2); border: 1px dashed var(--line); }
+    .seg.soft > button { flex: 1; font-size: 11px; padding: 6px 8px; }
+    select { flex: 1 1 120px; }
+    .seeall { display: block; text-align: center; font-size: 11px; font-weight: 600; color: var(--accent); padding: 12px 0 8px; border-top: 1px solid var(--line2); background: none; border-left: none; border-right: none; border-bottom: none; width: 100%; font-family: inherit; cursor: pointer; }
   }
 </style>
 </head>
@@ -191,7 +245,7 @@
       <button class="iconbtn" aria-label="Refresh" title="Refresh" onclick="load(true)">
         <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-2.6-6.4"></path><path d="M21 3v6h-6"></path></svg>
       </button>
-      <a href="/logout" style="font-size: 12px; font-weight: 500">Sign out</a>
+      <a href="/logout" class="signout" style="font-size: 12px; font-weight: 500"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"></path></svg><span>Sign out</span></a>
     </div>
   </div>
 
@@ -229,6 +283,13 @@
 
 </div>
 
+<nav class="tabbar" id="tabbar" aria-label="Sections">
+  <button data-view="overview" class="on" onclick="setView('overview')"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 12 12 4l9 8M5 10v10h14V10"></path></svg>Overview</button>
+  <button data-view="teams" onclick="setView('teams')"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"></path></svg>Teams</button>
+  <button data-view="reps" onclick="setView('reps')"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="8" r="3.5"></circle><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4a3.5 3.5 0 0 1 0 7M21.5 20a6.5 6.5 0 0 0-5-6.3"></path></svg>Reps</button>
+  <a href="/tahiti"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3v18M12 3c-4 0-7 3-7 6 2-2 5-2 7-1 2-1 5-1 7 1 0-3-3-6-7-6M4 21h16"></path></svg>Tahiti</a>
+  <a href="/onboarding"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="10" cy="8" r="3.5"></circle><path d="M3 20a7 7 0 0 1 14 0M19 8v6M16 11h6"></path></svg>Onboarding</a>
+</nav>
 <div class="drawer-bg" id="drawerBg" onclick="closeRep()"></div>
 <div class="drawer" id="drawer" role="dialog" aria-label="Rep detail"></div>
 
@@ -397,7 +458,11 @@ function derive() {
   var cutoff30 = addDays(end, -30);
   Object.keys(reps).forEach(function (k) {
     var r = reps[k];
-    if (!r.team) { var best = '', bn = 0; Object.keys(r.dealTeams).forEach(function (t) { if (r.dealTeams[t] > bn) { bn = r.dealTeams[t]; best = t; } }); r.team = best; }
+    // team = where the rep's accounts are; the Odoo region is only the fallback for a rep with no sales
+    // (a rep who moved offices is often still filed under the old region in Odoo)
+    var best = '', bn = 0; Object.keys(r.dealTeams).forEach(function (t) { if (t && r.dealTeams[t] > bn) { bn = r.dealTeams[t]; best = t; } });
+    if (best && teams.indexOf(best) >= 0 && (!r.team || teams.indexOf(r.team) >= 0)) { if (r.team && r.team !== best) r.rosterTeam = r.team; r.team = best; }   // Inside Sales reps stay Inside Sales
+    else if (!r.team) r.team = best;
     r.revClosed = r.closed.reduce(function (a, d) { return a + d.rev; }, 0);
     r.revSet = r.set.reduce(function (a, d) { return a + d.rev; }, 0);
     r.revSelf = r.selfgen.reduce(function (a, d) { return a + d.rev; }, 0);
@@ -468,9 +533,12 @@ function summarize(reps, deals, prev) {
 function toMin(t) { var m = /(\d+):(\d+)\s*(AM|PM)/i.exec(t || ''); if (!m) return 9999; var h = +m[1] % 12 + (m[3].toUpperCase() === 'PM' ? 12 : 0); return h * 60 + +m[2]; }
 
 /* ---------- render ---------- */
+function isPhone() { return !!(window.matchMedia && window.matchMedia('(max-width: 700px)').matches); }
+(function () { var was = isPhone(); window.addEventListener('resize', function () { var now = isPhone(); if (now !== was) { was = now; if (S.data) render(); } }); })();
 function setView(v) {
   S.view = v;
-  document.querySelectorAll('.topnav [data-view]').forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-view') === v); });
+  document.querySelectorAll('.topnav [data-view], .tabbar [data-view]').forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-view') === v); });
+  if (isPhone()) window.scrollTo(0, 0);
   ['overview', 'teams', 'reps'].forEach(function (k) { document.getElementById('view-' + k).classList.toggle('show', k === v); });
   if (S.data) render();
 }
@@ -488,8 +556,8 @@ function render() {
   st.textContent = bits.join(' · ');
   st.className = 'status' + ((j.dealsStale || (yd && !yd.ok)) ? ' err' : '');
   ['overview', 'teams', 'reps'].forEach(function (k) { document.getElementById('view-' + k).classList.toggle('show', k === S.view); });
-  if (S.view === 'overview') renderOverview();
-  else if (S.view === 'teams') renderTeam();
+  if (S.view === 'overview') (isPhone() ? renderOverviewPhone : renderOverview)();
+  else if (S.view === 'teams') (isPhone() ? renderTeamPhone : renderTeam)();
   else renderReps();
 }
 
@@ -678,6 +746,7 @@ function renderRepsTable() {
       '<td class="num">' + blank(r.closed.length) + '</td><td class="num">' + (r.revClosed ? money(r.revClosed) : '') + '</td><td class="num">' + blank(r.set.length) + '</td><td class="num">' + (r.revSet ? money(r.revSet) : '') + '</td><td class="num">' + blank(r.selfgen.length) + '</td><td>' + standingPill(r.standing) + '</td><td class="num">' + blank(r.adders) + '</td><td>' + esc(dshort(r.lastSale)) + '</td>' +
       '<td class="sep">' + (cw && cw.n ? tierPill(cw.n) : '') + '</td><td class="num">' + (r.bonus ? money(r.bonus) : '') + '</td>' + terrosCells(r) + '</tr>';
   }).join('');
+  if (isPhone()) { document.getElementById('repsTableCard').innerHTML = renderRepsPhoneList(list); return; }
   document.getElementById('repsTableCard').innerHTML = '<div class="cardhead" style="padding-bottom:8px"><div class="t">All reps <span>' + list.length + ' · ' + esc(dshort(S.start) + ' – ' + dshort(S.end)) + '</span></div><div class="tiny muted">Closed = accounts where the rep is the market director. Set = accounts where the rep is the market coordinator. Self-gen counts in both. Click a rep for their accounts.</div></div>' +
     '<div class="tablebox"><table><thead><tr><th>#</th><th class="l">Rep</th><th class="l">Team</th><th class="l">Role</th><th>Closed</th><th>Revenue closed</th><th>Set</th><th>Revenue set</th><th>Self-gen</th><th>Standing</th><th>Adders</th><th>Last sale</th><th class="sep">Bonus wk</th><th>Bonus</th>' + TER_HEAD + '</tr></thead><tbody>' + (rows || '<tr><td colspan="19" class="empty">No reps match.</td></tr>') + '</tbody></table></div>';
 }
@@ -687,6 +756,84 @@ function exportCsv() {
   var blob = new Blob([lines.join('\n')], { type: 'text/csv' }); var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'leaderboard-' + S.start + '-' + S.end + '.csv'; document.body.appendChild(a); a.click(); setTimeout(function () { document.body.removeChild(a); URL.revokeObjectURL(a.href); }, 200);
 }
 
+
+/* ----- phone renderers: same data, lists instead of tables (only used under 700px) ----- */
+function prow(o) {
+  // o: {key, rank, title, pill, sub, sub2, value, bar, standing, onclick}
+  var click = o.onclick || (o.key ? "openRep('" + o.key + "')" : '');
+  return '<button type="button" class="prow" onclick="' + click + '">' +
+    (o.rank ? '<div class="rk' + (o.rank <= 3 ? ' top' : '') + '">' + o.rank + '</div>' : '') +
+    '<div class="body"><div class="t"><span style="min-width:0;overflow:hidden;text-overflow:ellipsis">' + esc(o.title) + '</span>' + (o.pill || '') + (o.bar != null ? '<span class="n" style="margin-left:auto;font-family:\'Roboto Condensed\',sans-serif;font-weight:700;font-size:14px;flex-shrink:0">' + (o.value || '') + '</span>' : '') + '</div>' +
+    (o.sub ? '<div class="s">' + o.sub + '</div>' : '') + (o.sub2 ? '<div class="s">' + o.sub2 + '</div>' : '') +
+    (o.bar != null ? '<div class="ptrack"><div style="width:' + Math.max(0, Math.min(100, o.bar)).toFixed(1) + '%' + (o.barColor ? ';background:' + o.barColor : '') + '"></div></div>' : '') + '</div>' +
+    (o.bar != null ? (o.onclick ? '<svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gray3)" stroke-width="2" stroke-linecap="round"><path d="m9 6 6 6-6 6"></path></svg>' : '') : '<div class="val"><div class="n">' + (o.value || '') + '</div>' + (o.standing ? standingPill(o.standing) : '') + '</div>') + '</button>';
+}
+function pcard(title, sub, body, right) {
+  return '<div class="card" style="padding:12px 14px 4px"><div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;padding-bottom:6px"><div style="font-size:13px;font-weight:600">' + title + (sub ? ' <span class="muted" style="font-weight:400">' + sub + '</span>' : '') + '</div>' + (right || '') + '</div>' + body + '</div>';
+}
+function phoneHead(name, sub, bigV, bigL) {
+  return '<div class="teamhead"><div style="flex:1 1 160px;min-width:0"><div class="name">' + esc(name) + '</div><div class="tiny muted" style="margin-top:5px">' + sub + '</div></div><div class="stats"><div class="stat"><div class="v">' + bigV + '</div><div class="l">' + bigL + '</div></div></div></div>';
+}
+function phoneBoard(title, sub, list, valueOf, subOf, max, barColor) {
+  var top = list.slice(0, 5);
+  var m = max || (top.length ? valueOf(top[0]) : 1) || 1;
+  var rows = top.map(function (r, i) { return prow({ key: r.key, rank: i + 1, title: r.name, sub: subOf(r), value: money(valueOf(r)), bar: valueOf(r) / m * 100, barColor: barColor }); }).join('');
+  return pcard(title, sub, rows || '<div class="empty">No sales in the period.</div>', '<button type="button" class="btn" style="padding:4px 10px;min-height:28px;font-size:11px;color:var(--accent);border:none" onclick="setView(\'reps\')">See all</button>');
+}
+function renderOverviewPhone() {
+  var o = D.company;
+  var head = phoneHead('Company', esc(periodLabel()) + ' · ' + num(o.deals) + ' deals · ' + o.withSale + ' reps with a sale', moneyK(o.rev), S.period === 'this' ? 'MTD' : 'Revenue');
+  var best = Math.max.apply(null, D.teams.map(function (t) { return D.team[t].rev; }).concat([1]));
+  var teams = pcard('Teams', '', D.teams.map(function (t) {
+    var x = D.team[t];
+    return prow({ onclick: "S.team='" + esc(t).replace(/'/g, "\\'") + "';setView('teams')", title: t, value: money(x.rev), bar: x.rev / best * 100,
+      sub: x.deals + ' deals · ' + x.selfN + ' self-gen · last month ' + moneyK(x.prevRev) });
+  }).join(''), '<span class="tiny muted">tap for the team view</span>');
+  var dirs = D.reps.filter(function (r) { return r.closed.length; }).sort(function (a, b) { return b.revClosed - a.revClosed; });
+  var cos = D.reps.filter(function (r) { return r.set.length; }).sort(function (a, b) { return b.revSet - a.revSet; });
+  var boards = phoneBoard('Market Directors', esc(dshort(S.start) + ' – ' + dshort(S.end)), dirs, function (r) { return r.revClosed; }, function (r) { return esc(r.team) + ' · ' + r.closed.length + ' deals · ' + r.selfgen.length + ' self-gen'; }) +
+    phoneBoard('Market Coordinators', 'sets', cos, function (r) { return r.revSet; }, function (r) { return esc(r.team) + ' · ' + r.set.length + ' sets · bonus ' + (r.bonus ? money(r.bonus) : '—'); }, null, 'var(--ink)');
+  var bonus = '<div class="card pad" style="display:flex;flex-direction:column;gap:8px"><div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap"><div style="font-size:13px;font-weight:600">Weekly bonus <span class="muted" style="font-weight:400">Sun – Sat</span></div><div class="tiny muted">' + money(o.bonus) + ' MTD · ' + money(o.bonusWeek) + ' this week</div></div><div class="grid4">' +
+    D.teams.map(function (t) { var x = D.team[t]; return '<div style="border:1px solid var(--line);border-radius:10px;padding:8px 10px"><div class="lbl">' + esc(t) + '</div><div class="bignum" style="font-size:18px;margin-top:3px">' + money(x.bonus) + '</div><div class="tiny muted" style="margin-top:2px">' + (x.bonusWeek ? money(x.bonusWeek) + ' this week' : 'nothing yet this week') + ' · ' + x.at4 + ' at +4% · ' + x.at2 + ' at +2%</div></div>'; }).join('') + '</div></div>';
+  document.getElementById('view-overview').innerHTML = head + kpiCards(o, S.period === 'this' ? 'Revenue, MTD' : 'Revenue') + teams + boards + bonus + monthsCard(null) + terrosCard(o, 'Field activity');
+}
+function weekDots(r) {
+  return '<div style="display:flex;gap:4px;flex-shrink:0" aria-label="Sets by week">' + r.weeks.map(function (w) { return '<span class="wdot ' + (w.week.future ? 'tf' : w.n >= 3 ? 't4' : w.n === 2 ? 't2' : w.n === 1 ? 't1' : 't0') + '"' + (w.week.current ? ' style="outline:2px solid var(--accent);outline-offset:1px"' : '') + '>' + (w.week.future ? '' : w.n) + '</span>'; }).join('') + '</div>';
+}
+function renderTeamPhone() {
+  var t = S.team, o = D.team[t], reps = o.reps.slice();
+  var tabs = '<div class="seg white orange teamtabs">' + D.teams.map(function (x) { return '<button class="' + (x === t ? 'on' : '') + '" onclick="S.team=\'' + esc(x) + '\';render()">' + esc(x) + '</button>'; }).join('') + '</div>';
+  var head = phoneHead(t, esc(dshort(S.start) + ' – ' + dshort(S.end)) + ' · ' + reps.filter(function (r) { return r.active; }).length + ' reps, ' + o.withSale + ' with a sale · last month ' + moneyK(o.prevRev), moneyK(o.rev), S.period === 'this' ? 'MTD' : 'Revenue');
+  // weekly bonus: one row per coordinator with a dot per week
+  var coords = reps.filter(function (r) { return r.setsAll > 0; }).sort(function (a, b) { return b.bonus - a.bonus || b.setsAll - a.setsAll; });
+  var hdr = '<div style="display:flex;align-items:center;gap:10px;padding-bottom:4px"><div style="flex:1"></div><div style="display:flex;gap:4px">' + D.weeks.map(function (w) { return '<span class="tiny" style="width:22px;text-align:center;' + (w.current ? 'color:var(--accent);font-weight:600' : 'color:var(--muted)') + '">' + (w.current ? 'now' : 'W' + w.n) + '</span>'; }).join('') + '</div><div style="width:54px"></div></div>';
+  var bonusRows = coords.map(function (r) { return '<button type="button" class="prow" style="padding:6px 0" onclick="openRep(\'' + r.key + '\')"><div class="body"><div class="t">' + esc(r.name) + '</div></div>' + weekDots(r) + '<div class="val" style="width:54px"><div class="n">' + (r.bonus ? money(r.bonus) : '—') + '</div></div></button>'; }).join('');
+  var legend = '<div class="tiny muted" style="border-top:1px solid var(--line2);padding:8px 0 6px"><span class="wdot t4" style="width:10px;height:10px;vertical-align:middle"></span> 3+ sets +4% &nbsp; <span class="wdot t2" style="width:10px;height:10px;vertical-align:middle"></span> 2 sets +2% &nbsp; <span class="wdot t1" style="width:10px;height:10px;vertical-align:middle"></span> 1 set. Self-gen counts as a set.</div>';
+  var bonus = pcard('Weekly bonus', 'Sun – Sat', (coords.length ? hdr + bonusRows : '<div class="empty">No accounts set in this period.</div>') + legend, '<span class="tiny muted">' + money(o.bonus) + ' MTD · ' + money(o.bonusWeek) + ' this week</span>');
+  // roster
+  var mode = S.roster;
+  var list = reps.filter(function (r) { return mode === 'everyone' ? true : mode === 'directors' ? r.role === 'Market Director' || r.closed.length : (r.role === 'Market Coordinator' || r.set.length); });
+  var hidden = list.filter(function (r) { return r.standing === 'Inactive'; }).length;
+  if (!S.showInactive) list = list.filter(function (r) { return r.standing !== 'Inactive'; });
+  list.sort(function (a, b) { return (mode === 'coordinators' ? b.revSet - a.revSet : mode === 'directors' ? b.revClosed - a.revClosed : b.rev - a.rev) || a.name.localeCompare(b.name); });
+  var toggle = '<div class="seg soft" style="padding:3px"><button class="' + (mode === 'everyone' ? 'on' : '') + '" style="padding:6px 10px;min-height:30px;font-size:11px" onclick="S.roster=\'everyone\';render()">All</button><button class="' + (mode === 'directors' ? 'on' : '') + '" style="padding:6px 10px;min-height:30px;font-size:11px" onclick="S.roster=\'directors\';render()">Directors</button><button class="' + (mode === 'coordinators' ? 'on' : '') + '" style="padding:6px 10px;min-height:30px;font-size:11px" onclick="S.roster=\'coordinators\';render()">Coordinators</button></div>';
+  var rows = list.map(function (r) {
+    var tr = r.ter || {};
+    var line1 = (r.closed.length ? r.closed.length + ' closed' : '') + (r.closed.length && r.set.length ? ' · ' : '') + (r.set.length ? r.set.length + ' set' : '') + (r.selfgen.length ? ' · ' + r.selfgen.length + ' self-gen' : '') + (r.bonus ? ' · bonus ' + money(r.bonus) : '') + (r.lastSale ? ' · last sale ' + dshort(r.lastSale) : '');
+    var line2 = r.ter ? num(tr.knocks) + ' knocks · ' + num(tr.pitches) + ' pitches · ' + num(tr.sits) + ' sits · ' + (tr.hours || 0).toFixed(0) + ' h' : (S.terrosPending ? 'field activity loading…' : 'no Terros reading');
+    return prow({ key: r.key, title: r.name, pill: rolePill(r.role), sub: line1, sub2: line2, value: r.rev ? money(r.rev) : '', standing: r.standing });
+  }).join('');
+  var roster = pcard('Roster', '', (rows || '<div class="empty">Nobody on this team has a sale or a Terros reading in the period.</div>') + (hidden ? '<button type="button" class="seeall" onclick="S.showInactive=!S.showInactive;render()">' + (S.showInactive ? 'Hide ' : 'Show ') + hidden + ' inactive</button>' : ''), toggle);
+  document.getElementById('view-teams').innerHTML = tabs + head + kpiCards(o, S.period === 'this' ? 'Revenue, MTD' : 'Revenue') + terrosCard(o) + bonus + roster;
+}
+function renderRepsPhoneList(list) {
+  var rows = list.map(function (r, i) {
+    var tr = r.ter || {};
+    var line = esc(r.team) + ' · ' + (r.closed.length ? r.closed.length + ' closed' : '') + (r.closed.length && r.set.length ? ' · ' : '') + (r.set.length ? r.set.length + ' set' : '') + (r.selfgen.length ? ' · ' + r.selfgen.length + ' self-gen' : '') + (r.bonus ? ' · bonus ' + money(r.bonus) : '') + (r.ter ? ' · ' + num(tr.knocks) + ' knocks' : '');
+    return prow({ key: r.key, rank: i + 1, title: r.name, pill: r.role ? '<span class="pill ' + (r.role === 'Market Director' ? 'role-d' : 'role-c') + '">' + (r.role === 'Market Director' ? 'MD' : 'MC') + '</span>' : '', sub: line, value: r.rev ? money(r.rev) : '', standing: r.standing });
+  }).join('');
+  return '<div style="padding-bottom:6px"><div class="tiny muted" style="padding-bottom:6px">' + list.length + ' reps · ' + esc(dshort(S.start) + ' – ' + dshort(S.end)) + ' · MD = Market Director, MC = Market Coordinator. Tap a rep for their accounts.</div>' + (rows || '<div class="empty">No reps match.</div>') + '</div>';
+}
 /* ----- rep drawer ----- */
 function openRep(key) {
   var r = D.reps.filter(function (x) { return x.key === key; })[0]; if (!r) return;
@@ -711,6 +858,22 @@ function openRep(key) {
       var bw = (!isC || self) && w ? w.week.label + (w.n >= 3 ? ', +4%' : w.n === 2 ? ', +2%' : w.week.current ? ', pending' : ', no bonus') : '—';
       return '<tr><td class="l">' + esc(d.name) + '</td><td class="l">' + esc(dshort(d.date)) + '</td><td class="l">' + rolePill(isC ? 'Market Director' : 'Market Coordinator', self) + '</td><td class="l">' + esc(withWho) + '</td><td class="l">' + esc(d.stage || '') + '</td><td class="num">' + money(d.rev) + '</td><td class="num">' + blank(d.adders) + '</td><td class="l">' + esc(bw) + '</td><td class="l"><a href="' + base + d.id + '" target="_blank" rel="noopener" style="color:var(--accent)">open</a></td></tr>';
     }).join('') + '<tr class="total"><td class="l">' + r.accounts.length + ' accounts</td><td></td><td></td><td></td><td></td><td class="num">' + money(r.accounts.reduce(function (a, d) { return a + d.rev; }, 0)) + '</td><td class="num">' + r.adders + '</td><td></td><td></td></tr>' : '<tr><td colspan="9" class="empty">No accounts in the period.</td></tr>') + '</tbody></table></div></div>';
+  if (isPhone()) {
+    var base2 = base;
+    acc = pcard('Accounts', esc(dshort(S.start) + ' – ' + dshort(S.end)), (r.accounts.length ? r.accounts.slice().reverse().map(function (d) {
+      var self = norm(d.closer) === norm(d.setter), isC = norm(d.closer) === r.key;
+      var w = r.weeks.filter(function (x) { return d.date >= x.week.start && d.date <= x.week.end; })[0];
+      var withWho = self ? 'self-gen' : isC ? 'set by ' + d.setter : 'closed by ' + d.closer;
+      var bw = (!isC || self) && w ? ' · W' + w.n + (w.n >= 3 ? ' +4%' : w.n === 2 ? ' +2%' : '') : '';
+      return '<a class="prow" href="' + base2 + d.id + '" target="_blank" rel="noopener"><div class="body"><div class="t">' + esc(d.name) + '</div><div class="s">' + esc(dshort(d.date) + ' · ' + withWho + bw + (d.adders ? ' · ' + d.adders + ' adder' + (d.adders > 1 ? 's' : '') : '')) + '</div></div><div class="val"><div class="n">' + money(d.rev) + '</div></div><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round"><path d="M14 4h6v6M20 4l-9 9M19 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h5"></path></svg></a>';
+    }).join('') : '<div class="empty">No accounts in the period.</div>'), '<span class="tiny muted">' + r.accounts.length + ' · ' + money(r.accounts.reduce(function (a, d) { return a + d.rev; }, 0)) + '</span>');
+    header = '<div style="display:flex;align-items:center;gap:10px"><div class="avatar" aria-hidden="true">' + esc(initials(r.name)) + '</div><div style="flex:1;min-width:0"><div class="name" style="font-family:\'Roboto Condensed\',sans-serif;font-weight:800;font-size:22px;line-height:1;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(r.name) + '</div><div class="tiny muted" style="margin-top:4px">' + esc([r.role, r.team].filter(Boolean).join(' · ')) + '</div></div><button class="iconbtn" aria-label="Close" onclick="closeRep()" style="background:var(--card);box-shadow:var(--shadow)"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"></path></svg></button></div>' +
+      '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">' + standingPill(r.standing) + (rank ? '<span class="pill role-c">#' + rank + ' in the company</span>' : '') + '<span class="tiny muted">' + esc(dshort(S.start) + ' – ' + dshort(S.end)) + '</span></div>';
+    document.getElementById('drawer').innerHTML = header + kp + wk + ter + acc;
+    document.getElementById('drawer').classList.add('show'); document.getElementById('drawerBg').classList.add('show');
+    document.body.style.overflow = 'hidden';
+    return;
+  }
   document.getElementById('drawer').innerHTML = header + kp + '<div class="grid2">' + wk + ter + '</div>' + acc;
   document.getElementById('drawer').classList.add('show'); document.getElementById('drawerBg').classList.add('show');
   document.body.style.overflow = 'hidden';
@@ -723,7 +886,7 @@ document.addEventListener('keydown', function (e) { if (e.key === 'Escape') clos
   var r = monthRange(0); S.start = r.start; S.end = r.end;
   var h = (location.hash || '').replace('#', '');
   if (['overview', 'teams', 'reps'].indexOf(h) >= 0) S.view = h;
-  document.querySelectorAll('.topnav [data-view]').forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-view') === S.view); });
+  document.querySelectorAll('.topnav [data-view], .tabbar [data-view]').forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-view') === S.view); });
   load(false);
 })();
 </script>

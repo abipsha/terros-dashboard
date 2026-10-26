@@ -48,7 +48,7 @@
   .pill.role-s { background: var(--ink); color: var(--card); }
   .seg { display: flex; flex-wrap: wrap; gap: 4px; background: var(--ground); border-radius: 999px; padding: 4px; }
   .card .seg { background: var(--ground); }
-  .seg > button, .seg > a { font-size: 12px; font-weight: 500; padding: 6px 14px; border-radius: 999px; border: none; background: transparent; color: var(--ink); cursor: pointer; white-space: nowrap; min-height: 32px; }
+  .seg > button, .seg > a { display: inline-flex; align-items: center; justify-content: center; line-height: 1; font-size: 12px; font-weight: 500; padding: 6px 14px; border-radius: 999px; border: none; background: transparent; color: var(--ink); cursor: pointer; white-space: nowrap; min-height: 32px; }
   .seg > .on { font-weight: 600; background: var(--ink); color: var(--card); }
   .seg.orange > .on { background: var(--accent); color: #FFFFFF; }
   .seg.white { background: var(--card); box-shadow: var(--shadow); }
@@ -70,6 +70,7 @@
   .brand span { font-family: Inter, sans-serif; font-weight: 500; font-size: 12px; color: var(--muted); letter-spacing: 0; }
   .topnav { margin-left: auto; margin-right: auto; }
   .topright { display: flex; align-items: center; gap: 8px; }
+  .signout svg { display: none; }
 
   /* title + period */
   .titlerow { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 18px; padding: 0 4px; }
@@ -154,21 +155,74 @@
     .grid6 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
     .grid5 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   }
+  /* bottom tab bar: phone only */
+  .tabbar { display: none; position: fixed; left: 0; right: 0; bottom: 0; z-index: 15; background: var(--card); border-top: 1px solid var(--line); padding: 0 6px env(safe-area-inset-bottom, 10px); }
+  .tabbar > a, .tabbar > button { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 8px 0 6px; font-size: 10px; font-weight: 500; color: var(--muted); min-height: 50px; background: none; border: none; font-family: inherit; cursor: pointer; }
+  .tabbar > .on { color: var(--ink); font-weight: 600; }
   @media (max-width: 700px) {
-    .wrap { padding: 12px 12px 36px; gap: 12px; }
+    /* ── phone layer: only this block changes the layout under 700px; iPad and desktop are untouched ── */
+    .wrap { padding: 10px 14px 96px; gap: 10px; }
     .grid2 { grid-template-columns: minmax(0, 1fr); }
-    .grid4 { grid-template-columns: minmax(0, 1fr); }
-    .grid6 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    .grid5 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    .teamhead .name { font-size: 30px; }
-    .stats { margin-left: 0; gap: 16px; }
+    .grid4 { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+    .grid6 { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+    .grid5 { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; }
+    .grid5 .bignum { font-size: 17px; }
+    .grid5 .bigsub { font-size: 9px; }
+    .card.pad { padding: 12px 14px; }
+    .kpi { gap: 4px; }
+    .kpi .v { font-size: 24px; }
+    .kpi .row { flex-direction: column; align-items: flex-start; gap: 2px; font-size: 10px; }
+    .teamhead { gap: 8px 12px; padding: 2px 2px 0; }
+    .teamhead .name { font-size: 28px; }
+    .stats { margin-left: auto; gap: 14px; }
     .stat .v { font-size: 22px; }
-    .titlerow h1 { font-size: 18px; }
-    .topnav { margin-left: 0; width: 100%; }
-    .topnav > button, .topnav > a { flex: 1; text-align: center; }
-    .teamtabs { align-self: stretch; overflow-x: auto; flex-wrap: nowrap; }
-    .kpi .v { font-size: 26px; }
+    .stat .l { font-size: 8px; }
+    .topbar { padding: 8px 4px; background: transparent; box-shadow: none; gap: 8px; }
+    .topbar .brand { font-size: 18px; }
+    .topnav { display: none; }
+    .topright .iconbtn { width: 40px; height: 40px; background: var(--card); box-shadow: var(--shadow); }
+    .topright > .signout { width: 40px; height: 40px; background: var(--card); border-radius: 999px; box-shadow: var(--shadow); display: inline-flex; align-items: center; justify-content: center; }
+    .signout svg { display: block; }
+    .signout span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+    .titlerow { gap: 8px; padding: 0 2px; }
+    .titlerow h1 { font-size: 17px; }
+    .titlerow h1 span { display: block; font-size: 11px; margin-top: 2px; }
+    .period, .period .seg { width: 100%; }
+    .period .seg > button { flex: 1; text-align: center; padding: 9px 0; }
+    .teamtabs { align-self: stretch; overflow-x: auto; flex-wrap: nowrap; margin: 0 -14px; padding: 4px 14px; width: auto; border-radius: 0; background: transparent; box-shadow: none; }
+    .teamtabs > button { background: var(--card); box-shadow: var(--shadow); }
+    .teamtabs > .on { background: var(--accent); color: #FFFFFF; }
     th, td { padding: 9px 8px; }
+    .bars { height: 56px; gap: 6px; }
+    .drawer { top: auto; left: 0; right: 0; bottom: 0; width: 100%; max-height: 92vh; border-radius: 22px 22px 0 0; transform: translateY(100%); padding: 10px 14px 32px; gap: 10px; box-shadow: 0 -4px 20px rgba(0,0,0,.18); }
+    .drawer { visibility: hidden; transition: transform .2s ease, visibility 0s linear .2s; }
+    .drawer.show { transform: translateY(0); visibility: visible; transition: transform .2s ease; }
+    .drawer::before { content: ''; display: block; width: 36px; height: 4px; border-radius: 2px; background: var(--gray2); margin: 0 auto 2px; }
+    .drawer .teamhead .name { font-size: 24px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .drawer .avatar { width: 44px; height: 44px; font-size: 15px; }
+    .tabbar { display: flex; }
+    /* list rows used by the phone renderers */
+    .prow { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-top: 1px solid var(--line2); min-height: 44px; color: inherit; width: 100%; text-align: left; background: none; border-left: none; border-right: none; border-bottom: none; font-family: inherit; cursor: pointer; }
+    .prow:first-of-type { border-top: none; }
+    .prow .rk { font-family: 'Roboto Condensed', sans-serif; font-weight: 800; font-size: 14px; width: 20px; flex-shrink: 0; color: var(--gray3); }
+    .prow .rk.top { color: var(--accent); }
+    .prow .body { flex: 1; min-width: 0; }
+    .prow .t { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 6px; }
+    .prow .s { font-size: 10px; color: var(--muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .prow .val { text-align: right; flex-shrink: 0; }
+    .prow .val .n { font-family: 'Roboto Condensed', sans-serif; font-weight: 700; font-size: 14px; }
+    .prow .val .pill { margin-top: 4px; }
+    .ptrack { height: 4px; background: var(--line); border-radius: 2px; overflow: hidden; margin-top: 5px; }
+    .ptrack > div { height: 4px; border-radius: 2px; background: var(--accent); }
+    .wdot { width: 22px; height: 22px; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; }
+    .wdot.t4 { background: var(--accent); color: #FFFFFF; }
+    .wdot.t2 { background: var(--green); color: #FFFFFF; }
+    .wdot.t1 { background: var(--gray); color: var(--muted); }
+    .wdot.t0 { background: transparent; color: var(--gray2); border: 1px solid var(--line); }
+    .wdot.tf { background: transparent; color: var(--gray2); border: 1px dashed var(--line); }
+    .seg.soft > button { flex: 1; font-size: 11px; padding: 6px 8px; }
+    select { flex: 1 1 120px; }
+    .seeall { display: block; text-align: center; font-size: 11px; font-weight: 600; color: var(--accent); padding: 12px 0 8px; border-top: 1px solid var(--line2); background: none; border-left: none; border-right: none; border-bottom: none; width: 100%; font-family: inherit; cursor: pointer; }
   }
 </style>
 <style>
@@ -204,7 +258,13 @@
   .goalrow .g { font-size: 11px; font-weight: 600; width: 130px; flex-shrink: 0; }
   @media (max-width: 1000px) { .podium { grid-template-columns: repeat(3, minmax(0, 1fr)); } .pod .amt { font-size: 24px; } }
   @media (max-width: 700px) {
-    .podium { grid-template-columns: minmax(0, 1fr); }
+    .podium { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+    .band { padding: 12px 14px; gap: 12px; }
+    .days .n { font-size: 36px; }
+    .prog { flex: 1 1 200px; gap: 8px; }
+    .targets { flex-direction: row; flex-wrap: wrap; gap: 6px 18px; width: 100%; border-top: 1px solid var(--line2); padding-top: 10px; }
+    .pod .amt { font-size: 24px; }
+    .pod { gap: 6px; }
     .days { padding-right: 0; border-right: none; }
     .targets { margin-left: 0; text-align: left; }
     .prow .pl { width: 90px; }
@@ -231,7 +291,7 @@
       <button class="iconbtn" aria-label="Refresh" title="Refresh" onclick="load(true)">
         <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-2.6-6.4"></path><path d="M21 3v6h-6"></path></svg>
       </button>
-      <a href="/logout" style="font-size: 12px; font-weight: 500">Sign out</a>
+      <a href="/logout" class="signout" style="font-size: 12px; font-weight: 500"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"></path></svg><span>Sign out</span></a>
     </div>
   </div>
 
@@ -253,6 +313,13 @@
 
 </div>
 
+<nav class="tabbar" aria-label="Sections">
+  <a href="/leaderboard#overview"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 12 12 4l9 8M5 10v10h14V10"></path></svg>Overview</a>
+  <a href="/leaderboard#teams"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"></path></svg>Teams</a>
+  <a href="/leaderboard#reps"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="8" r="3.5"></circle><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4a3.5 3.5 0 0 1 0 7M21.5 20a6.5 6.5 0 0 0-5-6.3"></path></svg>Reps</a>
+  <a href="/tahiti" class="on"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3v18M12 3c-4 0-7 3-7 6 2-2 5-2 7-1 2-1 5-1 7 1 0-3-3-6-7-6M4 21h16"></path></svg>Tahiti</a>
+  <a href="/onboarding"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="10" cy="8" r="3.5"></circle><path d="M3 20a7 7 0 0 1 14 0M19 8v6M16 11h6"></path></svg>Onboarding</a>
+</nav>
 <div class="drawer-bg" id="drawerBg" onclick="closeRep()"></div>
 <div class="drawer" id="drawer" role="dialog" aria-label="Rep detail"></div>
 
@@ -278,6 +345,10 @@ function applyTheme(t) {
 function toggleTheme() { var t = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'; applyTheme(t); try { localStorage.setItem('lb-theme', t); } catch (e) {} }
 (function () { var t = 'light'; try { t = localStorage.getItem('lb-theme') || (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'); } catch (e) {} applyTheme(t); })();
 
+
+/* ---------- phone (under 700px): list rows instead of tables; the stylesheet is shared with the Leader Board ---------- */
+function isPhone() { return !!(window.matchMedia && window.matchMedia('(max-width: 700px)').matches); }
+(function () { var was = isPhone(); window.addEventListener('resize', function () { var now = isPhone(); if (now !== was) { was = now; if (S.data) render(); } }); })();
 /* ---------- helpers ---------- */
 function pad(n) { return String(n).padStart(2, '0'); }
 function fmtD(d) { return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
@@ -420,6 +491,16 @@ function renderTable() {
   var rows = q ? list.filter(function (r) { return norm(r.name).indexOf(q) >= 0 || norm(r.team).indexOf(q) >= 0; }) : list;
   var LIMIT = 15, shown = (S.showAll || q) ? rows : rows.slice(0, LIMIT);
   var th = '<tr><th>#</th><th class="l">' + one + '</th><th class="l">Team</th><th>Accounts</th><th>Revenue</th>' + (isDir ? '<th>Self-gen (×2)</th><th>Competition value</th>' : '') + '<th>To Target 1</th><th>Target 2</th><th>Pace</th><th>Last 30 days</th><th>Needs / day</th><th>Last sale</th></tr>';
+  if (isPhone()) {
+    var prows = shown.map(function (r) {
+      return '<button type="button" class="prow" onclick="openRep(\'' + r.key + '\')"><div class="rk' + (r.rank <= 3 ? ' top' : '') + '">' + r.rank + '</div><div class="body"><div class="t"><span style="min-width:0;overflow:hidden;text-overflow:ellipsis">' + esc(r.name) + '</span><span style="margin-left:auto;font-family:\'Roboto Condensed\',sans-serif;font-weight:700;font-size:14px;flex-shrink:0">' + money(r.comp) + '</span></div>' +
+        '<div class="ptrack"><div style="width:' + Math.min(100, pct(r.comp, T[1])).toFixed(1) + '%' + (r.comp >= T[0] ? ';background:var(--ink)' : '') + '"></div></div>' +
+        '<div class="s" style="display:flex;justify-content:space-between;gap:8px;margin-top:4px"><span>' + esc(r.team) + ' · ' + r.accounts.length + ' accts · ' + Math.round(r.pct1) + '% of T1' + (isDir && r.selfN ? ' · ' + r.selfN + ' self-gen ×2' : '') + '</span>' + pacePill(r.pace) + '</div></div></button>';
+    }).join('');
+    document.getElementById('tableCard').innerHTML = '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;padding-bottom:4px"><div style="font-size:13px;font-weight:600">Standings</div><div class="tiny muted">' + (isDir ? 'self-gen counts twice' : 'counted once') + '</div></div>' + (prows || '<div class="empty">No one matches.</div>') +
+      '<div class="tiny muted" style="display:flex;justify-content:space-between;gap:8px;padding:10px 0 8px"><span>Showing ' + shown.length + ' of ' + rows.length + '</span>' + (!q && rows.length > LIMIT ? '<a href="#" onclick="S.showAll=!S.showAll;renderTable();return false" style="color:var(--accent);font-weight:600">' + (S.showAll ? 'Show top ' + LIMIT : 'Show all') + '</a>' : '') + '</div>';
+    return;
+  }
   var body = shown.map(function (r) {
     return '<tr class="click' + (r.rank <= 3 ? ' bold' : '') + '" onclick="openRep(\'' + r.key + '\')"><td class="muted" style="width:24px">' + r.rank + '</td><td class="l">' + esc(r.name) + '</td><td class="l">' + esc(r.team) + '</td><td class="num">' + r.accounts.length + '</td><td class="num">' + money(r.rev) + '</td>' +
       (isDir ? '<td class="num">' + (r.selfN ? money(r.selfRev) + ' → ' + money(r.selfRev * 2) : '—') + '</td><td class="num" style="font-weight:700">' + money(r.comp) + '</td>' : '') +
@@ -457,7 +538,13 @@ function openRep(key) {
       var self = d.closer && d.setter && norm(d.closer) === norm(d.setter);
       return '<tr><td class="l">' + esc(d.name) + '</td><td class="l">' + esc(dshort(d.date)) + '</td><td class="l">' + esc(d.team) + '</td><td class="l">' + (self ? '<span class="pill role-s">Self-gen</span>' : esc(isDir ? d.setter : d.closer)) + '</td><td class="l">' + esc(d.stage) + '</td><td class="num">' + money(d.rev) + '</td>' + (isDir ? '<td class="num">' + money(self ? d.rev * 2 : d.rev) + '</td>' : '') + '<td class="l"><a href="' + S.odooBase + d.id + '" target="_blank" rel="noopener" style="color:var(--accent)">open</a></td></tr>';
     }).join('') + '<tr class="total"><td class="l">' + r.accounts.length + ' accounts</td><td></td><td></td><td></td><td></td><td class="num">' + money(r.rev) + '</td>' + (isDir ? '<td class="num">' + money(r.comp) + '</td>' : '') + '<td></td></tr></tbody></table></div></div>';
-  document.getElementById('drawer').innerHTML = header + kp + path + acc;
+  if (isPhone()) {
+    header = '<div style="display:flex;align-items:center;gap:10px"><div class="avatar" aria-hidden="true">' + esc(initials(r.name)) + '</div><div style="flex:1;min-width:0"><div style="font-family:\'Roboto Condensed\',sans-serif;font-weight:800;font-size:22px;line-height:1;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(r.name) + '</div><div class="tiny muted" style="margin-top:4px">' + esc(one + ' · ' + r.team) + '</div></div><button class="iconbtn" aria-label="Close" onclick="closeRep()" style="background:var(--card);box-shadow:var(--shadow)"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"></path></svg></button></div>' +
+      '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">' + pacePill(r.pace) + '<span class="pill role-c">#' + r.rank + ' of ' + D[role].length + '</span><span class="tiny muted">' + moneyK(r.comp) + ' competition value</span></div>';
+    acc = '<div class="card" style="padding:12px 14px 4px"><div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;padding-bottom:6px"><div style="font-size:13px;font-weight:600">Accounts <span class="muted" style="font-weight:400">' + (isDir ? 'closed' : 'set') + '</span></div><span class="tiny muted">' + r.accounts.length + ' · ' + money(r.rev) + '</span></div>' +
+      r.accounts.map(function (d) { var self = d.closer && d.setter && norm(d.closer) === norm(d.setter); return '<a class="prow" href="' + S.odooBase + d.id + '" target="_blank" rel="noopener"><div class="body"><div class="t">' + esc(d.name) + '</div><div class="s">' + esc(dshort(d.date) + ' · ' + d.team + ' · ' + (self ? 'self-gen ×2' : (isDir ? 'set by ' + d.setter : 'closed by ' + d.closer))) + '</div></div><div class="val"><div class="n">' + money(isDir && self ? d.rev * 2 : d.rev) + '</div></div></a>'; }).join('') + '</div>';
+    document.getElementById('drawer').innerHTML = header + kp + path + acc;
+  } else document.getElementById('drawer').innerHTML = header + kp + path + acc;
   document.getElementById('drawer').classList.add('show'); document.getElementById('drawerBg').classList.add('show');
   document.body.style.overflow = 'hidden';
 }

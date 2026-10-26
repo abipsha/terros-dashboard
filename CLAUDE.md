@@ -133,6 +133,7 @@ The dashboard now uses `POST /report/kpi` with `version: 2` — the same call th
 - Weekly bonus runs **Sunday–Saturday**: 1 set no bonus, 2 sets +2%, 3+ sets +4% of the contract value set that week, paid to the setter. Self-gen counts as a set. The deals feed is widened to whole weeks (`weeksStart`/`weeksEnd`) so partial weeks at the edges of the range are scored on their full week.
 - Standing: Productive = sale in the current week; Active = sale within 30 days of the period end or any Terros activity in the period; otherwise Inactive.
 - Inside Sales is not a team tab (`TEAMS` in `api/leaderboard.py`); its reps and deals still appear on rep rows and in company totals.
+- A rep's team is the office where their accounts are (most deals in the window wins); the Odoo region (`x_studio_region`) is only the fallback for a rep with no sales. Odoo is often behind when someone moves offices — Nathan Lewis was filed under Northern California while selling in Southern Utah. Inside Sales reps keep Inside Sales regardless of where their sets land.
 - Tahiti tracker is NOT on this page — the "Tahiti" link goes to `/tahiti`. The Leader Board replaces the CRM revenue tracker as the main page; `/crm` stays as it was.
 
 ### Terros fields on the board
@@ -153,4 +154,7 @@ Same data as the Onboarding tab on `/crm` (`odoo.get_onboarding`): employees in 
 
 ### Top nav on the new pages
 Overview · Teams · Reps (the Leader Board, `#overview` etc.) · Tahiti (`/tahiti`) · Onboarding (`/onboarding`). No "Dashboard" link — the Leader Board is the main page now: signing in, `/`, `/dashboard` and an already-signed-in visit to `/login` all land on `/leaderboard` (`HOME` in `server.py`). `/crm` stays reachable by URL.
+
+### Phone layout (under 700px)
+The three pages keep their desktop/iPad layout untouched above 700px. Under 700px a phone layer takes over: everything lives in the `@media (max-width: 700px)` block of leaderboard.html's stylesheet (copied into tahiti.html and onboarding.html by the build scripts) plus the `*Phone` renderers in each page's script, switched by `isPhone()` (re-rendered when the window crosses 700px). What changes on a phone: one-line header (logo, theme, refresh, sign-out icons), the top nav is hidden and a fixed **bottom tab bar** (`.tabbar`: Overview · Teams · Reps · Tahiti · Onboarding) takes its place; tables become list rows (`.prow`) with the number on the right and a thin bar; the weekly bonus grid becomes one row per coordinator with a dot per week (`.wdot`); the rep drawer becomes a bottom sheet; Onboarding shows a card per person. Desktop markup and CSS outside that media block must not be edited for phone fixes.
 

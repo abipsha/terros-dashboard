@@ -48,7 +48,7 @@
   .pill.role-s { background: var(--ink); color: var(--card); }
   .seg { display: flex; flex-wrap: wrap; gap: 4px; background: var(--ground); border-radius: 999px; padding: 4px; }
   .card .seg { background: var(--ground); }
-  .seg > button, .seg > a { font-size: 12px; font-weight: 500; padding: 6px 14px; border-radius: 999px; border: none; background: transparent; color: var(--ink); cursor: pointer; white-space: nowrap; min-height: 32px; }
+  .seg > button, .seg > a { display: inline-flex; align-items: center; justify-content: center; line-height: 1; font-size: 12px; font-weight: 500; padding: 6px 14px; border-radius: 999px; border: none; background: transparent; color: var(--ink); cursor: pointer; white-space: nowrap; min-height: 32px; }
   .seg > .on { font-weight: 600; background: var(--ink); color: var(--card); }
   .seg.orange > .on { background: var(--accent); color: #FFFFFF; }
   .seg.white { background: var(--card); box-shadow: var(--shadow); }
@@ -70,6 +70,7 @@
   .brand span { font-family: Inter, sans-serif; font-weight: 500; font-size: 12px; color: var(--muted); letter-spacing: 0; }
   .topnav { margin-left: auto; margin-right: auto; }
   .topright { display: flex; align-items: center; gap: 8px; }
+  .signout svg { display: none; }
 
   /* title + period */
   .titlerow { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 18px; padding: 0 4px; }
@@ -154,21 +155,74 @@
     .grid6 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
     .grid5 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   }
+  /* bottom tab bar: phone only */
+  .tabbar { display: none; position: fixed; left: 0; right: 0; bottom: 0; z-index: 15; background: var(--card); border-top: 1px solid var(--line); padding: 0 6px env(safe-area-inset-bottom, 10px); }
+  .tabbar > a, .tabbar > button { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 8px 0 6px; font-size: 10px; font-weight: 500; color: var(--muted); min-height: 50px; background: none; border: none; font-family: inherit; cursor: pointer; }
+  .tabbar > .on { color: var(--ink); font-weight: 600; }
   @media (max-width: 700px) {
-    .wrap { padding: 12px 12px 36px; gap: 12px; }
+    /* ── phone layer: only this block changes the layout under 700px; iPad and desktop are untouched ── */
+    .wrap { padding: 10px 14px 96px; gap: 10px; }
     .grid2 { grid-template-columns: minmax(0, 1fr); }
-    .grid4 { grid-template-columns: minmax(0, 1fr); }
-    .grid6 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    .grid5 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    .teamhead .name { font-size: 30px; }
-    .stats { margin-left: 0; gap: 16px; }
+    .grid4 { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+    .grid6 { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+    .grid5 { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; }
+    .grid5 .bignum { font-size: 17px; }
+    .grid5 .bigsub { font-size: 9px; }
+    .card.pad { padding: 12px 14px; }
+    .kpi { gap: 4px; }
+    .kpi .v { font-size: 24px; }
+    .kpi .row { flex-direction: column; align-items: flex-start; gap: 2px; font-size: 10px; }
+    .teamhead { gap: 8px 12px; padding: 2px 2px 0; }
+    .teamhead .name { font-size: 28px; }
+    .stats { margin-left: auto; gap: 14px; }
     .stat .v { font-size: 22px; }
-    .titlerow h1 { font-size: 18px; }
-    .topnav { margin-left: 0; width: 100%; }
-    .topnav > button, .topnav > a { flex: 1; text-align: center; }
-    .teamtabs { align-self: stretch; overflow-x: auto; flex-wrap: nowrap; }
-    .kpi .v { font-size: 26px; }
+    .stat .l { font-size: 8px; }
+    .topbar { padding: 8px 4px; background: transparent; box-shadow: none; gap: 8px; }
+    .topbar .brand { font-size: 18px; }
+    .topnav { display: none; }
+    .topright .iconbtn { width: 40px; height: 40px; background: var(--card); box-shadow: var(--shadow); }
+    .topright > .signout { width: 40px; height: 40px; background: var(--card); border-radius: 999px; box-shadow: var(--shadow); display: inline-flex; align-items: center; justify-content: center; }
+    .signout svg { display: block; }
+    .signout span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+    .titlerow { gap: 8px; padding: 0 2px; }
+    .titlerow h1 { font-size: 17px; }
+    .titlerow h1 span { display: block; font-size: 11px; margin-top: 2px; }
+    .period, .period .seg { width: 100%; }
+    .period .seg > button { flex: 1; text-align: center; padding: 9px 0; }
+    .teamtabs { align-self: stretch; overflow-x: auto; flex-wrap: nowrap; margin: 0 -14px; padding: 4px 14px; width: auto; border-radius: 0; background: transparent; box-shadow: none; }
+    .teamtabs > button { background: var(--card); box-shadow: var(--shadow); }
+    .teamtabs > .on { background: var(--accent); color: #FFFFFF; }
     th, td { padding: 9px 8px; }
+    .bars { height: 56px; gap: 6px; }
+    .drawer { top: auto; left: 0; right: 0; bottom: 0; width: 100%; max-height: 92vh; border-radius: 22px 22px 0 0; transform: translateY(100%); padding: 10px 14px 32px; gap: 10px; box-shadow: 0 -4px 20px rgba(0,0,0,.18); }
+    .drawer { visibility: hidden; transition: transform .2s ease, visibility 0s linear .2s; }
+    .drawer.show { transform: translateY(0); visibility: visible; transition: transform .2s ease; }
+    .drawer::before { content: ''; display: block; width: 36px; height: 4px; border-radius: 2px; background: var(--gray2); margin: 0 auto 2px; }
+    .drawer .teamhead .name { font-size: 24px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .drawer .avatar { width: 44px; height: 44px; font-size: 15px; }
+    .tabbar { display: flex; }
+    /* list rows used by the phone renderers */
+    .prow { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-top: 1px solid var(--line2); min-height: 44px; color: inherit; width: 100%; text-align: left; background: none; border-left: none; border-right: none; border-bottom: none; font-family: inherit; cursor: pointer; }
+    .prow:first-of-type { border-top: none; }
+    .prow .rk { font-family: 'Roboto Condensed', sans-serif; font-weight: 800; font-size: 14px; width: 20px; flex-shrink: 0; color: var(--gray3); }
+    .prow .rk.top { color: var(--accent); }
+    .prow .body { flex: 1; min-width: 0; }
+    .prow .t { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 6px; }
+    .prow .s { font-size: 10px; color: var(--muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .prow .val { text-align: right; flex-shrink: 0; }
+    .prow .val .n { font-family: 'Roboto Condensed', sans-serif; font-weight: 700; font-size: 14px; }
+    .prow .val .pill { margin-top: 4px; }
+    .ptrack { height: 4px; background: var(--line); border-radius: 2px; overflow: hidden; margin-top: 5px; }
+    .ptrack > div { height: 4px; border-radius: 2px; background: var(--accent); }
+    .wdot { width: 22px; height: 22px; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; }
+    .wdot.t4 { background: var(--accent); color: #FFFFFF; }
+    .wdot.t2 { background: var(--green); color: #FFFFFF; }
+    .wdot.t1 { background: var(--gray); color: var(--muted); }
+    .wdot.t0 { background: transparent; color: var(--gray2); border: 1px solid var(--line); }
+    .wdot.tf { background: transparent; color: var(--gray2); border: 1px dashed var(--line); }
+    .seg.soft > button { flex: 1; font-size: 11px; padding: 6px 8px; }
+    select { flex: 1 1 120px; }
+    .seeall { display: block; text-align: center; font-size: 11px; font-weight: 600; color: var(--accent); padding: 12px 0 8px; border-top: 1px solid var(--line2); background: none; border-left: none; border-right: none; border-bottom: none; width: 100%; font-family: inherit; cursor: pointer; }
   }
 </style>
 <style>
@@ -179,6 +233,7 @@
   .searchbox { display: flex; align-items: center; gap: 8px; padding: 8px 12px; }
   .searchbox input { flex: 1; padding: 6px 0; font-family: inherit; font-size: 12px; border: none; background: transparent; color: var(--ink); outline: none; min-width: 0; }
   td.wrap { white-space: normal; max-width: 360px; }
+  @media (max-width: 700px) { .kpi5 { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; } .kpi5 .kpi .v { font-size: 24px; } }
 </style>
 </head>
 <body>
@@ -201,7 +256,7 @@
       <button class="iconbtn" aria-label="Refresh" title="Refresh" onclick="load(true)">
         <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-2.6-6.4"></path><path d="M21 3v6h-6"></path></svg>
       </button>
-      <a href="/logout" style="font-size: 12px; font-weight: 500">Sign out</a>
+      <a href="/logout" class="signout" style="font-size: 12px; font-weight: 500"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"></path></svg><span>Sign out</span></a>
     </div>
   </div>
 
@@ -224,6 +279,13 @@
 
 </div>
 
+<nav class="tabbar" aria-label="Sections">
+  <a href="/leaderboard#overview"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 12 12 4l9 8M5 10v10h14V10"></path></svg>Overview</a>
+  <a href="/leaderboard#teams"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"></path></svg>Teams</a>
+  <a href="/leaderboard#reps"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="8" r="3.5"></circle><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4a3.5 3.5 0 0 1 0 7M21.5 20a6.5 6.5 0 0 0-5-6.3"></path></svg>Reps</a>
+  <a href="/tahiti"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3v18M12 3c-4 0-7 3-7 6 2-2 5-2 7-1 2-1 5-1 7 1 0-3-3-6-7-6M4 21h16"></path></svg>Tahiti</a>
+  <a href="/onboarding" class="on"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="10" cy="8" r="3.5"></circle><path d="M3 20a7 7 0 0 1 14 0M19 8v6M16 11h6"></path></svg>Onboarding</a>
+</nav>
 <script>
 /* ──────────────────────────────────────────────────────────────
    Onboarding — reads /api/odoo/onboarding: everyone in Pre-Boarding
@@ -242,6 +304,10 @@ function applyTheme(t) {
 function toggleTheme() { var t = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'; applyTheme(t); try { localStorage.setItem('lb-theme', t); } catch (e) {} }
 (function () { var t = 'light'; try { t = localStorage.getItem('lb-theme') || (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'); } catch (e) {} applyTheme(t); })();
 
+
+/* ---------- phone (under 700px): list rows instead of tables; the stylesheet is shared with the Leader Board ---------- */
+function isPhone() { return !!(window.matchMedia && window.matchMedia('(max-width: 700px)').matches); }
+(function () { var was = isPhone(); window.addEventListener('resize', function () { var now = isPhone(); if (now !== was) { was = now; if (S.data) render(); } }); })();
 /* ---------- helpers ---------- */
 var MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 function parseD(s) { var p = s.split('-'); return new Date(+p[0], +p[1] - 1, +p[2]); }
@@ -295,7 +361,7 @@ function render() {
   var w9Out = emps.filter(function (e) { return !e.w9_done; }).length, docsOut = emps.filter(function (e) { return (e.unsigned_docs || []).length; }).length;
   var soon = emps.filter(function (e) { var n = daysFromNow(e.start_date); return n !== null && n >= 0 && n <= 7; }).length;
   var teams = {}; emps.forEach(function (e) { var t = e.region || 'No team'; teams[t] = (teams[t] || 0) + 1; });
-  var kp = '<div class="grid5">' +
+  var kp = '<div class="grid5 kpi5">' +
     '<div class="card pad kpi"><div class="lbl">In the pipeline</div><div class="v">' + emps.length + '</div><div class="row"><span>' + Object.keys(teams).sort().map(function (t) { return teams[t] + ' ' + esc(t); }).join(' · ') + '</span></div></div>' +
     '<div class="card pad kpi"><div class="lbl">Pre-Boarding</div><div class="v">' + pre.length + '</div><div class="row"><span>employee record made, not yet started</span></div></div>' +
     '<div class="card pad kpi"><div class="lbl">Onboarding</div><div class="v">' + on.length + '</div><div class="row"><span>started, paperwork in progress</span></div></div>' +
@@ -318,6 +384,19 @@ function renderTables() {
   var other = emps.filter(function (e) { return e.stage_key !== 'status1' && e.stage_key !== 'status2'; });
   if (S.stage === 'all' && other.length) groups.push({ title: 'Other stages', sub: '', rows: other });
   var th = '<tr><th class="l">Name</th><th class="l">Stage</th><th class="l">Team</th><th class="l">Start date</th><th class="l">Reports to</th><th class="l">Referred by</th><th class="l">W-9</th><th class="l">Signature requests</th></tr>';
+  if (isPhone()) {
+    document.getElementById('tables').innerHTML = groups.map(function (g) {
+      g.rows.sort(function (a, b) { return (a.start_date || '9999') < (b.start_date || '9999') ? -1 : 1; });
+      var cards = g.rows.map(function (e) {
+        var docs = e.unsigned_docs || [];
+        return '<a class="card" href="' + S.odooEmp + e.id + '" target="_blank" rel="noopener" style="padding:12px 14px;display:flex;flex-direction:column;gap:6px"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><div style="font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(e.name) + '</div><span class="pill ' + (e.stage_key === 'status2' ? 'role-c' : 'role-d') + '">' + esc(e.stage) + '</span></div>' +
+          '<div class="tiny muted">' + esc([e.region, e.start_date ? 'starts ' + dlong(e.start_date) + (daysFromNow(e.start_date) === 0 ? ', today' : daysFromNow(e.start_date) > 0 ? ', in ' + daysFromNow(e.start_date) + ' days' : ', ' + Math.abs(daysFromNow(e.start_date)) + ' days ago') : '', e.manager ? 'reports to ' + e.manager : '', e.referred_by ? 'referred by ' + e.referred_by : ''].filter(Boolean).join(' · ')) + '</div>' +
+          '<div style="display:flex;gap:6px;flex-wrap:wrap">' + (e.w9_done ? '<span class="pill ok">W-9 done</span>' : '<span class="pill warn">W-9 pending</span>') + (docs.length ? docs.map(function (d) { return '<span class="pill doc">' + esc(d) + '</span>'; }).join('') : '<span class="pill ok">All signed</span>') + '</div></a>';
+      }).join('');
+      return '<div style="display:flex;flex-direction:column;gap:8px"><div style="font-size:13px;font-weight:600;padding:4px 2px 0">' + esc(g.title) + ' <span class="muted" style="font-weight:400">' + g.rows.length + '</span></div>' + (cards || '<div class="card empty" style="padding:12px 14px">' + (q ? 'No one matches.' : 'Nobody at this stage.') + '</div>') + '</div>';
+    }).join('');
+    return;
+  }
   document.getElementById('tables').innerHTML = groups.map(function (g) {
     g.rows.sort(function (a, b) { return (a.start_date || '9999') < (b.start_date || '9999') ? -1 : 1; });
     return '<div class="card" style="padding:16px 18px 6px"><div class="cardhead" style="padding-bottom:8px"><div class="t">' + esc(g.title) + ' <span>' + g.rows.length + ' ' + (g.rows.length === 1 ? 'person' : 'people') + '</span></div><div class="tiny muted">' + esc(g.sub) + '</div></div>' +
