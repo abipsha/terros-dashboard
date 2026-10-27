@@ -561,6 +561,10 @@ function render() {
   else renderReps();
 }
 
+/* Who counts as a market coordinator on a list: coordinators by role, plus a market director
+   only when they have self-generated accounts in the period (a self-gen is a set they made). */
+function isCoordinatorRow(r) { return r.role === 'Market Director' ? r.selfgen.length > 0 : (r.role === 'Market Coordinator' || r.set.length > 0); }
+function isDirectorRow(r) { return r.role === 'Market Director' || (r.role !== 'Market Coordinator' && r.closed.length > 0); }
 /* ----- shared pieces ----- */
 function kpiCards(o, labelRev) {
   var cards = [
@@ -603,7 +607,7 @@ function standingPill(s) { return '<span class="pill ' + s.toLowerCase() + '">' 
 function rolePill(r, self) { return self ? '<span class="pill role-s">Self-gen</span>' : r === 'Market Director' ? '<span class="pill role-d">Market Director</span>' : r === 'Market Coordinator' ? '<span class="pill role-c">Market Coordinator</span>' : ''; }
 function bonusGrid(reps, scopeLabel) {
   var weeks = D.weeks;
-  var coords = reps.filter(function (r) { return r.setsAll > 0; }).sort(function (a, b) { return b.bonus - a.bonus || b.setsAll - a.setsAll; });
+  var coords = reps.filter(function (r) { return r.setsAll > 0 && isCoordinatorRow(r); }).sort(function (a, b) { return b.bonus - a.bonus || b.setsAll - a.setsAll; });
   var head = '<tr><th class="l">Market coordinator</th>' + weeks.map(function (w) { return '<th class="c"' + (w.current ? ' style="color:var(--accent)"' : '') + '>Week ' + w.n + (w.current ? ', now' : '') + '<br><span style="font-weight:400">' + esc(w.label) + '</span></th>'; }).join('') + '<th>Sets</th><th>Bonus</th></tr>';
   var rows = coords.map(function (r) {
     return '<tr class="click" onclick="openRep(\'' + r.key + '\')"><td class="l name">' + esc(r.name) + '</td>' + r.weeks.map(function (w) { return '<td class="c">' + (w.week.future ? '<span class="muted">–</span>' : tierPill(w.n)) + '</td>'; }).join('') +
@@ -640,7 +644,7 @@ function renderTeam() {
   var second = '<div class="grid2">' + monthsCard(t) + terrosCard(o) + '</div>';
   // roster
   var mode = S.roster;
-  var list = reps.filter(function (r) { return mode === 'everyone' ? true : mode === 'directors' ? r.role === 'Market Director' || r.closed.length : (r.role === 'Market Coordinator' || r.set.length); });
+  var list = reps.filter(function (r) { return mode === 'everyone' ? true : mode === 'directors' ? isDirectorRow(r) : isCoordinatorRow(r); });
   // reps with no sale in 30 days and no field activity stay off the roster unless asked for
   var hidden = list.filter(function (r) { return r.standing === 'Inactive'; }).length;
   if (!S.showInactive) list = list.filter(function (r) { return r.standing !== 'Inactive'; });
@@ -698,7 +702,7 @@ function renderOverview() {
       (list.length ? '' : '<tr><td colspan="7" class="empty">No sales in the period.</td></tr>') + '</tbody></table></div></div>';
   }
   var dirs = D.reps.filter(function (r) { return r.closed.length; }).sort(function (a, b) { return b.revClosed - a.revClosed; }).slice(0, 8).map(function (r) { return { r: r, v: r.revClosed, cells: [r.closed.length, money(r.revClosed), r.selfgen.length ? money(r.revSelf) : '—'] }; });
-  var cos = D.reps.filter(function (r) { return r.set.length; }).sort(function (a, b) { return b.revSet - a.revSet; }).slice(0, 8).map(function (r) { return { r: r, v: r.revSet, cells: [r.set.length, money(r.revSet), r.bonus ? money(r.bonus) : '—'] }; });
+  var cos = D.reps.filter(function (r) { return r.set.length && isCoordinatorRow(r); }).sort(function (a, b) { return b.revSet - a.revSet; }).slice(0, 8).map(function (r) { return { r: r, v: r.revSet, cells: [r.set.length, money(r.revSet), r.bonus ? money(r.bonus) : '—'] }; });
   var boards = '<div class="grid2">' + board('Market Directors', 'Contract value on accounts closed', dirs, ['Deals', 'Revenue', 'Self-gen']) + board('Market Coordinators', 'Contract value on accounts set', cos, ['Sets', 'Revenue', 'Bonus']) + '</div>';
   var bonusTeams = '<div class="card pad" style="display:flex;flex-direction:column;gap:12px"><div class="cardhead"><div class="t">Weekly bonus <span>by team · Sunday to Saturday</span></div><div class="tiny muted">+2% at 2 sets, +4% at 3 or more, paid to the market coordinator with the month\'s bonuses.</div></div><div class="grid4">' +
     D.teams.map(function (t) { var x = D.team[t]; return '<div style="border:1px solid var(--line);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:4px"><div class="lbl">' + esc(t) + '</div><div class="bignum" style="font-size:22px">' + money(x.bonus) + '</div><div class="tiny muted">' + (x.bonusWeek ? money(x.bonusWeek) + ' this week' : 'nothing yet this week') + '</div><div class="tiny muted">' + x.at4 + ' at +4% · ' + x.at2 + ' at +2% · ' + x.oneAway + ' one set away</div></div>'; }).join('') + '</div>' +
@@ -711,8 +715,8 @@ function renderReps() {
   var all = D.reps.filter(function (r) { return r.active || r.accounts.length; });
   var q = norm(S.repQ);
   var list = all.filter(function (r) {
-    if (S.repRole === 'directors' && !(r.role === 'Market Director' || r.closed.length)) return false;
-    if (S.repRole === 'coordinators' && !(r.role === 'Market Coordinator' || r.set.length)) return false;
+    if (S.repRole === 'directors' && !isDirectorRow(r)) return false;
+    if (S.repRole === 'coordinators' && !isCoordinatorRow(r)) return false;
     if (S.repTeam && r.team !== S.repTeam) return false;
     if (S.repStanding && r.standing !== S.repStanding) return false;
     if (q && norm(r.name).indexOf(q) < 0) return false;
@@ -790,7 +794,7 @@ function renderOverviewPhone() {
       sub: x.deals + ' deals · ' + x.selfN + ' self-gen · last month ' + moneyK(x.prevRev) });
   }).join(''), '<span class="tiny muted">tap for the team view</span>');
   var dirs = D.reps.filter(function (r) { return r.closed.length; }).sort(function (a, b) { return b.revClosed - a.revClosed; });
-  var cos = D.reps.filter(function (r) { return r.set.length; }).sort(function (a, b) { return b.revSet - a.revSet; });
+  var cos = D.reps.filter(function (r) { return r.set.length && isCoordinatorRow(r); }).sort(function (a, b) { return b.revSet - a.revSet; });
   var boards = phoneBoard('Market Directors', esc(dshort(S.start) + ' – ' + dshort(S.end)), dirs, function (r) { return r.revClosed; }, function (r) { return esc(r.team) + ' · ' + r.closed.length + ' deals · ' + r.selfgen.length + ' self-gen'; }) +
     phoneBoard('Market Coordinators', 'sets', cos, function (r) { return r.revSet; }, function (r) { return esc(r.team) + ' · ' + r.set.length + ' sets · bonus ' + (r.bonus ? money(r.bonus) : '—'); }, null, 'var(--ink)');
   var bonus = '<div class="card pad" style="display:flex;flex-direction:column;gap:8px"><div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap"><div style="font-size:13px;font-weight:600">Weekly bonus <span class="muted" style="font-weight:400">Sun – Sat</span></div><div class="tiny muted">' + money(o.bonus) + ' MTD · ' + money(o.bonusWeek) + ' this week</div></div><div class="grid4">' +
@@ -805,14 +809,14 @@ function renderTeamPhone() {
   var tabs = '<div class="seg white orange teamtabs">' + D.teams.map(function (x) { return '<button class="' + (x === t ? 'on' : '') + '" onclick="S.team=\'' + esc(x) + '\';render()">' + esc(x) + '</button>'; }).join('') + '</div>';
   var head = phoneHead(t, esc(dshort(S.start) + ' – ' + dshort(S.end)) + ' · ' + reps.filter(function (r) { return r.active; }).length + ' reps, ' + o.withSale + ' with a sale · last month ' + moneyK(o.prevRev), moneyK(o.rev), S.period === 'this' ? 'MTD' : 'Revenue');
   // weekly bonus: one row per coordinator with a dot per week
-  var coords = reps.filter(function (r) { return r.setsAll > 0; }).sort(function (a, b) { return b.bonus - a.bonus || b.setsAll - a.setsAll; });
+  var coords = reps.filter(function (r) { return r.setsAll > 0 && isCoordinatorRow(r); }).sort(function (a, b) { return b.bonus - a.bonus || b.setsAll - a.setsAll; });
   var hdr = '<div style="display:flex;align-items:center;gap:10px;padding-bottom:4px"><div style="flex:1"></div><div style="display:flex;gap:4px">' + D.weeks.map(function (w) { return '<span class="tiny" style="width:22px;text-align:center;' + (w.current ? 'color:var(--accent);font-weight:600' : 'color:var(--muted)') + '">' + (w.current ? 'now' : 'W' + w.n) + '</span>'; }).join('') + '</div><div style="width:54px"></div></div>';
   var bonusRows = coords.map(function (r) { return '<button type="button" class="prow" style="padding:6px 0" onclick="openRep(\'' + r.key + '\')"><div class="body"><div class="t">' + esc(r.name) + '</div></div>' + weekDots(r) + '<div class="val" style="width:54px"><div class="n">' + (r.bonus ? money(r.bonus) : '—') + '</div></div></button>'; }).join('');
   var legend = '<div class="tiny muted" style="border-top:1px solid var(--line2);padding:8px 0 6px"><span class="wdot t4" style="width:10px;height:10px;vertical-align:middle"></span> 3+ sets +4% &nbsp; <span class="wdot t2" style="width:10px;height:10px;vertical-align:middle"></span> 2 sets +2% &nbsp; <span class="wdot t1" style="width:10px;height:10px;vertical-align:middle"></span> 1 set. Self-gen counts as a set.</div>';
   var bonus = pcard('Weekly bonus', 'Sun – Sat', (coords.length ? hdr + bonusRows : '<div class="empty">No accounts set in this period.</div>') + legend, '<span class="tiny muted">' + money(o.bonus) + ' MTD · ' + money(o.bonusWeek) + ' this week</span>');
   // roster
   var mode = S.roster;
-  var list = reps.filter(function (r) { return mode === 'everyone' ? true : mode === 'directors' ? r.role === 'Market Director' || r.closed.length : (r.role === 'Market Coordinator' || r.set.length); });
+  var list = reps.filter(function (r) { return mode === 'everyone' ? true : mode === 'directors' ? isDirectorRow(r) : isCoordinatorRow(r); });
   var hidden = list.filter(function (r) { return r.standing === 'Inactive'; }).length;
   if (!S.showInactive) list = list.filter(function (r) { return r.standing !== 'Inactive'; });
   list.sort(function (a, b) { return (mode === 'coordinators' ? b.revSet - a.revSet : mode === 'directors' ? b.revClosed - a.revClosed : b.rev - a.rev) || a.name.localeCompare(b.name); });
