@@ -562,8 +562,9 @@ function render() {
 }
 
 /* Who counts as a market coordinator on a list: coordinators by role, plus a market director
-   only when they have self-generated accounts in the period (a self-gen is a set they made). */
-function isCoordinatorRow(r) { return r.role === 'Market Director' ? r.selfgen.length > 0 : (r.role === 'Market Coordinator' || r.set.length > 0); }
+   only when they set at least one Won account in the period — a self-gen, or a deal they set
+   for someone else (r.set holds both). */
+function isCoordinatorRow(r) { return r.role === 'Market Director' ? r.set.length > 0 : (r.role === 'Market Coordinator' || r.set.length > 0); }
 function isDirectorRow(r) { return r.role === 'Market Director' || (r.role !== 'Market Coordinator' && r.closed.length > 0); }
 /* ----- shared pieces ----- */
 function kpiCards(o, labelRev) {
