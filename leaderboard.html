@@ -477,6 +477,8 @@ function derive() {
     r.revClosed = r.closed.reduce(function (a, d) { return a + d.rev; }, 0);
     r.revSet = r.set.reduce(function (a, d) { return a + d.rev; }, 0);
     r.revSelf = r.selfgen.reduce(function (a, d) { return a + d.rev; }, 0);
+    r.setOthers = r.set.filter(function (d) { return r.selfgen.indexOf(d) < 0; });     // set for someone else
+    r.revSetOthers = r.setOthers.reduce(function (a, d) { return a + d.rev; }, 0);
     var seen = {}; r.accounts = [];
     r.closed.concat(r.set).forEach(function (d) { if (!seen[d.id]) { seen[d.id] = 1; r.accounts.push(d); } });
     r.accounts.sort(function (a, b) { return a.date < b.date ? -1 : a.date > b.date ? 1 : 0; });
@@ -572,10 +574,10 @@ function render() {
   else renderReps();
 }
 
-/* Who counts as a market coordinator on a list: coordinators by role, plus a market director
-   only when they set at least one Won account in the period — a self-gen, or a deal they set
-   for someone else (r.set holds both). */
-function isCoordinatorRow(r) { return r.role === 'Market Director' ? r.set.length > 0 : (r.role === 'Market Coordinator' || r.set.length > 0); }
+/* Who is on a Market Coordinators list: anyone who set at least one Won account for someone
+   else in the period. Self-gens do not count here (they still count toward the weekly bonus,
+   as payroll pays it). Sets and Revenue set on these lists are sets for others only. */
+function isCoordinatorRow(r) { return r.setOthers.length > 0; }
 function isDirectorRow(r) { return r.role === 'Market Director' || (r.role !== 'Market Coordinator' && r.closed.length > 0); }
 /* ----- shared pieces ----- */
 function kpiCards(o, labelRev) {
@@ -619,7 +621,7 @@ function standingPill(s) { return '<span class="pill ' + s.toLowerCase() + '">' 
 function rolePill(r, self) { return self ? '<span class="pill role-s">Self-gen</span>' : r === 'Market Director' ? '<span class="pill role-d">Market Director</span>' : r === 'Market Coordinator' ? '<span class="pill role-c">Market Coordinator</span>' : ''; }
 function bonusGrid(reps, scopeLabel) {
   var weeks = D.weeks;
-  var coords = reps.filter(function (r) { return r.setsAll > 0 && isCoordinatorRow(r); }).sort(function (a, b) { return b.bonus - a.bonus || b.setsAll - a.setsAll; });
+  var coords = reps.filter(function (r) { return r.setsAll > 0; }).sort(function (a, b) { return b.bonus - a.bonus || b.setsAll - a.setsAll; });   // payroll: a self-gen counts as a set
   var head = '<tr><th class="l">Market coordinator</th>' + weeks.map(function (w) { return '<th class="c"' + (w.current ? ' style="color:var(--accent)"' : '') + '>Week ' + w.n + (w.current ? ', now' : '') + '<br><span style="font-weight:400">' + esc(w.label) + '</span></th>'; }).join('') + '<th>Sets</th><th>Bonus</th></tr>';
   var rows = coords.map(function (r) {
     return '<tr class="click" onclick="openRep(\'' + r.key + '\')"><td class="l name">' + esc(r.name) + '</td>' + r.weeks.map(function (w) { return '<td class="c">' + (w.week.future ? '<span class="muted">–</span>' : tierPill(w.n)) + '</td>'; }).join('') +
@@ -660,19 +662,19 @@ function renderTeam() {
   // reps with no sale in 30 days and no field activity stay off the roster unless asked for
   var hidden = list.filter(function (r) { return r.standing === 'Inactive'; }).length;
   if (!S.showInactive) list = list.filter(function (r) { return r.standing !== 'Inactive'; });
-  list.sort(function (a, b) { return (mode === 'coordinators' ? b.revSet - a.revSet : mode === 'directors' ? b.revClosed - a.revClosed : b.rev - a.rev) || a.name.localeCompare(b.name); });
+  list.sort(function (a, b) { return (mode === 'coordinators' ? b.revSetOthers - a.revSetOthers : mode === 'directors' ? b.revClosed - a.revClosed : b.rev - a.rev) || a.name.localeCompare(b.name); });
   var toggle = '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><div class="seg soft"><button class="' + (mode === 'everyone' ? 'on' : '') + '" onclick="S.roster=\'everyone\';render()">Everyone</button><button class="' + (mode === 'directors' ? 'on' : '') + '" onclick="S.roster=\'directors\';render()">Market Directors</button><button class="' + (mode === 'coordinators' ? 'on' : '') + '" onclick="S.roster=\'coordinators\';render()">Market Coordinators</button></div>' +
     (hidden ? '<button class="btn" style="margin-left:8px" onclick="S.showInactive=!S.showInactive;render()">' + (S.showInactive ? 'Hide ' : 'Show ') + hidden + ' inactive</button>' : '') + '</div>';
   var thead, rows, tot;
   if (mode === 'coordinators') {
     thead = '<tr><th class="l">Rep</th><th>Sets</th><th>Revenue set</th>' + D.weeks.map(function (w) { return '<th class="c' + (w.n === 1 ? ' sep' : '') + '"' + (w.current ? ' style="color:var(--accent)"' : '') + '>W' + w.n + (w.current ? ' now' : '') + '</th>'; }).join('') + '<th>Bonus</th><th>Standing</th><th>Last sale</th>' + TER_HEAD + '</tr>';
     rows = list.map(function (r) {
-      return '<tr class="click" onclick="openRep(\'' + r.key + '\')"><td class="l name" style="font-weight:600">' + esc(r.name) + '</td><td class="num">' + blank(r.setsAll) + '</td><td class="num">' + blank(r.revSet ? money(r.revSet) : '') + '</td>' +
+      return '<tr class="click" onclick="openRep(\'' + r.key + '\')"><td class="l name" style="font-weight:600">' + esc(r.name) + '</td><td class="num">' + blank(r.setOthers.length) + '</td><td class="num">' + blank(r.revSetOthers ? money(r.revSetOthers) : '') + '</td>' +
         r.weeks.map(function (w, i) { return '<td class="c' + (i === 0 ? ' sep' : '') + '">' + (w.week.future ? '<span class="muted">–</span>' : '<span class="pill ' + (w.n >= 3 ? 't4' : w.n === 2 ? 't2' : w.n === 1 ? 't1' : 't0') + '">' + w.n + '</span>') + '</td>'; }).join('') +
         '<td class="num" style="font-weight:700">' + (r.bonus ? money(r.bonus) : '') + '</td><td>' + standingPill(r.standing) + '</td><td>' + esc(dshort(r.lastSale)) + '</td>' + terrosCells(r) + '</tr>';
     }).join('');
     var ot = summarize(list, [], []);
-    tot = '<tr class="total"><td class="l">Team</td><td class="num">' + list.reduce(function (a, r) { return a + r.setsAll; }, 0) + '</td><td class="num">' + money(list.reduce(function (a, r) { return a + r.revSet; }, 0)) + '</td>' + D.weeks.map(function (w, i) { return '<td class="c' + (i === 0 ? ' sep' : '') + '">' + list.reduce(function (a, r) { return a + r.weeks[i].n; }, 0) + '</td>'; }).join('') + '<td class="num">' + money(ot.bonus) + '</td><td></td><td></td><td class="sep num">' + num(ot.ter.knocks) + '</td><td class="num">' + num(ot.ter.pitches) + '</td><td class="num">' + num(ot.ter.sits) + '</td><td class="num">' + ot.ter.hours.toFixed(0) + '</td><td>' + (ot.yday.first || '') + '</td></tr>';
+    tot = '<tr class="total"><td class="l">Team</td><td class="num">' + list.reduce(function (a, r) { return a + r.setOthers.length; }, 0) + '</td><td class="num">' + money(list.reduce(function (a, r) { return a + r.revSetOthers; }, 0)) + '</td>' + D.weeks.map(function (w, i) { return '<td class="c' + (i === 0 ? ' sep' : '') + '">' + list.reduce(function (a, r) { return a + r.weeks[i].n; }, 0) + '</td>'; }).join('') + '<td class="num">' + money(ot.bonus) + '</td><td></td><td></td><td class="sep num">' + num(ot.ter.knocks) + '</td><td class="num">' + num(ot.ter.pitches) + '</td><td class="num">' + num(ot.ter.sits) + '</td><td class="num">' + ot.ter.hours.toFixed(0) + '</td><td>' + (ot.yday.first || '') + '</td></tr>';
   } else if (mode === 'directors') {
     thead = '<tr><th class="l">Rep</th><th>Closed</th><th>Revenue closed</th><th>Self-gen</th><th>Avg contract</th><th>Adders</th><th>Standing</th><th>Last sale</th>' + TER_HEAD + '</tr>';
     rows = list.map(function (r) {
@@ -691,7 +693,7 @@ function renderTeam() {
     tot = '<tr class="total"><td class="l">Team</td><td></td><td class="num">' + list.reduce(function (a, r) { return a + r.closed.length; }, 0) + '</td><td class="num">' + money(list.reduce(function (a, r) { return a + r.revClosed; }, 0)) + '</td><td class="num">' + list.reduce(function (a, r) { return a + r.set.length; }, 0) + '</td><td class="num">' + money(list.reduce(function (a, r) { return a + r.revSet; }, 0)) + '</td><td class="num">' + list.reduce(function (a, r) { return a + r.selfgen.length; }, 0) + '</td><td class="num">' + list.reduce(function (a, r) { return a + r.adders; }, 0) + '</td><td></td><td></td><td class="sep num">' + list.reduce(function (a, r) { return a + (r.curWeek ? r.curWeek.n : 0); }, 0) + '</td><td></td><td class="num">' + money(oe.bonus) + '</td><td class="sep num">' + num(oe.ter.knocks) + '</td><td class="num">' + num(oe.ter.pitches) + '</td><td class="num">' + num(oe.ter.sits) + '</td><td class="num">' + oe.ter.hours.toFixed(0) + '</td><td>' + (oe.yday.first || '') + '</td></tr>';
   }
   var roster = '<div class="card" style="padding:16px 18px 6px"><div class="cardhead" style="padding-bottom:8px"><div class="t">Roster <span>' + esc(dshort(S.start) + ' – ' + dshort(S.end)) + '</span></div>' + toggle + '</div>' +
-    '<div class="tiny muted" style="padding-bottom:8px">Revenue is contract value on Won accounts in Odoo for the selected dates. Knocks, pitches, sits and hours come from Terros for the same dates; first knock is yesterday\'s. A blank means no reading. Click a rep for their accounts.</div>' +
+    '<div class="tiny muted" style="padding-bottom:8px">' + (mode === 'coordinators' ? 'Listed: anyone who set a Won account for someone else. Sets and Revenue set leave out self-gens; the week cells and Bonus follow payroll, where a self-gen counts as a set. ' : '') + 'Revenue is contract value on Won accounts in Odoo for the selected dates. Knocks, pitches, sits and hours come from Terros for the same dates; first knock is yesterday\'s. A blank means no reading. Click a rep for their accounts.</div>' +
     (list.length ? '<div class="tablebox"><table><thead>' + thead + '</thead><tbody>' + rows + tot + '</tbody></table></div>' : '<div class="empty">Nobody on this team has a sale or a Terros reading in the period.</div>') + '</div>';
   document.getElementById('view-teams').innerHTML = tabs + head + kpiCards(o, S.period === 'this' ? 'Revenue, MTD' : 'Revenue') + second + bonusGrid(reps, 'Team') + roster;
 }
@@ -714,8 +716,8 @@ function renderOverview() {
       (list.length ? '' : '<tr><td colspan="7" class="empty">No sales in the period.</td></tr>') + '</tbody></table></div></div>';
   }
   var dirs = D.reps.filter(function (r) { return r.closed.length; }).sort(function (a, b) { return b.revClosed - a.revClosed; }).slice(0, 8).map(function (r) { return { r: r, v: r.revClosed, cells: [r.closed.length, money(r.revClosed), r.selfgen.length ? money(r.revSelf) : '—'] }; });
-  var cos = D.reps.filter(function (r) { return r.set.length && isCoordinatorRow(r); }).sort(function (a, b) { return b.revSet - a.revSet; }).slice(0, 8).map(function (r) { return { r: r, v: r.revSet, cells: [r.set.length, money(r.revSet), r.bonus ? money(r.bonus) : '—'] }; });
-  var boards = '<div class="grid2">' + board('Market Directors', 'Contract value on accounts closed', dirs, ['Deals', 'Revenue', 'Self-gen']) + board('Market Coordinators', 'Contract value on accounts set', cos, ['Sets', 'Revenue', 'Bonus']) + '</div>';
+  var cos = D.reps.filter(isCoordinatorRow).sort(function (a, b) { return b.revSetOthers - a.revSetOthers; }).slice(0, 8).map(function (r) { return { r: r, v: r.revSetOthers, cells: [r.setOthers.length, money(r.revSetOthers), r.bonus ? money(r.bonus) : '—'] }; });
+  var boards = '<div class="grid2">' + board('Market Directors', 'Contract value on accounts closed', dirs, ['Deals', 'Revenue', 'Self-gen']) + board('Market Coordinators', 'Contract value on accounts set for someone else; self-gens are not counted', cos, ['Sets', 'Revenue', 'Bonus']) + '</div>';
   var bonusTeams = '<div class="card pad" style="display:flex;flex-direction:column;gap:12px"><div class="cardhead"><div class="t">Weekly bonus <span>by team · Sunday to Saturday</span></div><div class="tiny muted">+2% at 2 sets, +4% at 3 or more, paid to the market coordinator with the month\'s bonuses.</div></div><div class="grid4">' +
     D.teams.map(function (t) { var x = D.team[t]; return '<div style="border:1px solid var(--line);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:4px"><div class="lbl">' + esc(t) + '</div><div class="bignum" style="font-size:22px">' + money(x.bonus) + '</div><div class="tiny muted">' + (x.bonusWeek ? money(x.bonusWeek) + ' this week' : 'nothing yet this week') + '</div><div class="tiny muted">' + x.at4 + ' at +4% · ' + x.at2 + ' at +2% · ' + x.oneAway + ' one set away</div></div>'; }).join('') + '</div>' +
     '<div class="hr" style="padding-top:10px;display:flex;gap:28px;flex-wrap:wrap"><div><div class="mini">' + money(o.bonus) + '</div><div class="minil">' + esc(periodLabel().toUpperCase()) + '</div></div><div><div class="mini">' + money(o.bonusWeek) + '</div><div class="minil">CURRENT WEEK SO FAR</div></div></div></div>';
@@ -806,9 +808,9 @@ function renderOverviewPhone() {
       sub: x.deals + ' deals · ' + x.selfN + ' self-gen · last month ' + moneyK(x.prevRev) });
   }).join(''), '<span class="tiny muted">tap for the team view</span>');
   var dirs = D.reps.filter(function (r) { return r.closed.length; }).sort(function (a, b) { return b.revClosed - a.revClosed; });
-  var cos = D.reps.filter(function (r) { return r.set.length && isCoordinatorRow(r); }).sort(function (a, b) { return b.revSet - a.revSet; });
+  var cos = D.reps.filter(isCoordinatorRow).sort(function (a, b) { return b.revSetOthers - a.revSetOthers; });
   var boards = phoneBoard('Market Directors', esc(dshort(S.start) + ' – ' + dshort(S.end)), dirs, function (r) { return r.revClosed; }, function (r) { return esc(r.team) + ' · ' + r.closed.length + ' deals · ' + r.selfgen.length + ' self-gen'; }) +
-    phoneBoard('Market Coordinators', 'sets', cos, function (r) { return r.revSet; }, function (r) { return esc(r.team) + ' · ' + r.set.length + ' sets · bonus ' + (r.bonus ? money(r.bonus) : '—'); }, null, 'var(--ink)');
+    phoneBoard('Market Coordinators', 'sets, no self-gen', cos, function (r) { return r.revSetOthers; }, function (r) { return esc(r.team) + ' · ' + r.setOthers.length + ' sets · bonus ' + (r.bonus ? money(r.bonus) : '—'); }, null, 'var(--ink)');
   var bonus = '<div class="card pad" style="display:flex;flex-direction:column;gap:8px"><div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap"><div style="font-size:13px;font-weight:600">Weekly bonus <span class="muted" style="font-weight:400">Sun – Sat</span></div><div class="tiny muted">' + money(o.bonus) + ' MTD · ' + money(o.bonusWeek) + ' this week</div></div><div class="grid4">' +
     D.teams.map(function (t) { var x = D.team[t]; return '<div style="border:1px solid var(--line);border-radius:10px;padding:8px 10px"><div class="lbl">' + esc(t) + '</div><div class="bignum" style="font-size:18px;margin-top:3px">' + money(x.bonus) + '</div><div class="tiny muted" style="margin-top:2px">' + (x.bonusWeek ? money(x.bonusWeek) + ' this week' : 'nothing yet this week') + ' · ' + x.at4 + ' at +4% · ' + x.at2 + ' at +2%</div></div>'; }).join('') + '</div></div>';
   document.getElementById('view-overview').innerHTML = head + kpiCards(o, S.period === 'this' ? 'Revenue, MTD' : 'Revenue') + teams + boards + bonus + monthsCard(null) + terrosCard(o, 'Field activity');
@@ -821,7 +823,7 @@ function renderTeamPhone() {
   var tabs = '<div class="seg white orange teamtabs">' + D.teams.map(function (x) { return '<button class="' + (x === t ? 'on' : '') + '" onclick="S.team=\'' + esc(x) + '\';render()">' + esc(x) + '</button>'; }).join('') + '</div>';
   var head = phoneHead(t, esc(dshort(S.start) + ' – ' + dshort(S.end)) + ' · ' + reps.filter(function (r) { return r.active; }).length + ' reps, ' + o.withSale + ' with a sale · last month ' + moneyK(o.prevRev), moneyK(o.rev), S.period === 'this' ? 'MTD' : 'Revenue');
   // weekly bonus: one row per coordinator with a dot per week
-  var coords = reps.filter(function (r) { return r.setsAll > 0 && isCoordinatorRow(r); }).sort(function (a, b) { return b.bonus - a.bonus || b.setsAll - a.setsAll; });
+  var coords = reps.filter(function (r) { return r.setsAll > 0; }).sort(function (a, b) { return b.bonus - a.bonus || b.setsAll - a.setsAll; });   // payroll: a self-gen counts as a set
   var hdr = '<div style="display:flex;align-items:center;gap:10px;padding-bottom:4px"><div style="flex:1"></div><div style="display:flex;gap:4px">' + D.weeks.map(function (w) { return '<span class="tiny" style="width:22px;text-align:center;' + (w.current ? 'color:var(--accent);font-weight:600' : 'color:var(--muted)') + '">' + (w.current ? 'now' : 'W' + w.n) + '</span>'; }).join('') + '</div><div style="width:54px"></div></div>';
   var bonusRows = coords.map(function (r) { return '<button type="button" class="prow" style="padding:6px 0" onclick="openRep(\'' + r.key + '\')"><div class="body"><div class="t">' + esc(r.name) + '</div></div>' + weekDots(r) + '<div class="val" style="width:54px"><div class="n">' + (r.bonus ? money(r.bonus) : '—') + '</div></div></button>'; }).join('');
   var legend = '<div class="tiny muted" style="border-top:1px solid var(--line2);padding:8px 0 6px"><span class="wdot t4" style="width:10px;height:10px;vertical-align:middle"></span> 3+ sets +4% &nbsp; <span class="wdot t2" style="width:10px;height:10px;vertical-align:middle"></span> 2 sets +2% &nbsp; <span class="wdot t1" style="width:10px;height:10px;vertical-align:middle"></span> 1 set. Self-gen counts as a set.</div>';
@@ -831,7 +833,7 @@ function renderTeamPhone() {
   var list = reps.filter(function (r) { return mode === 'everyone' ? true : mode === 'directors' ? isDirectorRow(r) : isCoordinatorRow(r); });
   var hidden = list.filter(function (r) { return r.standing === 'Inactive'; }).length;
   if (!S.showInactive) list = list.filter(function (r) { return r.standing !== 'Inactive'; });
-  list.sort(function (a, b) { return (mode === 'coordinators' ? b.revSet - a.revSet : mode === 'directors' ? b.revClosed - a.revClosed : b.rev - a.rev) || a.name.localeCompare(b.name); });
+  list.sort(function (a, b) { return (mode === 'coordinators' ? b.revSetOthers - a.revSetOthers : mode === 'directors' ? b.revClosed - a.revClosed : b.rev - a.rev) || a.name.localeCompare(b.name); });
   var toggle = '<div class="seg soft" style="padding:3px"><button class="' + (mode === 'everyone' ? 'on' : '') + '" style="padding:6px 10px;min-height:30px;font-size:11px" onclick="S.roster=\'everyone\';render()">All</button><button class="' + (mode === 'directors' ? 'on' : '') + '" style="padding:6px 10px;min-height:30px;font-size:11px" onclick="S.roster=\'directors\';render()">Directors</button><button class="' + (mode === 'coordinators' ? 'on' : '') + '" style="padding:6px 10px;min-height:30px;font-size:11px" onclick="S.roster=\'coordinators\';render()">Coordinators</button></div>';
   var rows = list.map(function (r) {
     var tr = r.ter || {};
