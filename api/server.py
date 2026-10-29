@@ -53,6 +53,17 @@ HOME = "/leaderboard"   # where a sign-in, "/", and "already signed in" land; /c
 TAHITI_HTML_FILE = os.path.join(ROOT_DIR, "tahiti.html")
 ONBOARDING_HTML_FILE = os.path.join(ROOT_DIR, "onboarding.html")
 LOGIN_FILE       = os.path.join(ROOT_DIR, "login.html")
+ICONS_DIR        = os.path.join(ROOT_DIR, "icons")
+# The Vivid V, served without sign-in: browsers ask for these before anyone logs in.
+ICON_FILES = {
+    "/favicon.ico":                     ("favicon.ico",          "image/x-icon"),
+    "/favicon.svg":                     ("favicon.svg",          "image/svg+xml"),
+    "/favicon-32.png":                  ("favicon-32.png",       "image/png"),
+    "/apple-touch-icon.png":            ("apple-touch-icon.png", "image/png"),
+    "/apple-touch-icon-precomposed.png":("apple-touch-icon.png", "image/png"),
+    "/icons/icon-192.png":              ("icon-192.png",         "image/png"),
+    "/icons/icon-512.png":              ("icon-512.png",         "image/png"),
+}
 PLAYBOOK_FILE    = os.path.join(ROOT_DIR, "playbook.json")
 
 # ── Google OAuth ──────────────────────────────────────────────
@@ -361,6 +372,20 @@ class Handler(http.server.BaseHTTPRequestHandler):
                     "prompt":        "select_account",
                 })
                 self._redirect(f"https://accounts.google.com/o/oauth2/v2/auth?{params}")
+                return
+
+            # ── Favicons (always public) ──────────────────────────
+            if path in ICON_FILES:
+                name, ctype = ICON_FILES[path]
+                fp = os.path.join(ICONS_DIR, name)
+                if not os.path.exists(fp):
+                    self.send_response(404); self.end_headers(); return
+                with open(fp, "rb") as f: content = f.read()
+                self.send_response(200)
+                self.send_header("Content-Type", ctype)
+                self.send_header("Content-Length", str(len(content)))
+                self.send_header("Cache-Control", "public, max-age=86400")
+                self.end_headers(); self.wfile.write(content)
                 return
 
             # ── Health (always public) ────────────────────────────

@@ -162,3 +162,6 @@ The three pages keep their desktop/iPad layout untouched above 700px. Under 700p
 ### Vivid V watermark (all three pages)
 A large red Vivid V (from the brand PDF, inlined as an SVG data URI) sits fixed in the middle of the screen behind everything: `body::before` in leaderboard.html's stylesheet, copied into tahiti.html and onboarding.html by the build scripts. Strength is one variable, `--mark-opacity` (.14 light, .22 dark). Cards are 82% opaque (`color-mix`) so the mark reads as one logo; browsers without `color-mix` keep solid cards. On phones the mark is 115vw wide and shifted slightly left so the V's point sits mid-screen. Hidden when printing.
 
+### Favicon (every page)
+The Vivid V is the browser-tab icon and the phone home-screen icon. Files live in `icons/` (favicon.svg, favicon.ico with 16/32/48, favicon-32.png, apple-touch-icon.png 180 px on white, icon-192/512.png) and are served by `server.py` **without sign-in** (`ICON_FILES`), because browsers request them before anyone logs in; every other route stays behind auth. Each page's `<head>` links `/favicon.ico`, `/favicon.svg` and `/apple-touch-icon.png`: leaderboard, tahiti, onboarding, vivid-crm-dashboard, login, vivid-terros-dashboard, and commissions (in `commissions-src/part1.html` — rebuild with `python commissions-src/build.py`).
+
