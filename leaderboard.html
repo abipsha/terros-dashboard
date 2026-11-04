@@ -150,6 +150,10 @@
   .drawer-bg.show { display: block; }
   .drawer { position: fixed; top: 0; right: 0; bottom: 0; width: min(920px, 100%); background: var(--ground); z-index: 21; transform: translateX(100%); transition: transform .2s ease; overflow-y: auto; padding: 18px 20px 40px; display: flex; flex-direction: column; gap: 14px; }
   .drawer.show { transform: translateX(0); }
+  .drawer.wide { width: min(1120px, 100%); }
+  .kpi-link { color: inherit; cursor: pointer; transition: box-shadow .15s ease, outline-color .15s ease; outline: 1px solid transparent; }
+  .kpi-link:hover, .kpi-link:focus-visible { color: inherit; outline-color: var(--accent); box-shadow: var(--shadow2); }
+  .kpi-go { display: inline-flex; align-items: center; gap: 2px; color: var(--accent); letter-spacing: .02em; text-transform: none; font-size: 11px; font-weight: 600; }
   .avatar { width: 52px; height: 52px; border-radius: 999px; background: var(--ink); color: var(--card); display: flex; align-items: center; justify-content: center; font-family: 'Roboto Condensed', sans-serif; font-weight: 800; font-size: 18px; flex-shrink: 0; }
 
   .view { display: none; flex-direction: column; gap: 16px; }
@@ -248,7 +252,6 @@
       <button class="on" data-view="overview" onclick="setView('overview')">Overview</button>
       <button data-view="teams" onclick="setView('teams')">Teams</button>
       <button data-view="reps" onclick="setView('reps')">Reps</button>
-      <button data-view="deals" onclick="setView('deals')">Deals</button>
       <a href="/tahiti">Tahiti</a>
       <a href="/onboarding">Onboarding</a>
     </nav>
@@ -296,8 +299,6 @@
   <!-- ═══ REPS ═══ -->
   <div class="view" id="view-reps"></div>
 
-  <!-- ═══ DEALS ═══ -->
-  <div class="view" id="view-deals"></div>
 
 </div>
 
@@ -305,7 +306,6 @@
   <button data-view="overview" class="on" onclick="setView('overview')"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 12 12 4l9 8M5 10v10h14V10"></path></svg>Overview</button>
   <button data-view="teams" onclick="setView('teams')"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"></path></svg>Teams</button>
   <button data-view="reps" onclick="setView('reps')"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="8" r="3.5"></circle><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4a3.5 3.5 0 0 1 0 7M21.5 20a6.5 6.5 0 0 0-5-6.3"></path></svg>Reps</button>
-  <button data-view="deals" onclick="setView('deals')"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01"></path></svg>Deals</button>
   <a href="/tahiti"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3v18M12 3c-4 0-7 3-7 6 2-2 5-2 7-1 2-1 5-1 7 1 0-3-3-6-7-6M4 21h16"></path></svg>Tahiti</a>
   <a href="/onboarding"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="10" cy="8" r="3.5"></circle><path d="M3 20a7 7 0 0 1 14 0M19 8v6M16 11h6"></path></svg>Onboarding</a>
 </nav>
@@ -320,7 +320,7 @@
    2 sets +2%, 3 or more +4% of the contract value set that week.
    ────────────────────────────────────────────────────────────── */
 var API = '';                       // same origin
-var S = { view: 'overview', period: 'this', start: '', end: '', team: '', roster: 'everyone', showInactive: false, data: null, loadSeq: 0, terrosPending: false, dealQ: '', dealTeam: '', dealType: 'all', dealSort: 'rev', repSort: 'rev', repRole: 'all', repTeam: '', repStanding: '', repQ: '' };
+var S = { view: 'overview', period: 'this', start: '', end: '', team: '', roster: 'everyone', showInactive: false, data: null, loadSeq: 0, terrosPending: false, dealsOpen: false, dealQ: '', dealTeam: '', dealType: 'all', dealSort: 'rev', repSort: 'rev', repRole: 'all', repTeam: '', repStanding: '', repQ: '' };
 var TEAM_ORDER = ['Northern Utah', 'Eastern Idaho', 'Southern Utah', 'Northern California'];
 
 /* ---------- theme ---------- */
@@ -560,7 +560,7 @@ function setView(v) {
   S.view = v;
   document.querySelectorAll('.topnav [data-view], .tabbar [data-view]').forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-view') === v); });
   if (isPhone()) window.scrollTo(0, 0);
-  ['overview', 'teams', 'reps', 'deals'].forEach(function (k) { document.getElementById('view-' + k).classList.toggle('show', k === v); });
+  ['overview', 'teams', 'reps'].forEach(function (k) { document.getElementById('view-' + k).classList.toggle('show', k === v); });
   if (S.data) render();
 }
 function render() {
@@ -576,11 +576,11 @@ function render() {
   if (yd && !yd.ok) bits.push('Terros did not answer for yesterday');
   st.textContent = bits.join(' · ');
   st.className = 'status' + ((j.dealsStale || (yd && !yd.ok)) ? ' err' : '');
-  ['overview', 'teams', 'reps', 'deals'].forEach(function (k) { document.getElementById('view-' + k).classList.toggle('show', k === S.view); });
+  ['overview', 'teams', 'reps'].forEach(function (k) { document.getElementById('view-' + k).classList.toggle('show', k === S.view); });
   if (S.view === 'overview') (isPhone() ? renderOverviewPhone : renderOverview)();
   else if (S.view === 'teams') (isPhone() ? renderTeamPhone : renderTeam)();
-  else if (S.view === 'deals') renderDeals();
   else renderReps();
+  if (S.dealsOpen) renderDealsDrawer();   // keep an open deals list in step with the period
 }
 
 /* Who is on a Market Coordinators list: anyone who set at least one Won account for someone
@@ -589,15 +589,18 @@ function render() {
 function isCoordinatorRow(r) { return r.setOthers.length > 0; }
 function isDirectorRow(r) { return r.role === 'Market Director' || (r.role !== 'Market Coordinator' && r.closed.length > 0); }
 /* ----- shared pieces ----- */
-function kpiCards(o, labelRev) {
+function kpiCards(o, labelRev, team) {
   var cards = [
     { l: labelRev || 'Revenue', v: money(o.rev), s: num(o.deals) + ' accounts, avg ' + money(o.avg), last: moneyK(o.prevRev) },
-    { l: 'Deals', v: num(o.deals), s: num(o.withSale) + ' reps with a sale', last: num(o.prevDeals) },
+    { l: 'Deals', v: num(o.deals), s: num(o.withSale) + ' reps with a sale', last: num(o.prevDeals), open: true },
     { l: 'Self-gen', v: num(o.selfN), s: money(o.selfRev) + (o.rev ? ', ' + Math.round(o.selfRev / o.rev * 100) + '% of revenue' : ''), last: num(o.prevSelf) },
     { l: 'Vivid Adders', v: num(o.adders), s: 'on ' + num(o.adderAccts) + ' accounts', last: num(o.prevAdders) }
   ];
   return '<div class="grid4">' + cards.map(function (c) {
-    return '<div class="card pad kpi"><div class="lbl">' + c.l + '</div><div class="v">' + c.v + '</div><div class="row"><span>' + esc(c.s) + '</span><span class="tiny">Last month ' + c.last + '</span></div></div>';
+    var inner = '<div class="lbl" style="display:flex;justify-content:space-between;align-items:center;gap:8px"><span>' + c.l + '</span>' + (c.open ? '<span class="kpi-go">View all deals<svg aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="m9 6 6 6-6 6"></path></svg></span>' : '') + '</div><div class="v">' + c.v + '</div><div class="row"><span>' + esc(c.s) + '</span><span class="tiny">Last month ' + c.last + '</span></div>';
+    return c.open
+      ? '<a href="#" class="card pad kpi kpi-link" onclick="openDeals(\'' + esc(team || '').replace(/'/g, "\\'") + '\');return false" aria-label="View all ' + esc(c.v) + ' deals' + (team ? ' for ' + esc(team) : '') + '">' + inner + '</a>'
+      : '<div class="card pad kpi">' + inner + '</div>';
   }).join('') + '</div>';
 }
 function monthsCard(byTeam) {
@@ -704,7 +707,7 @@ function renderTeam() {
   var roster = '<div class="card" style="padding:16px 18px 6px"><div class="cardhead" style="padding-bottom:8px"><div class="t">Roster <span>' + esc(dshort(S.start) + ' – ' + dshort(S.end)) + '</span></div>' + toggle + '</div>' +
     '<div class="tiny muted" style="padding-bottom:8px">' + (mode === 'coordinators' ? 'Listed: anyone who set a Won account for someone else. Sets and Revenue set leave out self-gens; the week cells and Bonus follow payroll, where a self-gen counts as a set. ' : '') + 'Revenue is contract value on Won accounts in Odoo for the selected dates. Knocks, pitches, sits and hours come from Terros for the same dates; first knock is yesterday\'s. A blank means no reading. Click a rep for their accounts.</div>' +
     (list.length ? '<div class="tablebox"><table><thead>' + thead + '</thead><tbody>' + rows + tot + '</tbody></table></div>' : '<div class="empty">Nobody on this team has a sale or a Terros reading in the period.</div>') + '</div>';
-  document.getElementById('view-teams').innerHTML = tabs + head + kpiCards(o, S.period === 'this' ? 'Revenue, MTD' : 'Revenue') + second + bonusGrid(reps, 'Team') + roster;
+  document.getElementById('view-teams').innerHTML = tabs + head + kpiCards(o, S.period === 'this' ? 'Revenue, MTD' : 'Revenue', t) + second + bonusGrid(reps, 'Team') + roster;
 }
 
 /* ----- Overview ----- */
@@ -799,27 +802,40 @@ function dealRows() {
   return list.sort(function (a, b) { return sorters[S.dealSort](a, b) || b.rev - a.rev; });
 }
 function repLink(name) { return name ? '<a href="#" onclick="openRep(\'' + norm(name) + '\');return false">' + esc(name) + '</a>' : '<span class="muted">—</span>'; }
-function renderDeals() {
-  var all = D.inRange || [];
+function openDeals(team) {
+  S.dealTeam = team || ''; S.dealQ = ''; S.dealType = 'all';
+  S.dealsOpen = true;
+  renderDealsDrawer();
+  document.getElementById('drawer').classList.add('show', 'wide'); document.getElementById('drawerBg').classList.add('show');
+  document.body.style.overflow = 'hidden';
+  document.getElementById('drawer').scrollTop = 0;
+}
+function renderDealsDrawer() {
+  if (!S.data || !D.inRange) return;
+  var dr = document.getElementById('drawer');
+  if (!dr.classList.contains('show') && !S.dealsOpen) return;
+  var all = (D.inRange || []).filter(function (d) { return !S.dealTeam || d.team === S.dealTeam; });
   var rev = all.reduce(function (a, d) { return a + d.rev; }, 0);
   var self = all.filter(function (d) { return d.closer && d.setter && norm(d.closer) === norm(d.setter); });
-  var adders = all.reduce(function (a, d) { return a + (d.adders || 0); }, 0);
-  var teams = {}; all.forEach(function (d) { if (d.team) teams[d.team] = 1; });
+  var teams = {}; (D.inRange || []).forEach(function (d) { if (d.team) teams[d.team] = 1; });
   var teamList = D.teams.filter(function (t) { return teams[t]; }).concat(Object.keys(teams).filter(function (t) { return D.teams.indexOf(t) < 0; }).sort());
+  var header = '<div style="display:flex;align-items:center;gap:12px"><div style="flex:1;min-width:0"><div class="name" style="font-family:\'Roboto Condensed\',sans-serif;font-weight:800;font-size:28px;line-height:1;text-transform:uppercase">' + esc(S.dealTeam ? S.dealTeam + ' deals' : 'All deals') + '</div>' +
+    '<div class="tiny muted" style="margin-top:6px">' + esc(periodLabel()) + ' · Won accounts by closing date</div></div>' +
+    '<button class="iconbtn" aria-label="Close" onclick="closeRep()" style="background:var(--card);box-shadow:var(--shadow)"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"></path></svg></button></div>';
   var tiles = '<div class="grid4">' + [
     ['Deals', num(all.length), esc(dshort(S.start) + ' – ' + dshort(S.end))],
     ['Contract value', money(rev), 'avg ' + money(all.length ? rev / all.length : 0)],
     ['Self-gen', num(self.length), money(self.reduce(function (a, d) { return a + d.rev; }, 0))],
-    ['Vivid adders', num(adders), 'on ' + all.filter(function (d) { return d.adders; }).length + ' accounts']
+    ['Vivid adders', num(all.reduce(function (a, d) { return a + (d.adders || 0); }, 0)), 'on ' + all.filter(function (d) { return d.adders; }).length + ' accounts']
   ].map(function (c) { return '<div class="card pad kpi"><div class="lbl">' + c[0] + '</div><div class="v">' + c[1] + '</div><div class="row"><span>' + c[2] + '</span></div></div>'; }).join('') + '</div>';
-  var seg = function (v, l) { return '<button class="' + (S.dealType === v ? 'on' : '') + '" onclick="S.dealType=\'' + v + '\';render()">' + l + '</button>'; };
+  var seg = function (v, l) { return '<button class="' + (S.dealType === v ? 'on' : '') + '" onclick="S.dealType=\'' + v + '\';renderDealsDrawer()">' + l + '</button>'; };
   var filters = '<div class="card" style="padding:10px 14px;display:flex;flex-wrap:wrap;align-items:center;gap:10px">' +
-    '<input type="search" id="dealQ" placeholder="Search account, rep or team" value="' + esc(S.dealQ) + '" oninput="S.dealQ=this.value;renderDealsTable()" style="flex:1 1 220px">' +
+    '<input type="search" id="dealQ" aria-label="Search deals" placeholder="Search account, rep or team" value="' + esc(S.dealQ) + '" oninput="S.dealQ=this.value;renderDealsTable()" style="flex:1 1 220px">' +
     '<div class="seg soft">' + seg('all', 'All') + seg('set', 'Set for someone') + seg('self', 'Self-gen') + '</div>' +
-    '<label class="tiny muted" for="dealTeam">Team</label><select id="dealTeam" onchange="S.dealTeam=this.value;render()"><option value="">All teams</option>' + teamList.map(function (t) { return '<option' + (S.dealTeam === t ? ' selected' : '') + '>' + esc(t) + '</option>'; }).join('') + '</select>' +
-    '<label class="tiny muted" for="dealSort">Sort</label><select id="dealSort" onchange="S.dealSort=this.value;render()">' + [['rev', 'Contract value, high to low'], ['date', 'Closed, newest first'], ['oldest', 'Closed, oldest first'], ['name', 'Account name']].map(function (o) { return '<option value="' + o[0] + '"' + (S.dealSort === o[0] ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select>' +
+    '<select id="dealTeam" aria-label="Team" onchange="S.dealTeam=this.value;renderDealsDrawer()"><option value="">All teams</option>' + teamList.map(function (t) { return '<option' + (S.dealTeam === t ? ' selected' : '') + '>' + esc(t) + '</option>'; }).join('') + '</select>' +
+    '<select id="dealSort" aria-label="Sort" onchange="S.dealSort=this.value;renderDealsTable()">' + [['rev', 'Contract value, high to low'], ['date', 'Closed, newest first'], ['oldest', 'Closed, oldest first'], ['name', 'Account name']].map(function (o) { return '<option value="' + o[0] + '"' + (S.dealSort === o[0] ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select>' +
     '<button class="btn" style="margin-left:auto" onclick="exportDealsCsv()">Export CSV</button></div>';
-  document.getElementById('view-deals').innerHTML = tiles + filters + '<div class="card" style="padding:16px 18px 6px" id="dealsTableCard"></div>';
+  dr.innerHTML = header + tiles + filters + '<div class="card" style="padding:16px 18px 6px" id="dealsTableCard"></div>';
   renderDealsTable();
 }
 function renderDealsTable() {
@@ -918,7 +934,7 @@ function renderTeamPhone() {
     return prow({ key: r.key, title: r.name, pill: rolePill(r.role), sub: line1, sub2: line2, value: r.rev ? money(r.rev) : '', standing: r.standing });
   }).join('');
   var roster = pcard('Roster', '', (rows || '<div class="empty">Nobody on this team has a sale or a Terros reading in the period.</div>') + (hidden ? '<button type="button" class="seeall" onclick="S.showInactive=!S.showInactive;render()">' + (S.showInactive ? 'Hide ' : 'Show ') + hidden + ' inactive</button>' : ''), toggle);
-  document.getElementById('view-teams').innerHTML = tabs + head + kpiCards(o, S.period === 'this' ? 'Revenue, MTD' : 'Revenue') + terrosCard(o) + bonus + roster;
+  document.getElementById('view-teams').innerHTML = tabs + head + kpiCards(o, S.period === 'this' ? 'Revenue, MTD' : 'Revenue', t) + terrosCard(o) + bonus + roster;
 }
 function renderRepsPhoneList(list) {
   var rows = list.map(function (r, i) {
@@ -930,6 +946,7 @@ function renderRepsPhoneList(list) {
 }
 /* ----- rep drawer ----- */
 function openRep(key) {
+  S.dealsOpen = false; document.getElementById('drawer').classList.remove('wide');
   var r = D.reps.filter(function (x) { return x.key === key; })[0]; if (!r) return;
   var base = S.data.odooBase || 'https://myvivid.odoo.com/odoo/crm/';
   var rank = D.reps.filter(function (x) { return x.rev > 0; }).sort(function (a, b) { return b.rev - a.rev; }).map(function (x) { return x.key; }).indexOf(key) + 1;
@@ -972,14 +989,15 @@ function openRep(key) {
   document.getElementById('drawer').classList.add('show'); document.getElementById('drawerBg').classList.add('show');
   document.body.style.overflow = 'hidden';
 }
-function closeRep() { document.getElementById('drawer').classList.remove('show'); document.getElementById('drawerBg').classList.remove('show'); document.body.style.overflow = ''; }
+function closeRep() { S.dealsOpen = false; document.getElementById('drawer').classList.remove('wide'); document.getElementById('drawer').classList.remove('show'); document.getElementById('drawerBg').classList.remove('show'); document.body.style.overflow = ''; }
 document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeRep(); });
 
 /* ---------- boot ---------- */
 (function () {
   var r = monthRange(0); S.start = r.start; S.end = r.end;
   var h = (location.hash || '').replace('#', '');
-  if (['overview', 'teams', 'reps', 'deals'].indexOf(h) >= 0) S.view = h;
+  if (h === 'deals') S.dealsOpen = true;
+  if (['overview', 'teams', 'reps'].indexOf(h) >= 0) S.view = h;
   document.querySelectorAll('.topnav [data-view], .tabbar [data-view]').forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-view') === S.view); });
   load(false);
 })();
