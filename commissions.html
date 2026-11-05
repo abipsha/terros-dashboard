@@ -4095,6 +4095,9 @@ document.addEventListener('click', ev => {
   const t = ev.target.closest ? ev.target.closest('[data-nav],[data-reload],[data-df],[data-focus],[data-deal],[data-act],[data-step],[data-hold],[data-release],[data-settle],[data-reopen],[data-adjdel],[data-adjmove],[data-co],[data-setter],[data-panel],[data-ptab],[data-adderq],[data-adder]') : null;
   if (!t) return;
   if (ev.target.closest('a[target="_blank"]')) return;   /* an outside link opens as a link */
+  /* a picker or a box inside a clickable row is used in place: the row must not
+     swallow the click (that opened the deal and blocked the run picker) */
+  if (t.dataset.deal && ev.target.closest('select, option, input, textarea, label')) return;
   ev.preventDefault();
   if (t.dataset.nav) {
     /* Pay runs in the menu is also "start again": a full load, so the deals come
