@@ -539,6 +539,7 @@ const NOW_T = mtParts({ hour: '2-digit', minute: '2-digit', hour12: false })
 const TODAY_D = NOW_D;
 const FREEZE_DAYS = 1, FREEZE_TIME = '08:00';   /* Thursday 8am ahead of a Friday payday */
 const FROZEN = new Set();              /* runs frozen early by hand */
+const FROZEN_AT = new Map();           /* run -> the moment it was frozen by hand (ms) */
 /* MDT or MST for a given date, so the freeze lands at the right instant either side of DST */
 function tzAbbr(dateISO) {
   try {
@@ -1042,6 +1043,24 @@ const RUNDATES2 = RUNS.map(r => r.date);
 
 /* ---- change orders: the contract value moved after commission was paid on it ---- */
 const CO = new Map();                 /* deal id -> {delta, state, commRun, bonusRun, note} */
+/* The moment a run stopped taking changes: its scheduled freeze, or earlier if
+   somebody froze it by hand. */
+function frozenAtMs(r) { const m = FROZEN_AT.get(r), s = freezeMs(r); return m != null && m < s ? m : s; }
+/* The first run, from 'from' on, that was still open at moment 'ms'. A release
+   or a change order belongs to the run that was open WHEN it happened, and stays
+   there: working it out again from today moved it into every new run. */
+function runOpenAt(ms, from) {
+  if (ms == null || isNaN(ms)) return null;
+  let r = from && /^\d{4}-\d{2}-\d{2}$/.test(from) ? from : fridayAfter(new Date(ms).toISOString().slice(0, 10));
+  for (let i = 0; i < 520 && ms >= frozenAtMs(r); i++) r = fridayAfter(r);
+  return r;
+}
+/* a run with no deals of its own is not on the calendar yet; money routed there
+   goes to the next run that is, so it can never fall between two sheets */
+function onCalendar(r) { return r ? (RUNDATES2.slice().sort().find(x => x >= r) || r) : r; }
+function bonusRunOpenAt(ms) {
+  return [...BONUS_RUN.keys()].sort().find(r => ms < frozenAtMs(r)) || nextBonusRun();
+}
 function firstOpenRun() { return RUNDATES2.slice().reverse().find(d => !isApproved(d)) || OPEN_RUN; }
 function nextBonusRun() { return [...BONUS_RUN.keys()].sort().find(d => !isApproved(d)) || firstOpenRun(); }
 /* ---- what a deal is calculated on -----------------------------------------
@@ -1073,7 +1092,7 @@ function comBase(d) {
    before this ledger existed. The deal is then treated exactly as if the change
    order had been applied, except that no true-up is written into any run: that
    money has already moved, and writing it again would move it twice. */
-function applyCO(id, state, run) {
+function applyCO(id, state, run, ms) {
   const co = CO.get(id); if (!co) return;
   const d = DEALS[id];
   co.state = state;
@@ -1082,14 +1101,18 @@ function applyCO(id, state, run) {
     co.commRun = null; co.bonusRun = null; co.summerRun = null;
     co.at = TODAY_D; co.by = ADMIN_NOW;
   } else if (state === 'applied') {
-    /* if the run that paid it is already closed, the difference is trued up in the next open run */
-    co.commRun = isApproved(d.run) ? firstOpenRun() : null;
+    /* if the run that paid it had already frozen when the change order was
+       applied, the difference is trued up in the run that was open at that
+       moment - and stays there, rather than following whatever run is open today */
+    const at = ms != null && !isNaN(ms) ? ms : Date.now();
+    co.appliedMs = at;
+    co.commRun = at >= frozenAtMs(d.run) ? onCalendar(runOpenAt(at, d.run)) : null;
     const bd = BONUS_OF.get(d.month);
-    co.bonusRun = bd && isApproved(bd) ? nextBonusRun() : null;
+    co.bonusRun = bd && at >= frozenAtMs(bd) ? bonusRunOpenAt(at) : null;
     /* the summer bonus belongs to the month its week started in, which is not
        always the month the deal closed in - so it is routed on its own run */
     const sd = summerRateFor(d) ? summerPayRun(weekStart(d.close).slice(0, 7)) : null;
-    co.summerRun = sd && isApproved(sd) ? nextBonusRun() : null;
+    co.summerRun = sd && at >= frozenAtMs(sd) ? bonusRunOpenAt(at) : null;
     co.at = TODAY_D; co.by = ADMIN_NOW;
   } else {
     co.commRun = null; co.bonusRun = null; co.summerRun = null;
@@ -1287,12 +1310,18 @@ function legAmtFor(d, leg, runDate) {
   const rate = leg === 'setter' ? (d.hourly ? R.hourly : R.canvasser) : R.closer;
   return +(basisForRun(d, runDate) * rate).toFixed(2);
 }
-/* a released leg pays in the next open run when its own run has already gone out.
-   a settled leg was paid outside the ledger and is never routed into a run. */
+/* A released leg pays in its own run if that run was still open when it was
+   released, otherwise in the first run that was open at that moment - never in a
+   run that had already frozen, and never moving on afterwards. (It used to go to
+   whatever run was open today, and only once its own run had PAID, so a release
+   between a freeze and payday landed in the frozen run.)
+   A settled leg was paid outside the ledger and is never routed into a run. */
 function legRun(d, leg) {
   const st = legState(d, leg);
   if (st === 'settled') return null;
-  return st === 'released' && d.run <= LAST_PAID ? OPEN_RUN : d.run;
+  if (st !== 'released') return d.run;
+  const h = HOLDS.get(d.id) || {};
+  return onCalendar(runOpenAt(h[leg + 'RelMs'] != null ? h[leg + 'RelMs'] : Date.now(), d.run)) || d.run;
 }
 /* A hold only bears on a run that was still open when the hold was placed.
    Holding a leg today cannot rewrite what a run paid out weeks ago: that money
@@ -1304,7 +1333,7 @@ function holdAppliesTo(id, runDate) {
   if (!h || h.seeded || !h.at) return true;
   return h.at <= freezeDate(runDate);
 }
-function setHold(id, leg, state, reason, by, at, paidRun) {
+function setHold(id, leg, state, reason, by, at, paidRun, ms) {
   const h = HOLDS.get(id) || { setter: null, closer: null, reason: '', at: at || TODAY_D, by: by || ADMIN_NOW };
   h[leg] = state;
   h.by = by || ADMIN_NOW;
@@ -1316,7 +1345,9 @@ function setHold(id, leg, state, reason, by, at, paidRun) {
      release paid it again in the open run. Only placing a hold sets the date;
      releasing and settling carry their own. */
   if (at && state === 'held') h.at = at;
-  if (state === 'released') { h.releasedAt = at || TODAY_D; h.releasedBy = by || ADMIN_NOW; }
+  if (state === 'released') { h.releasedAt = at || TODAY_D; h.releasedBy = by || ADMIN_NOW;
+    h[leg + 'RelMs'] = ms != null && !isNaN(ms) ? ms : Date.now(); }
+  else delete h[leg + 'RelMs'];
   if (reason) h.reason = reason;
   /* the run a settled leg was paid in travels with the leg, not the deal */
   if (state === 'settled') {
@@ -1477,7 +1508,7 @@ function applyEvents(events) {
     const d = DEAL_BY_KEY.get(e.target);
     if (!d) return;                              /* outside this person's scope */
     if (e.kind === 'hold') setHold(d.id, p.leg, 'held', p.reason, e.actor, String(e.at).slice(0, 10));
-    if (e.kind === 'release') setHold(d.id, p.leg, 'released', '', e.actor, String(e.at).slice(0, 10));
+    if (e.kind === 'release') setHold(d.id, p.leg, 'released', '', e.actor, String(e.at).slice(0, 10), null, Date.parse(e.at));
     if (e.kind === 'hold.settle') setHold(d.id, p.leg, 'settled', p.reason, e.actor,
       String(e.at).slice(0, 10), p.run || SETTLED_PRE);
     /* reopening restores the hold; the date it was first placed still stands */
@@ -1490,7 +1521,7 @@ function applyEvents(events) {
       if (rec && p.reason) { rec.reason = p.reason; rec.reasonBy = e.actor;
         rec.reasonAt = String(e.at).slice(0, 10); }
     }
-    if (e.kind === 'changeorder.apply') applyCO(d.id, 'applied');
+    if (e.kind === 'changeorder.apply') applyCO(d.id, 'applied', null, Date.parse(e.at));
     if (e.kind === 'changeorder.settle') applyCO(d.id, 'settled', p.run || SETTLED_PRE);
     if (e.kind === 'changeorder.decline') applyCO(d.id, 'declined');
     if (e.kind === 'changeorder.undo') applyCO(d.id, 'pending');
@@ -1512,6 +1543,8 @@ function captureFreezes(events) {
     }
     if (e.kind !== 'run.freeze') return;
     FROZEN.add(e.target);
+    const fms = Date.parse(e.at);
+    if (!isNaN(fms) && !FROZEN_AT.has(e.target)) FROZEN_AT.set(e.target, fms);
     const b = (e.payload || {}).basis;
     if (b && typeof b === 'object') {
       Object.keys(b).forEach(k => { if (!CAPTURED.has(k)) CAPTURED.set(k, +b[k]); });
@@ -4361,12 +4394,12 @@ document.addEventListener('click', ev => {
        the next open bonus run instead of restating this one. */
     const adderPins = {};
     ADJ.forEach(a => { if (a.pin && a.run === run && !ADDER_PIN.has(a.pin)) adderPins[a.pin] = a.count; });
-    FROZEN.add(run); S.addAdj = null;
+    FROZEN.add(run); FROZEN_AT.set(run, Date.now()); S.addAdj = null;
     Object.keys(basis).forEach(k => CAPTURED.set(k, basis[k]));
     Object.keys(adderPins).forEach(k => ADDER_PIN.set(k, adderPins[k]));
     seedCOs(); refreshAdderLines();
     save('run.freeze', run, { basis: basis, adders: adderPins }, () => {
-      FROZEN.delete(run);
+      FROZEN.delete(run); FROZEN_AT.delete(run);
       Object.keys(basis).forEach(k => CAPTURED.delete(k));
       Object.keys(adderPins).forEach(k => ADDER_PIN.delete(k));
       seedCOs(); refreshAdderLines();
