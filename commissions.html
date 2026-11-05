@@ -1690,8 +1690,9 @@ function accountLines(r, date) {
   r.legLines.forEach(l => out.push({ kind: 'Commission', d: l.d, what: legName(l.leg),
     basis: l.basis, amt: l.amt, note: l.released ? 'Released from an earlier run' : '',
     extraNote: l.released ? 'Released from an earlier run' : '' }));
-  r.coLines.forEach(l => out.push({ kind: 'Change order', d: l.d, what: l.what,
-    basis: comBase(l.d), amt: l.amt, note: 'Contract value moved after it was paid' }));
+  r.coLines.forEach(l => { const cx = (CO.get(l.d.id) || {}).cancelled;
+    out.push({ kind: cx ? 'Cancellation' : 'Change order', d: l.d, what: l.what,
+    basis: comBase(l.d), amt: l.amt, note: cx ? 'Job cancelled after it was paid: clawed back' : 'Contract value moved after it was paid' }); });
   r.summerLines.forEach(l => l.dealIds.forEach(id => {
     const d = DEALS[id];
     out.push({ kind: 'Summer bonus', d: d, what: 'Setter, +' + pct(l.rate),
@@ -2900,10 +2901,10 @@ V.person = () => {
     co: `<div class="scroll"><table>
       <thead><tr><th>Opportunity</th><th>What changed</th><th class="r">Amount</th></tr></thead>
       <tbody>${r.coLines.map(l => `<tr class="clickable" data-deal="${l.d.id}" tabindex="0">
-        <td>${esc(l.d.opp)}<div class="sub">value moved ${fmt0((CO.get(l.d.id) || {}).delta || 0)}</div></td>
+        <td>${esc(l.d.opp)}${(CO.get(l.d.id) || {}).cancelled ? ' <span class="pill crit">Cancelled</span>' : ''}<div class="sub">${(CO.get(l.d.id) || {}).cancelled ? 'cancelled, clawed back ' : 'value moved '}${fmt0((CO.get(l.d.id) || {}).delta || 0)}</div></td>
         <td class="muted">${l.what}</td>
         <td class="n r"><b style="color:${l.amt < 0 ? 'var(--crit)' : 'var(--good)'}">${fmt(l.amt)}</b></td></tr>`).join('')}</tbody>
-      <tfoot><tr><td colspan="2">Change order true-up</td><td class="r">${fmt(r.co)}</td></tr></tfoot></table></div>`,
+      <tfoot><tr><td colspan="2">Change orders and cancellations, true-up</td><td class="r">${fmt(r.co)}</td></tr></tfoot></table></div>`,
 
     holds: `<div class="scroll"><table>
       <thead><tr><th>Opportunity</th><th>Leg</th><th>Reason</th><th class="r">Not paid</th></tr></thead>
@@ -3062,7 +3063,7 @@ V.deals = () => {
           ? ' <span class="pill crit">On hold</span>'
           : legState(d, 'setter') === 'settled' || legState(d, 'closer') === 'settled'
           ? ' <span class="pill plain">Paid outside</span>' : '') : ''}
-        ${CO.has(d.id) ? ` <span class="pill ${CO.get(d.id).state === 'applied' ? 'info' : 'warn'}">Change order ${fmt0(CO.get(d.id).delta)}</span>` : ''}</td>
+        ${CO.has(d.id) ? ` <span class="pill ${CO.get(d.id).state === 'applied' ? 'info' : 'warn'}">${CO.get(d.id).cancelled ? (CO.get(d.id).state === 'applied' || CO.get(d.id).state === 'settled' ? 'Clawed back ' : 'Claw back ') : 'Change order '}${fmt0(CO.get(d.id).delta)}</span>` : ''}</td>
       <td class="muted">${esc(d.team || '&mdash;')}</td><td class="n muted">${dday(d.close)}</td>
       <td>${who2(d.canvasser)}${d.hourly ? ' <span class="pill plain">1%</span>' : ''}</td>
       <td>${who2(d.closer)}</td>
@@ -3530,8 +3531,8 @@ function coDealCard(d) {
   const row = (what, who, amt) => `<tr><td>${what}</td><td class="muted">${esc(who)}</td>
     <td class="n r"><b style="color:${amt < 0 ? 'var(--crit)' : 'var(--good)'}">${fmt(amt)}</b></td></tr>`;
   return `<div class="card pad" style="margin-top:20px">
-    <h2>Change order</h2>
-    <p class="hint" style="margin:6px 0 16px">${co.cut && Math.abs(co.delta + co.cut) < 0.01
+    <h2>${co.cancelled ? 'Cancellation' : 'Change order'}</h2>
+    <p class="hint" style="margin:6px 0 16px">${co.cancelled ? '' : co.cut && Math.abs(co.delta + co.cut) < 0.01
       ? adders(adderCut(d)) + ' was deducted after this deal was paid on. The contract value is unchanged at '
         + fmt0(d.value) + ' &mdash; what moved is the figure commission is worked out from.'
       : co.cut ? 'A Vivid Adder was deducted, and the contract value moved, after this deal was paid on.'
@@ -3759,7 +3760,7 @@ function coCard() {
         <thead><tr><th>Opportunity</th><th class="r">Change</th><th>Commission pays</th><th>Bonuses pay</th>
           <th class="r">Total effect</th>${wr ? '<th></th>' : ''}</tr></thead>
         <tbody>${app.map(x => { const e = coEffect(x.d); return `<tr class="clickable" data-deal="${x.d.id}" tabindex="0">
-          <td>${esc(x.d.opp)}</td>
+          <td>${esc(x.d.opp)}${x.co.cancelled ? ' <span class="pill crit">Cancelled</span>' : ''}</td>
           <td class="n r"><b style="color:${x.co.delta < 0 ? 'var(--crit)' : 'var(--good)'}">${fmt0(x.co.delta)}</b></td>
           <td class="n muted">${x.co.commRun ? dshort(x.co.commRun) : 'folded into ' + dshort(x.d.run)}</td>
           <td class="n muted">${x.co.bonusRun ? dshort(x.co.bonusRun) : (BONUS_OF.get(x.d.month) ? 'folded into ' + dshort(BONUS_OF.get(x.d.month)) : '&mdash;')}</td>
