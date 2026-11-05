@@ -745,6 +745,10 @@ function coEffectOf(d, D_) {
   const out = { setter: 0, closer: 0, recruit: [], override: [], delta: D_ };
   if (d.canvPay || d.canvasser) out.setter = D_ * sRate;
   if (d.closer) out.closer = D_ * P.rates.closer;
+  /* a cancelled job claws back only the legs that were paid: one held until the
+     cancellation never went out, so there is nothing of it to take back */
+  if (cancelledUnpaid(d, 'setter')) out.setter = 0;
+  if (cancelledUnpaid(d, 'closer')) out.closer = 0;
   const legs = d.selfGen ? [[d.closer, 'self']] : [[d.closer, 'closer'], [d.canvasser, 'setter']];
   legs.forEach(l => {
     const e = byName.get(l[0]); if (!e) return;
@@ -860,6 +864,20 @@ const HOLDS = new Map();
 const SETTLED_PRE = 'pre';
 const legPaidRun = (d, leg) => { const h = HOLDS.get(d.id); return (h && h[leg + 'Paid']) || null; };
 function legState(d, leg) { const h = HOLDS.get(d.id); return (h && h[leg]) || 'pay'; }
+/* A job cancelled while a leg was still on hold. That leg was never paid - the
+   hold kept it out of its run - so there is nothing to claw back and nothing to
+   release: releasing would pay commission on a job that no longer exists. It
+   leaves the hold list and is shown as cancelled before payday instead. */
+function cancelledUnpaid(d, leg) {
+  return !!(d && d.cancelled && legState(d, leg) === 'held' && holdAppliesTo(d.id, d.run));
+}
+/* the contract value a cancelled-before-payday leg would have been paid on */
+function wouldHavePaid(d, leg) {
+  const c = CAPTURED.get(dealKey(d));
+  const base = c != null ? c : (+d.value || 0);
+  const R = planFor(d.close).rates;
+  return +(base * (leg === 'setter' ? (d.hourly ? R.hourly : R.canvasser) : R.closer)).toFixed(2);
+}
 function legAmt(d, leg) { return leg === 'setter' ? d.canvPay : d.closerPay; }
 function legWho(d, leg) { return leg === 'setter' ? d.canvasser : d.closer; }
 /* What one run pays for one leg. A run that has frozen pays what it was paid
@@ -932,9 +950,19 @@ function holdRestore(id, snap) { if (snap) HOLDS.set(id, snap); else HOLDS.delet
 function allHolds() {
   const out = [];
   HOLDS.forEach((h, id) => ['setter', 'closer'].forEach(leg => {
-    if (h[leg] === 'held') out.push({ d: DEALS[id], leg, amt: legAmt(DEALS[id], leg), reason: h.reason, at: h.at });
+    if (h[leg] === 'held' && !cancelledUnpaid(DEALS[id], leg))
+      out.push({ d: DEALS[id], leg, amt: legAmt(DEALS[id], leg), reason: h.reason, at: h.at });
   }));
   return out.sort((a, b) => b.amt - a.amt);
+}
+/* held legs whose job was cancelled before they were ever paid */
+function allCancelledUnpaid() {
+  const out = [];
+  HOLDS.forEach((h, id) => ['setter', 'closer'].forEach(leg => {
+    const d = DEALS[id];
+    if (cancelledUnpaid(d, leg)) out.push({ d, leg, amt: wouldHavePaid(d, leg), reason: h.reason, at: h.at });
+  }));
+  return out.sort((a, b) => (b.d.close || '').localeCompare(a.d.close || '') || b.amt - a.amt);
 }
 /* legs an admin has marked as paid outside the ledger */
 function allSettled() {
@@ -958,7 +986,7 @@ function crmReady() {
     const d = DEALS.find(y => y.opp === x.opp && y.close === x.close);
     if (!d) return;
     (x.legs || []).forEach(leg => {
-      if (legState(d, leg) !== 'held') return;
+      if (legState(d, leg) !== 'held' || cancelledUnpaid(d, leg)) return;
       out.push({ d: d, leg: leg, amt: legAmt(d, leg), stage: x.stage });
     });
   });
@@ -2304,6 +2332,7 @@ function reviewStrip(sh) {
   const holds = allHolds().filter(h => scopeName(legWho(h.d, h.leg)));
   const settled = allSettled().filter(h => scopeName(legWho(h.d, h.leg)));
   const ready = crmReady().filter(h => scopeName(legWho(h.d, h.leg)));
+  const cxHeld = allCancelledUnpaid().filter(h => scopeName(legWho(h.d, h.leg)));
   const adjs = ADJ.filter(a => a.run === sh.date);
   const cos = coPending();
   const crit = checks().filter(c => c.sev === 'crit').length;
@@ -2313,6 +2342,7 @@ function reviewStrip(sh) {
     { k: 'holds', label: 'On hold', n: holds.length, tone: holds.length ? 'crit' : 'good' },
     ready.length ? { k: 'crm', label: 'Ready to release', n: ready.length, tone: 'warn' } : null,
     settled.length ? { k: 'settled', label: 'Paid outside', n: settled.length, tone: 'plain' } : null,
+    cxHeld.length ? { k: 'cxheld', label: 'Cancelled before payday', n: cxHeld.length, tone: 'plain' } : null,
     { k: 'adj', label: 'Adjustments', n: adjs.length, tone: 'plain' },
     summerMonths.length ? { k: 'summer', label: 'Summer bonus', n: null, tone: 'info' } : null,
     { k: 'checks', label: 'Data checks', n: crit, tone: crit ? 'crit' : 'good' }
@@ -2321,6 +2351,7 @@ function reviewStrip(sh) {
   const body = open === 'co' ? coCard() : open === 'holds' ? holdsCard(holds)
     : open === 'crm' ? crmReadyCard(ready)
     : open === 'settled' ? settledCard(settled)
+    : open === 'cxheld' ? cancelledUnpaidCard(cxHeld)
     : open === 'adj' ? adjCard(sh.date, null) : open === 'summer' ? summerCard(sh)
     : open === 'checks' ? checksCard() : '';
   return `<div class="card" style="margin-bottom:20px">
@@ -2352,6 +2383,26 @@ function holdsCard(holds) {
         ${settleRunPicker('settleRun:' + h.d.id + ':' + h.leg)}
         <button class="btn ghost" data-settle="${h.d.id}:${h.leg}:row">Already paid</button></td>` : ''}</tr>`).join('')
     || `<tr><td colspan="${canEditAll() ? 8 : 7}" class="muted">Nothing withheld. Open a deal to hold a leg.</td></tr>`}</tbody>
+  </table></div>`;
+}
+/* jobs cancelled while their commission was on hold: for the record only */
+function cancelledUnpaidCard(list) {
+  return `<p class="hint" style="margin:0 0 14px">These jobs were <b>cancelled while their commission was on hold</b>,
+    so it was never paid. There is nothing to release and nothing to claw back; they are listed here for the record
+    and are not part of any run.</p>
+    <div class="scroll"><table>
+    <thead><tr><th class="idx">#</th><th>Opportunity</th><th>Person</th><th>Leg</th><th>Held since</th>
+      <th>Was due in</th><th class="r">Would have paid</th></tr></thead>
+    <tbody>${list.map((h, i) => `<tr>
+      <td class="idx">${i + 1}</td>
+      <td><a href="#" data-deal="${h.d.id}">${esc(h.d.opp)}</a> <span class="pill crit">Cancelled</span></td>
+      <td>${who2(legWho(h.d, h.leg))}</td>
+      <td><span class="pill plain">${h.leg === 'setter' ? 'Setter' : 'Closer'}</span></td>
+      <td class="muted">${h.at ? dshort(h.at) : '&mdash;'}</td>
+      <td class="n muted">${dshort(h.d.run)}</td>
+      <td class="n r muted">${fmt(h.amt)}</td></tr>`).join('')}</tbody>
+    <tfoot><tr><td colspan="6">Not paid, nothing to recover</td>
+      <td class="r">${fmt(0)}</td></tr></tfoot>
   </table></div>`;
 }
 /* legs payroll paid some other way: shown for the record, never paid again */
@@ -2659,7 +2710,9 @@ V.deals = () => {
       <td class="idx">${i + 1}</td>
       <td>${esc(d.opp)}${d.selfGen ? ' <span class="pill info">Self-gen</span>' : ''}
         ${d.cancelled ? ' <span class="pill crit">Cancelled</span>' : d.flagged ? ' <span class="pill crit">Variance</span>' : ''}${d.unknownRep ? ' <span class="pill warn">Unlisted</span>' : ''}
-        ${HOLDS.has(d.id) ? (legState(d, 'setter') === 'held' || legState(d, 'closer') === 'held'
+        ${HOLDS.has(d.id) ? (cancelledUnpaid(d, 'setter') || cancelledUnpaid(d, 'closer')
+          ? ' <span class="pill plain">Cancelled before payday</span>'
+          : legState(d, 'setter') === 'held' || legState(d, 'closer') === 'held'
           ? ' <span class="pill crit">On hold</span>'
           : legState(d, 'setter') === 'settled' || legState(d, 'closer') === 'settled'
           ? ' <span class="pill plain">Paid outside</span>' : '') : ''}
@@ -3122,7 +3175,7 @@ function dealPanel(id) {
     </div></div>
   ${CO.has(d.id) ? coDealCard(d) : ''}
   ${d.won && d.closer && ((+d.adder || 0) || adderCut(d)) ? dealAdderCard(d) : ''}
-  ${d.won && (d.canvPay || d.closerPay) ? holdCard(d) : ''}`;
+  ${d.won && (d.canvPay || d.closerPay || cancelledUnpaid(d, 'setter') || cancelledUnpaid(d, 'closer')) ? holdCard(d) : ''}`;
 }
 
 function coDealCard(d) {
@@ -3571,6 +3624,22 @@ function dealAdderCard(d) {
 function holdCard(d) {
   const h = HOLDS.get(d.id) || {};
   const admin = S.role === 'admin';
+  const cx = ['setter', 'closer'].filter(k => cancelledUnpaid(d, k));
+  /* the whole card is the note when nothing else on the deal is payable; a leg
+     that was paid keeps its normal row (its claw-back is the change order) */
+  const rest = ['setter', 'closer'].filter(k => cx.indexOf(k) < 0 && legAmt(d, k));
+  if (cx.length && !rest.length) return `<div class="card pad" style="margin-top:20px">
+    <h2 style="margin:0">Commission hold</h2>
+    <p class="hint" style="margin:6px 0 8px">This job was <b>cancelled while its commission was on hold</b>, so the
+    ${cx.length === 2 ? 'setter&rsquo;s and closer&rsquo;s legs were' : cx[0] + '&rsquo;s leg was'} never paid.
+    There is nothing to release and nothing to claw back${CO.has(d.id) ? ' for ' + (cx.length === 2 ? 'them' : 'it')
+      + ' &mdash; the claw-back below covers only what did go out' : ''}.</p>
+    ${cx.map(k => `<div class="rate"><div class="rl"><b>${k === 'setter' ? 'Setter' : 'Closer'} &mdash; ${esc(legWho(d, k))}</b>
+      <div class="sub">On hold${h.at && !h.seeded ? ' since ' + dshort(h.at) : ''}${h.reason ? ' &middot; ' + esc(h.reason) : ''}
+        &middot; was due in the ${dshort(d.run)} run</div></div>
+      <b class="n muted">${fmt(wouldHavePaid(d, k))}</b>
+      <span class="pill plain">Cancelled before payday</span></div>`).join('')}
+  </div>`;
   const leg = (name, key) => {
     const st = legState(d, key), amt = legAmt(d, key), person = legWho(d, key);
     if (!amt) return '';
@@ -3897,6 +3966,8 @@ document.addEventListener('click', ev => {
     if (!d) return;
     const snap = holdSnapshot(id);
     const legs = p[1] === 'both' ? ['setter', 'closer'] : [p[1]];
+    if (state === 'released' && legs.some(leg => cancelledUnpaid(d, leg)))
+      return toast('This job was cancelled while on hold: nothing was paid, so there is nothing to release.', true);
     legs.forEach(leg => setHold(id, leg, state, reason));
     render();
     const undo = () => holdRestore(id, snap);
