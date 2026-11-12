@@ -1590,7 +1590,13 @@ def _sanitise(kind, p):
                     adders[str(k)[:200]] = int(v)
                 except (TypeError, ValueError):
                     continue
-        return {"basis": out, "adders": adders}
+        # and which cancelled jobs the summer weekly bonus in this run left out of
+        # each setter's deal count, so a paid month keeps the count it paid on
+        summer_out = []
+        so = p.get("summerOut")
+        if isinstance(so, list):
+            summer_out = [str(k)[:200] for k in so[:600] if isinstance(k, str)]
+        return {"basis": out, "adders": adders, "summerOut": summer_out}
     return {}
 
 

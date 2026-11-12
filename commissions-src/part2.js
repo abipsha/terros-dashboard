@@ -106,7 +106,11 @@ const NOW_T = mtParts({ hour: '2-digit', minute: '2-digit', hour12: false })
 const TODAY_D = NOW_D;
 const FREEZE_DAYS = 1, FREEZE_TIME = '08:00';   /* Thursday 8am ahead of a Friday payday */
 const FROZEN = new Set();              /* runs frozen early by hand */
-const FROZEN_AT = new Map();           /* run -> the moment it was frozen by hand (ms) */
+const FROZEN_AT = new Map();
+/* bonus run -> the cancelled deals left out of its summer weekly bonus count when
+   it froze. A run frozen before this was recorded went out counting them. */
+const SUMMER_OUT = new Map();
+const SUMMER_CX_FROM = Date.parse('2026-11-12T00:00:00Z');           /* run -> the moment it was frozen by hand (ms) */
 /* MDT or MST for a given date, so the freeze lands at the right instant either side of DST */
 function tzAbbr(dateISO) {
   try {
@@ -793,7 +797,21 @@ const weekEnd = wk => { const d = new Date(wk + 'T00:00:00Z'); d.setUTCDate(d.ge
 const weekLabel = wk => dtiny(wk) + ' - ' + dtiny(weekEnd(wk));
 function summerDeals() {
   return DEALS.filter(d => d.won && d.close && SUMMER.on && d.close >= SUMMER.start
-    && (!SUMMER.end || d.close <= SUMMER.end) && d.canvasser);
+    && (!SUMMER.end || d.close <= SUMMER.end) && d.canvasser && summerCounted(d));
+}
+/* A cancelled job is not a sale, so it does not count toward a setter's 2- or
+   3-deal week while that month's bonus is still to be paid. A month already paid
+   keeps the count it went out with: the deals recorded as left out when its run
+   froze stay out, and one cancelled since still counts there - what it lifted is
+   recovered with its cancellation. Runs frozen before this rule counted every
+   cancelled job. */
+function summerCounted(d) {
+  if (!d.cancelled) return true;
+  const pay = summerPayRun(weekStart(d.close).slice(0, 7));
+  if (!pay || !isApproved(pay)) return false;
+  const out = SUMMER_OUT.get(pay);
+  if (out) return !out.has(dealKey(d));
+  return frozenAtMs(pay) < SUMMER_CX_FROM;
 }
 /* every setter's weeks; a week belongs to the month its Sunday falls in */
 function summerWeeks(filterMonth) {
@@ -836,7 +854,7 @@ function summerWeeks(filterMonth) {
    the summer bonus too - it is worked out from the same basis as the setter
    commission - and this is what says by how much. */
 function summerRateFor(d) {
-  if (!d.won || !d.canvasser || !d.close) return 0;
+  if (!d.won || !d.canvasser || !d.close || !summerCounted(d)) return 0;
   if (!SUMMER.on || d.close < SUMMER.start || (SUMMER.end && d.close > SUMMER.end)) return 0;
   const wk = weekStart(d.close);
   const n = summerDeals().filter(x => x.canvasser === d.canvasser && weekStart(x.close) === wk).length;
@@ -1147,6 +1165,8 @@ function captureFreezes(events) {
     /* what each closer's quarterly adder balance was when the run that paid it
        froze. Without this a deduction months later would quietly restate a
        quarter that has already gone out. */
+    const so = (e.payload || {}).summerOut;
+    if (Array.isArray(so) && !SUMMER_OUT.has(e.target)) SUMMER_OUT.set(e.target, new Set(so));
     const ad = (e.payload || {}).adders;
     if (ad && typeof ad === 'object') {
       Object.keys(ad).forEach(k => { if (!ADDER_PIN.has(k)) ADDER_PIN.set(k, +ad[k]); });
@@ -4032,12 +4052,18 @@ document.addEventListener('click', ev => {
        the next open bonus run instead of restating this one. */
     const adderPins = {};
     ADJ.forEach(a => { if (a.pin && a.run === run && !ADDER_PIN.has(a.pin)) adderPins[a.pin] = a.count; });
+    /* and which cancelled jobs the summer weekly bonus in this run left out, so
+       the count it paid on stays the count it paid on */
+    const sm = summerMonthsFor(run);
+    const summerOut = DEALS.filter(d => d.won && d.cancelled && d.canvasser && d.close
+      && sm.indexOf(weekStart(d.close).slice(0, 7)) >= 0).map(dealKey);
     FROZEN.add(run); FROZEN_AT.set(run, Date.now()); S.addAdj = null;
+    if (!SUMMER_OUT.has(run)) SUMMER_OUT.set(run, new Set(summerOut));
     Object.keys(basis).forEach(k => CAPTURED.set(k, basis[k]));
     Object.keys(adderPins).forEach(k => ADDER_PIN.set(k, adderPins[k]));
     seedCOs(); refreshAdderLines();
-    save('run.freeze', run, { basis: basis, adders: adderPins }, () => {
-      FROZEN.delete(run); FROZEN_AT.delete(run);
+    save('run.freeze', run, { basis: basis, adders: adderPins, summerOut: summerOut }, () => {
+      FROZEN.delete(run); FROZEN_AT.delete(run); SUMMER_OUT.delete(run);
       Object.keys(basis).forEach(k => CAPTURED.delete(k));
       Object.keys(adderPins).forEach(k => ADDER_PIN.delete(k));
       seedCOs(); refreshAdderLines();
