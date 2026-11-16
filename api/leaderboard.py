@@ -38,7 +38,15 @@ _hours_cache: dict = {}          # "start:end" -> (ts, {name: {...}})
 
 # Teams shown on the board. Inside Sales books appointments but is not a
 # field team, so it is not a tab of its own; its reps still appear on rows.
-TEAMS = ["Northern Utah", "Eastern Idaho", "Southern Utah", "Northern California"]
+TEAMS = ["Northern Utah", "Eastern Idaho", "Southern Utah"]
+# Northern California is not a team of its own on the board: its deals, revenue
+# and reps count for Southern Utah. Odoo keeps the original Sales Team.
+TEAM_MERGE = {"Northern California": "Southern Utah"}
+
+
+def _team(t):
+    t = t or ""
+    return TEAM_MERGE.get(t, t)
 
 SITS_FROM = "sras"               # Terros "SRA" = sat/ran appointment; swap to "acs" if the office means set appointments
 
@@ -103,7 +111,7 @@ def roster():
             continue
         out.append({
             "name": e["name"],
-            "team": e.get("team") or "",
+            "team": _team(e.get("team")),
             "role": _role_of(e),
             "active": bool(e.get("active", True)),
             "manager": e.get("manager") or "",
@@ -313,7 +321,7 @@ def _build_now(start: str, end: str, force: bool, part: str) -> dict:
         {
             "id": d["id"], "name": d["name"], "closer": d["closer"], "setter": d["setter"],
             "rev": d["rev"], "date": d.get("date_deadline") or d.get("date_closed") or "",
-            "team": d.get("office") or "", "adders": d.get("adders", 0), "stage": d.get("stage", ""),
+            "team": _team(d.get("office")), "adders": d.get("adders", 0), "stage": d.get("stage", ""),
         }
         for d in deals_resp.get("deals", [])
     ]
@@ -324,7 +332,7 @@ def _build_now(start: str, end: str, force: bool, part: str) -> dict:
     prev_start = prev_end.replace(day=1)
     try:
         prev = odoo.get_deals_list(_s(prev_start), _s(prev_end), force=False)
-        prev_deals = [{"closer": d["closer"], "setter": d["setter"], "rev": d["rev"], "team": d.get("office") or "",
+        prev_deals = [{"closer": d["closer"], "setter": d["setter"], "rev": d["rev"], "team": _team(d.get("office")),
                        "date": d.get("date_deadline") or "", "adders": d.get("adders", 0)} for d in prev.get("deals", [])]
     except Exception as e:
         print(f"[leaderboard] previous month unavailable: {e}")
@@ -340,7 +348,7 @@ def _build_now(start: str, end: str, force: bool, part: str) -> dict:
             r = odoo.get_deals_list(_s(m_start), _s(m_end), force=False)
             by_team = {}
             for d in r.get("deals", []):
-                t = d.get("office") or ""
+                t = _team(d.get("office"))
                 by_team[t] = by_team.get(t, 0.0) + d["rev"]
             months.append({"month": m_start.strftime("%Y-%m"), "total": round(r.get("total_rev", 0), 2),
                            "deals": r.get("total_deals", 0), "byTeam": by_team})
