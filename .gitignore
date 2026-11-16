@@ -17,3 +17,7 @@ Thumbs.db
 
 # Built test page for the commission ledger
 commissions-src/commissions-test.html
+
+# Local-only files
+Claude outputs/
+*.txt

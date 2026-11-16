@@ -139,7 +139,7 @@ The dashboard now uses `POST /report/kpi` with `version: 2` — the same call th
 
 ### Terros fields on the board
 - Knocks, pitches, days worked: KPI v2 as on the Terros board.
-- **Sits** = KPI v2 column 5 (`sras`). Switch `SITS_FROM = "acs"` in `api/leaderboard.py` if the office means set appointments instead.
+- **Appts set** = KPI v2 column 3 (`acs`, Terros set appointments) — counts the moment a rep sets an appointment. **Sits** = KPI v2 column 5 (`sras`, sat/ran) — counts only once the appointment's result is recorded. Both are shown side by side (rep tables, team totals, team cards, field-activity card with a "sits per set" figure, rep sheet, CSV, phone rows); the gap is appointments that did not sit (or have no result yet). Labelled "Appts set" so it is not confused with the Odoo "Sets" column (Won accounts set). `SITS_FROM` still picks what "Sits" reads.
 - **Hours worked** and **first knock** are not in KPI v2. They come from `activity/list` (cursor paging, see above): per rep per day, first action = first knock, first→last action span = hours (minimum 0.25 h for a one-action day). Finished days are cached for the life of the process (`_day_cache`), so only today is re-read; a month's first read is ~30 pages (~40 s). "First knock" on the board is always **yesterday's** (last full CDT day).
 - The roster hides reps with standing Inactive (no sale in 30 days, no Terros activity) behind a "Show N inactive" button, because the Odoo roster carries ~200 names.
 - Terros names are joined to Odoo names by `norm()` (lowercase letters only); a rep whose Terros name differs from the Odoo roster name gets no Terros readings — fix the name in Terros or Odoo rather than in code.
