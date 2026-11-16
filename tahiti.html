@@ -753,6 +753,12 @@ function renderRTT() {
 }
 
 load(false);
+if (window.location.hash === '#rtt') {
+  window.addEventListener('load', function () {
+    var el = document.getElementById('rtt');
+    if (el) setTimeout(function () { el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 400);
+  });
+}
 </script>
 </body>
 </html>

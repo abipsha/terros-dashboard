@@ -528,6 +528,11 @@ class Handler(http.server.BaseHTTPRequestHandler):
                     else:
                         self._json({"error": "leaderboard.html not found"}, status=404)
 
+                elif path == "/road-to-tahiti":
+                    self.send_response(302)
+                    self.send_header("Location", "/tahiti#rtt")
+                    self.end_headers()
+
                 elif path == "/tahiti":
                     if os.path.exists(TAHITI_HTML_FILE):
                         with open(TAHITI_HTML_FILE, "rb") as f: content = f.read()
