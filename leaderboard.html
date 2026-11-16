@@ -676,7 +676,7 @@ function renderTeam() {
   var tabs = '<div class="seg white orange teamtabs">' + D.teams.map(function (x) { return '<button class="' + (x === t ? 'on' : '') + '" onclick="S.team=\'' + esc(x) + '\';render()">' + esc(x) + '</button>'; }).join('') + '</div>';
   var head = '<div class="teamhead"><div style="flex:1 1 380px;min-width:0"><div class="name">' + esc(t) + '</div><div class="tiny muted" style="margin-top:8px">' + (mgrName ? 'Regional manager ' + esc(mgrName) + '. ' : '') + reps.filter(function (r) { return r.active; }).length + ' reps, ' + o.withSale + ' with a sale in the period.</div></div>' +
     '<div class="stats"><div class="stat"><div class="v">' + moneyK(o.rev) + '</div><div class="l">' + esc(S.period === 'this' ? 'MTD' : 'Revenue') + '</div></div><div class="stat"><div class="v">' + moneyK(o.prevRev) + '</div><div class="l">Last month</div></div><div class="stat"><div class="v">' + moneyK(o.avg) + '</div><div class="l">Avg contract</div></div></div></div>';
-  var second = '<div class="grid2">' + revenueCard(o, S.period === 'this' ? 'Revenue, MTD' : 'Revenue', t) + monthsCard(t) + '</div>' + terrosCard(o);
+  var second = '<div class="grid2">' + revenueCard(o, S.period === 'this' ? 'Revenue, MTD' : 'Revenue', t) + monthsCard(t) + '</div>';
   // roster
   var mode = S.roster;
   var list = reps.filter(function (r) { return mode === 'everyone' ? true : mode === 'directors' ? isDirectorRow(r) : isCoordinatorRow(r); });
@@ -716,7 +716,7 @@ function renderTeam() {
   var roster = '<div class="card" style="padding:16px 18px 6px"><div class="cardhead" style="padding-bottom:8px"><div class="t">Roster <span>' + esc(dshort(S.start) + ' – ' + dshort(S.end)) + '</span></div>' + toggle + '</div>' +
     '<div class="tiny muted" style="padding-bottom:8px">' + (mode === 'coordinators' ? 'Listed: anyone who set a Won account for someone else. Sets and Revenue set leave out self-gens; the week cells and Bonus follow payroll, where a self-gen counts as a set. ' : '') + 'Revenue is contract value on Won accounts in Odoo for the selected dates. Knocks, pitches, sits and hours come from Terros for the same dates; first knock is yesterday\'s. A blank means no reading. Click a rep for their accounts.</div>' +
     (list.length ? '<div class="tablebox"><table><thead>' + thead + '</thead><tbody>' + rows + tot + '</tbody></table></div>' : '<div class="empty">Nobody on this team has a sale or a Terros reading in the period.</div>') + '</div>';
-  document.getElementById('view-teams').innerHTML = tabs + head + second + bonusGrid(reps, 'Team') + roster;
+  document.getElementById('view-teams').innerHTML = tabs + head + second + roster + terrosCard(o) + bonusGrid(reps, 'Team');
 }
 
 /* ----- Overview ----- */
@@ -943,7 +943,7 @@ function renderTeamPhone() {
     return prow({ key: r.key, title: r.name, pill: rolePill(r.role), sub: line1, sub2: line2, value: r.rev ? money(r.rev) : '', standing: r.standing });
   }).join('');
   var roster = pcard('Roster', '', (rows || '<div class="empty">Nobody on this team has a sale or a Terros reading in the period.</div>') + (hidden ? '<button type="button" class="seeall" onclick="S.showInactive=!S.showInactive;render()">' + (S.showInactive ? 'Hide ' : 'Show ') + hidden + ' inactive</button>' : ''), toggle);
-  document.getElementById('view-teams').innerHTML = tabs + head + revenueCard(o, S.period === 'this' ? 'Revenue, MTD' : 'Revenue', t) + terrosCard(o) + bonus + roster;
+  document.getElementById('view-teams').innerHTML = tabs + head + revenueCard(o, S.period === 'this' ? 'Revenue, MTD' : 'Revenue', t) + roster + terrosCard(o) + bonus;
 }
 function renderRepsPhoneList(list) {
   var rows = list.map(function (r, i) {
