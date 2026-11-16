@@ -21,3 +21,8 @@ commissions-src/commissions-test.html
 # Local-only files
 Claude outputs/
 *.txt
+
+# Payroll, commission and rep revenue exports: keep on this computer, never push
+*.xlsx
+*.csv
+Claude outputs/vivid-commissions-*
