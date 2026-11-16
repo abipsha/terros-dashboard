@@ -677,7 +677,7 @@ function renderTeam() {
   var mgrName = ''; var cnt = {}; mgr.forEach(function (m) { if (m) { cnt[m] = (cnt[m] || 0) + 1; if (!mgrName || cnt[m] > cnt[mgrName]) mgrName = m; } });
   var tabs = '<div class="seg white orange teamtabs">' + D.teams.map(function (x) { return '<button class="' + (x === t ? 'on' : '') + '" onclick="S.team=\'' + esc(x) + '\';render()">' + esc(x) + '</button>'; }).join('') + '</div>';
   var head = '<div class="teamhead"><div style="flex:1 1 380px;min-width:0"><div class="name">' + esc(t) + '</div><div class="tiny muted" style="margin-top:8px">' + (mgrName ? 'Regional manager ' + esc(mgrName) + '. ' : '') + reps.filter(function (r) { return r.active; }).length + ' reps, ' + o.withSale + ' with a sale in the period.</div></div>' +
-    '<div class="stats"><div class="stat"><div class="v">' + moneyK(o.rev) + '</div><div class="l">' + esc(S.period === 'this' ? 'MTD' : 'Revenue') + '</div></div><div class="stat"><div class="v">' + moneyK(o.prevRev) + '</div><div class="l">Last month</div></div><div class="stat"><div class="v">' + moneyK(o.avg) + '</div><div class="l">Avg contract</div></div></div></div>';
+    '<div class="stats"><div class="stat"><div class="v">' + moneyK(o.prevRev) + '</div><div class="l">Last month</div></div><div class="stat"><div class="v">' + moneyK(o.avg) + '</div><div class="l">Avg contract</div></div></div></div>';
   var second = revenueCard(o, S.period === 'this' ? 'Revenue, MTD' : 'Revenue', t);
   // roster
   var mode = S.roster;
@@ -725,7 +725,7 @@ function renderTeam() {
 function renderOverview() {
   var o = D.company;
   var head = '<div class="teamhead"><div style="flex:1 1 380px;min-width:0"><div class="name">Company</div><div class="tiny muted" style="margin-top:8px">' + D.teams.length + ' teams, ' + D.reps.filter(function (r) { return r.active && r.onRoster; }).length + ' reps on the roster, ' + o.withSale + ' with a sale in the period.</div></div>' +
-    '<div class="stats"><div class="stat"><div class="v">' + moneyK(o.rev) + '</div><div class="l">' + (S.period === 'this' ? 'MTD' : 'Revenue') + '</div></div><div class="stat"><div class="v">' + num(o.deals) + '</div><div class="l">Deals</div></div><div class="stat"><div class="v">' + moneyK(o.prevRev) + '</div><div class="l">Last month</div></div><div class="stat"><div class="v">' + moneyK(o.avg) + '</div><div class="l">Avg contract</div></div></div></div>';
+    '<div class="stats"><div class="stat"><div class="v">' + num(o.deals) + '</div><div class="l">Deals</div></div><div class="stat"><div class="v">' + moneyK(o.prevRev) + '</div><div class="l">Last month</div></div><div class="stat"><div class="v">' + moneyK(o.avg) + '</div><div class="l">Avg contract</div></div></div></div>';
   var cards = '<div class="grid3">' + D.teams.map(function (t) {
     var x = D.team[t];
     return '<a class="card pad" href="#" onclick="S.team=\'' + esc(t) + '\';setView(\'teams\');return false" style="display:flex;flex-direction:column;gap:10px"><div class="lbl">' + esc(t) + '</div><div class="bignum" style="font-size:28px">' + money(x.rev) + '</div>' +
@@ -893,7 +893,7 @@ function pcard(title, sub, body, right) {
   return '<div class="card" style="padding:12px 14px 4px"><div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;padding-bottom:6px"><div style="font-size:13px;font-weight:600">' + title + (sub ? ' <span class="muted" style="font-weight:400">' + sub + '</span>' : '') + '</div>' + (right || '') + '</div>' + body + '</div>';
 }
 function phoneHead(name, sub, bigV, bigL) {
-  return '<div class="teamhead"><div style="flex:1 1 160px;min-width:0"><div class="name">' + esc(name) + '</div><div class="tiny muted" style="margin-top:5px">' + sub + '</div></div><div class="stats"><div class="stat"><div class="v">' + bigV + '</div><div class="l">' + bigL + '</div></div></div></div>';
+  return '<div class="teamhead"><div style="flex:1 1 160px;min-width:0"><div class="name">' + esc(name) + '</div><div class="tiny muted" style="margin-top:5px">' + sub + '</div></div>' + (bigV ? '<div class="stats"><div class="stat"><div class="v">' + bigV + '</div><div class="l">' + bigL + '</div></div></div>' : '') + '</div>';
 }
 function phoneBoard(title, sub, list, valueOf, subOf, max, barColor) {
   var top = list.slice(0, 5);
@@ -903,7 +903,7 @@ function phoneBoard(title, sub, list, valueOf, subOf, max, barColor) {
 }
 function renderOverviewPhone() {
   var o = D.company;
-  var head = phoneHead('Company', esc(periodLabel()) + ' · ' + num(o.deals) + ' deals · ' + o.withSale + ' reps with a sale', moneyK(o.rev), S.period === 'this' ? 'MTD' : 'Revenue');
+  var head = phoneHead('Company', esc(periodLabel()) + ' · ' + num(o.deals) + ' deals · ' + o.withSale + ' reps with a sale', '', '');
   var best = Math.max.apply(null, D.teams.map(function (t) { return D.team[t].rev; }).concat([1]));
   var teams = pcard('Teams', '', D.teams.map(function (t) {
     var x = D.team[t];
@@ -924,7 +924,7 @@ function weekDots(r) {
 function renderTeamPhone() {
   var t = S.team, o = D.team[t], reps = o.reps.slice();
   var tabs = '<div class="seg white orange teamtabs">' + D.teams.map(function (x) { return '<button class="' + (x === t ? 'on' : '') + '" onclick="S.team=\'' + esc(x) + '\';render()">' + esc(x) + '</button>'; }).join('') + '</div>';
-  var head = phoneHead(t, esc(dshort(S.start) + ' – ' + dshort(S.end)) + ' · ' + reps.filter(function (r) { return r.active; }).length + ' reps, ' + o.withSale + ' with a sale · last month ' + moneyK(o.prevRev), moneyK(o.rev), S.period === 'this' ? 'MTD' : 'Revenue');
+  var head = phoneHead(t, esc(dshort(S.start) + ' – ' + dshort(S.end)) + ' · ' + reps.filter(function (r) { return r.active; }).length + ' reps, ' + o.withSale + ' with a sale · last month ' + moneyK(o.prevRev), '', '');
   // weekly bonus: one row per coordinator with a dot per week
   var coords = reps.filter(function (r) { return r.setsAll > 0; }).sort(function (a, b) { return b.bonus - a.bonus || b.setsAll - a.setsAll; });   // payroll: a self-gen counts as a set
   var hdr = '<div style="display:flex;align-items:center;gap:10px;padding-bottom:4px"><div style="flex:1"></div><div style="display:flex;gap:4px">' + D.weeks.map(function (w) { return '<span class="tiny" style="width:22px;text-align:center;' + (w.current ? 'color:var(--accent);font-weight:600' : 'color:var(--muted)') + '">' + (w.current ? 'now' : 'W' + w.n) + '</span>'; }).join('') + '</div><div style="width:54px"></div></div>';
