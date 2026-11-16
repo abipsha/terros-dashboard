@@ -292,6 +292,8 @@
   .rtt-blklbl { font-size: 13px; font-weight: 700; letter-spacing: .03em; text-transform: uppercase; color: var(--ink); margin-bottom: 10px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
   .rtt-blklbl::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); display: inline-block; flex-shrink: 0; }
   .rtt-blklbl .rtt-pill { font-size: 11px; font-weight: 500; letter-spacing: .01em; text-transform: none; }
+  .rtt-view-btn { font-size: 12px; font-weight: 600; color: var(--accent); background: none; border: none; cursor: pointer; padding: 0; margin-left: auto; white-space: nowrap; font-family: inherit; }
+  .rtt-view-btn:hover { text-decoration: underline; }
   .mil-grid { display: grid; grid-template-columns: repeat(4, 1fr); }
   .mil-cell { padding: 12px 10px; text-align: center; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); }
   .mil-cell:nth-child(4n) { border-right: none; }
@@ -370,6 +372,8 @@
 </nav>
 <div class="drawer-bg" id="drawerBg" onclick="closeRep()"></div>
 <div class="drawer" id="drawer" role="dialog" aria-label="Rep detail"></div>
+<div class="drawer-bg" id="rttDrwBg" onclick="closeRTT()"></div>
+<div class="drawer" id="rttDrw" role="dialog" aria-label="Road to Tahiti detail"></div>
 
 <script>
 /* ──────────────────────────────────────────────────────────────
@@ -663,7 +667,7 @@ function renderRTT() {
   }
 
   var bonusBlock = '<div>' +
-    '<div class="rtt-blklbl">Team Revenue Bonus <span class="pill rtt-pill" style="background:var(--gray);color:var(--muted)">Nov + Dec · Every rep</span></div>' +
+    '<div class="rtt-blklbl">Team Revenue Bonus <span class="pill rtt-pill" style="background:var(--gray);color:var(--muted)">Nov + Dec · Every rep</span><button class="rtt-view-btn" onclick="openRTT(\'bonus\')">View details →</button></div>' +
     '<div class="card">' +
       '<div style="padding:14px 18px 12px;border-bottom:1px solid var(--line2)">' +
         '<div class="cardhead"><div class="t">Monthly bonus unlocks when the team hits a milestone</div></div>' +
@@ -704,7 +708,7 @@ function renderRTT() {
   }
 
   var warsBlock = '<div>' +
-    '<div class="rtt-blklbl">Team Wars <span class="pill rtt-pill" style="background:var(--gray);color:var(--muted)">November only · 1 winner</span></div>' +
+    '<div class="rtt-blklbl">Team Wars <span class="pill rtt-pill" style="background:var(--gray);color:var(--muted)">November only · 1 winner</span><button class="rtt-view-btn" onclick="openRTT(\'wars\')">View details →</button></div>' +
     '<div class="card pad">' +
       '<div class="cardhead" style="margin-bottom:12px">' +
         '<div class="t">November revenue targets</div>' +
@@ -719,7 +723,7 @@ function renderRTT() {
 
   /* ── Tahiti Ticket Raffle ── */
   var raffleBlock = '<div>' +
-    '<div class="rtt-blklbl">Tahiti Ticket Raffle <span class="pill rtt-pill" style="background:var(--gray);color:var(--muted)">Nov + Dec · 2 winners · Jan 2027</span></div>' +
+    '<div class="rtt-blklbl">Tahiti Ticket Raffle <span class="pill rtt-pill" style="background:var(--gray);color:var(--muted)">Nov + Dec · 2 winners · Jan 2027</span><button class="rtt-view-btn" onclick="openRTT(\'raffle\')">View details →</button></div>' +
     '<div class="card pad">' +
       '<div style="display:flex;align-items:center;gap:18px;flex-wrap:wrap;padding-bottom:14px;margin-bottom:14px;border-bottom:1px solid var(--line2)">' +
         '<div class="raffle-num">2</div>' +
@@ -751,6 +755,161 @@ function renderRTT() {
     '</div>' +
     bonusBlock + warsBlock + raffleBlock +
   '</div>';
+}
+
+/* ── RTT drawer ── */
+function openRTT(type) {
+  if (!S.data) return;
+  var html = type === 'bonus' ? rttBonusContent() : type === 'wars' ? rttWarsContent() : rttRaffleContent();
+  var drw = document.getElementById('rttDrw');
+  drw.innerHTML = html;
+  drw.classList.add('show');
+  document.getElementById('rttDrwBg').classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+function closeRTT() {
+  document.getElementById('rttDrw').classList.remove('show');
+  document.getElementById('rttDrwBg').classList.remove('show');
+  document.body.style.overflow = '';
+}
+document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeRTT(); });
+
+function rttCloseBtn() {
+  return '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">';
+}
+function rttDrwHdr(title, sub) {
+  return '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">' +
+    '<div><div class="cond" style="font-size:22px">' + esc(title) + '</div>' +
+    '<div class="tiny muted" style="margin-top:3px">' + sub + '</div></div>' +
+    '<button class="iconbtn" onclick="closeRTT()"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"></path></svg></button>' +
+  '</div>';
+}
+
+function rttBonusContent() {
+  var NOV_S = '2026-11-01', NOV_E = '2026-11-30';
+  var MILES = [{rev:300000,bonus:50000},{rev:400000,bonus:100000},{rev:500000,bonus:150000},{rev:600000,bonus:200000},{rev:700000,bonus:250000},{rev:800000,bonus:300000},{rev:900000,bonus:350000},{rev:1000000,bonus:400000}];
+  var MAIN_TEAMS = ['Southern Utah','Northern Utah','Eastern Idaho','Northern California'];
+  function getB(r){var b=0;for(var i=0;i<MILES.length;i++){if(r>=MILES[i].rev)b=MILES[i].bonus;}return b;}
+  var teamRevs={},teamReps={};
+  MAIN_TEAMS.forEach(function(t){teamRevs[t]=0;teamReps[t]={};});
+  (S.data.deals||[]).forEach(function(d){
+    var date=d.date_deadline||d.date_closed||'';
+    if(date<NOV_S||date>NOV_E)return;
+    var t=d.office||'';if(teamRevs[t]===undefined)return;
+    teamRevs[t]+=(d.rev||0);
+    var c=(d.closer||'').trim();if(c)teamReps[t][c]=(teamReps[t][c]||0)+(d.rev||0);
+  });
+  var cards='';
+  MAIN_TEAMS.forEach(function(tname){
+    var rev=teamRevs[tname],bonus=getB(rev);
+    var tierIdx=-1;for(var i=MILES.length-1;i>=0;i--){if(rev>=MILES[i].rev){tierIdx=i;break;}}
+    var tierStr=tierIdx>=0?'Tier '+(tierIdx+1)+' · +$'+(bonus/1000)+'K':'No bonus yet';
+    var tierSty=tierIdx>=0?'background:var(--g2-bg);color:var(--g2-fg)':'background:var(--gray);color:var(--muted)';
+    var pctBar=Math.min(100,rev/MILES[MILES.length-1].rev*100);
+    var repList=Object.keys(teamReps[tname]).map(function(r){return{name:r,rev:teamReps[tname][r]};});
+    repList.sort(function(a,b){return b.rev-a.rev;});
+    var repRows=repList.map(function(r,i){
+      return '<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--line2)">' +
+        '<span style="font-size:12px">#'+(i+1)+' '+esc(r.name)+'</span>' +
+        '<span class="cond" style="font-size:12px">'+moneyK(r.rev)+'</span></div>';
+    }).join('');
+    cards+='<div class="card pad" style="margin-bottom:12px">' +
+      '<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:10px">' +
+        '<div class="cond" style="font-size:17px">'+esc(tname)+'</div>' +
+        '<span class="pill" style="'+tierSty+'">'+tierStr+'</span>' +
+      '</div>' +
+      '<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">' +
+        '<div class="rtt-trk" style="flex:1"><div class="rtt-fill" style="width:'+pctBar.toFixed(1)+'%;background:var(--accent)"></div></div>' +
+        '<span class="cond" style="font-size:14px;width:60px;text-align:right">'+moneyK(rev)+'</span>' +
+      '</div>' +
+      (repList.length?'<div>'+repRows+'</div>':'<div class="tiny muted">No deals this month yet</div>') +
+    '</div>';
+  });
+  return rttDrwHdr('Team Revenue Bonus', 'November 2026 · per-team milestone progress') + cards;
+}
+
+function rttWarsContent() {
+  var NOV_S = '2026-11-01', NOV_E = '2026-11-30';
+  var WARS = [{name:'Southern Utah',target:343199},{name:'Northern Utah',target:246915},{name:'Eastern Idaho',target:417832},{name:'Northern California',target:45921}];
+  var byTeam={};
+  (S.data.deals||[]).forEach(function(d){
+    var date=d.date_deadline||d.date_closed||'';
+    if(date<NOV_S||date>NOV_E)return;
+    var t=d.office||'';if(t)byTeam[t]=(byTeam[t]||0)+(d.rev||0);
+  });
+  var ranked=WARS.map(function(w){
+    var rev=byTeam[w.name]||0;
+    return{name:w.name,target:w.target,rev:rev,pctN:rev/w.target*100,gap:Math.max(0,w.target-rev)};
+  }).sort(function(a,b){return b.rev-a.rev;});
+  var cards=ranked.map(function(w,i){
+    var won=w.rev>=w.target,close=!won&&w.rev>=w.target*0.85;
+    var barC=won?'var(--green)':close?'var(--accent)':'var(--gray3)';
+    var statSty=won?'background:var(--g2-bg);color:var(--g2-fg)':close?'background:var(--act-bg);color:var(--act-fg)':'background:var(--gray);color:var(--muted)';
+    var statTxt=won?'Ahead of target':close?'Close · '+moneyK(w.gap)+' to go':'Behind · '+moneyK(w.gap)+' to go';
+    var pctBar=Math.min(100,w.pctN);
+    return '<div class="card pad" style="margin-bottom:12px">' +
+      '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px">' +
+        '<div class="cond" style="font-size:28px;width:40px;color:var(--muted)">#'+(i+1)+'</div>' +
+        '<div style="flex:1"><div class="cond" style="font-size:17px">'+esc(w.name)+'</div></div>' +
+        '<span class="pill" style="'+statSty+'">'+statTxt+'</span>' +
+      '</div>' +
+      '<div style="display:flex;align-items:center;gap:10px">' +
+        '<div class="rtt-trk" style="flex:1"><div class="rtt-fill" style="width:'+pctBar.toFixed(1)+'%;background:'+barC+'"></div></div>' +
+        '<span class="cond" style="font-size:14px;width:60px;text-align:right">'+moneyK(w.rev)+'</span>' +
+      '</div>' +
+      '<div style="display:flex;justify-content:space-between;margin-top:5px">' +
+        '<span class="tiny muted">Goal: '+moneyK(w.target)+'</span>' +
+        '<span class="tiny muted">'+Math.round(w.pctN)+'% of target</span>' +
+      '</div></div>';
+  }).join('');
+  return rttDrwHdr('Team Wars', 'November 2026 · ranked by revenue') + cards +
+    '<div class="tiny muted" style="text-align:center;margin-top:4px">Prize: Utah Jazz Suite experience or Vegas Supercars driving experience</div>';
+}
+
+function rttRaffleContent() {
+  var RANGE_S='2026-11-01', RANGE_E='2026-12-31';
+  function weekSun(dateStr){
+    var d=new Date(dateStr+'T12:00:00Z'),day=d.getUTCDay();
+    return new Date(d.getTime()-day*86400000).toISOString().slice(0,10);
+  }
+  var repWeeks={},repNames={},repTeams={};
+  (S.data.deals||[]).forEach(function(d){
+    var date=d.date_deadline||d.date_closed||'';
+    if(date<RANGE_S||date>RANGE_E)return;
+    var wk=weekSun(date);
+    var closer=(d.closer||'').trim(),setter=(d.setter||'').trim();
+    var self=closer&&setter&&norm(closer)===norm(setter);
+    function add(name,team){
+      var k=norm(name);
+      if(!repWeeks[k]){repWeeks[k]={};repNames[k]=name;repTeams[k]=team||'';}
+      repWeeks[k][wk]=(repWeeks[k][wk]||0)+1;
+    }
+    if(closer)add(closer,d.office||'');
+    if(setter&&!self)add(setter,d.office||'');
+  });
+  var entries=Object.keys(repWeeks).map(function(k){
+    var weeks=repWeeks[k];
+    var qualWks=Object.keys(weeks).filter(function(w){return weeks[w]>=2;}).sort();
+    return{key:k,name:repNames[k],team:repTeams[k],entries:qualWks.length,qualWks:qualWks,allWeeks:weeks};
+  }).filter(function(r){return r.entries>0;}).sort(function(a,b){return b.entries-a.entries||a.name.localeCompare(b.name);});
+  var hdr=rttDrwHdr('Tahiti Ticket Raffle','Nov + Dec 2026 · 2+ deals/week = 1 raffle entry');
+  if(!entries.length){
+    return hdr+'<div class="card pad"><div class="tiny muted">No qualifying weeks yet — a rep needs 2+ deals in one week to earn an entry.</div></div>';
+  }
+  var rows=entries.map(function(r,i){
+    var wkLabels=r.qualWks.map(function(w){
+      var d=new Date(w+'T12:00:00Z');
+      return d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+    }).join(', ');
+    return '<tr><td style="color:var(--muted)">'+(i+1)+'</td>' +
+      '<td class="l" style="font-weight:600">'+esc(r.name)+'</td>' +
+      '<td class="l">'+esc(r.team)+'</td>' +
+      '<td><span class="pill" style="background:var(--act-bg);color:var(--act-fg);font-size:12px">'+r.entries+' '+(r.entries===1?'entry':'entries')+'</span></td>' +
+      '<td class="l"><span class="tiny muted">'+wkLabels+'</span></td></tr>';
+  }).join('');
+  return hdr+'<div class="card" style="padding:16px 18px 6px"><div class="tablebox"><table>' +
+    '<thead><tr><th>#</th><th class="l">Rep</th><th class="l">Team</th><th>Entries</th><th class="l">Qualifying weeks (week of Sun)</th></tr></thead>' +
+    '<tbody>'+rows+'</tbody></table></div></div>';
 }
 
 load(false);
